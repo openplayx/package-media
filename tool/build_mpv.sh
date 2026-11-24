@@ -4,7 +4,10 @@
 # linked statically; FFmpeg is package-ffmpeg's shared build, so the app has
 # one FFmpeg for media processing and playback.
 #
-#   tool/build_mpv.sh <target>        targets: macos-arm64 macos-x86_64
+#   tool/build_mpv.sh <target>
+#   targets: macos-arm64 macos-x86_64 ios-arm64 ios-sim-arm64 ios-sim-x86_64
+#            tvos-arm64 tvos-sim-arm64
+#            android-arm64-v8a android-armeabi-v7a android-x86_64 (ANDROID_NDK_HOME)
 #
 # Env:    OPX_FFMPEG_PACKAGE  package-ffmpeg checkout (default ../ffmpeg-package)
 # Output: third_party/mpv/<target>/lib/libmpv.2.dylib (git-ignored), whose
@@ -32,22 +35,72 @@ fi
 # FFmpeg first: libmpv links exactly the build the app embeds.
 case "$target" in
   macos-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" macos ;;
+  ios-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" ios ;;
+  tvos-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" tvos ;;
+  android-*)
+    if [ ! -f "$ffmpeg/lib/libavformat.so" ] ||
+      [ "$(cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null)" != "$(bash "$ffmpeg_package/tool/build_fingerprint.sh" "$target")" ]; then
+      bash "$ffmpeg_package/tool/build_ffmpeg.sh" "$target"
+    fi ;;
   *) echo "unsupported target $target" >&2; exit 1 ;;
 esac
 
 jobs="${OPX_BUILD_JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || nproc)}"
+swift_flags=''
+apple_link=''
+# Font provider for libass: Core Text on Apple platforms (default).
+libass_options=(-Dfontconfig=disabled -Ddirectwrite=disabled)
 case "$target" in
-  macos-*)
+  macos-*|ios-*|tvos-*)
     arch="${target##*-}"
-    sdk=macosx; min=12.0
+    case "$target" in
+      macos-*) sdk=macosx; min=12.0; deployment="-mmacosx-version-min=$min" ;;
+      ios-sim-*) sdk=iphonesimulator; min=15.0; deployment="-mios-simulator-version-min=$min" ;;
+      ios-*) sdk=iphoneos; min=15.0; deployment="-miphoneos-version-min=$min" ;;
+      tvos-sim-*) sdk=appletvsimulator; min=15.0; deployment="-target $arch-apple-tvos$min-simulator" ;;
+      tvos-*) sdk=appletvos; min=15.0; deployment="-target $arch-apple-tvos$min" ;;
+    esac
     sysroot="$(xcrun --sdk "$sdk" --show-sdk-path)"
     cc="$(xcrun --sdk "$sdk" -f clang)"; cxx="$(xcrun --sdk "$sdk" -f clang++)"
     ar="$(xcrun --sdk "$sdk" -f ar)"; strip_tool="$(xcrun --sdk "$sdk" -f strip)"
-    flags="-arch $arch -isysroot $sysroot -mmacosx-version-min=$min"
+    flags="-arch $arch -isysroot $sysroot $deployment"
     system=darwin; cpu="$arch"
-    # Cocoa parts of mpv are Swift; compile them for the target architecture.
-    swift_flags="-target $arch-apple-macos$min -sdk $sysroot"
     if [ "$arch" = arm64 ]; then family=aarch64; else family=x86_64; fi
+    # Room for make_mpv_frameworks.sh to rewrite the install names.
+    apple_link="-Wl,-headerpad_max_install_names $flags"
+    case "$target" in
+      macos-*)
+        # Cocoa parts of mpv are Swift; compile them for the target architecture.
+        swift_flags="-target $arch-apple-macos$min -sdk $sysroot"
+        platform_options=(-Dvideotoolbox-gl=enabled -Dcoreaudio=enabled) ;;
+      *)
+        # OpenGL ES with VideoToolbox interop, AudioUnit output; no Cocoa/Swift.
+        platform_options=(-Dios-gl=enabled -Daudiounit=enabled -Dcocoa=disabled
+          -Dswift-build=disabled -Dcoreaudio=disabled -Davfoundation=disabled
+          -Dvideotoolbox-gl=disabled) ;;
+    esac
+    ;;
+  android-*)
+    abi="${target#android-}"
+    ndk="${ANDROID_NDK_HOME:?set ANDROID_NDK_HOME}"
+    tc="$ndk/toolchains/llvm/prebuilt/$(uname -s | tr A-Z a-z)-x86_64/bin"
+    case "$abi" in
+      arm64-v8a) triple=aarch64-linux-android; family=aarch64; cpu=aarch64 ;;
+      armeabi-v7a) triple=armv7a-linux-androideabi; family=arm; cpu=armv7 ;;
+      x86_64) triple=x86_64-linux-android; family=x86_64; cpu=x86_64 ;;
+      *) echo "unknown ABI $abi" >&2; exit 1 ;;
+    esac
+    cc="$tc/${triple}24-clang"; cxx="$tc/${triple}24-clang++"
+    ar="$tc/llvm-ar"; strip_tool="$tc/llvm-strip"
+    # 16 KB pages (Android 15+); C++ dependencies use the static runtime.
+    flags="-fPIC"
+    link_flags="-Wl,-z,max-page-size=16384 -static-libstdc++"
+    system=android
+    # No system font provider on Android: fonts come from mpv's font options.
+    libass_options+=(-Drequire-system-font-provider=false)
+    # EGL/GLES output for media_kit's Surface, AAudio/OpenSL ES/AudioTrack.
+    platform_options=(-Degl-android=enabled -Dandroid-media-ndk=enabled -Daaudio=enabled
+      -Dopensles=enabled -Daudiotrack=enabled -Diconv=disabled)
     ;;
 esac
 mkdir -p "$work/downloads" "$deps/lib/pkgconfig"
@@ -59,7 +112,7 @@ quote() { local out='' w; for w in $1; do out="$out'$w', "; done; printf '[%s]' 
   echo "ar = '$ar'"; echo "strip = '$strip_tool'"; echo "pkg-config = 'pkg-config'"
   echo "[built-in options]"
   for lang in c cpp objc objcpp; do
-    echo "${lang}_args = $(quote "$flags")"; echo "${lang}_link_args = $(quote "$flags")"
+    echo "${lang}_args = $(quote "$flags")"; echo "${lang}_link_args = $(quote "$flags ${link_flags:-}")"
   done
   echo "[host_machine]"
   echo "system = '$system'"; echo "cpu_family = '$family'"; echo "cpu = '$cpu'"; echo "endian = 'little'"
@@ -105,7 +158,7 @@ meson_build fribidi "$(fetch fribidi)" -Ddocs=false -Dbin=false -Dtests=false
 meson_build harfbuzz "$(fetch harfbuzz)" -Dfreetype=enabled -Dglib=disabled -Dgobject=disabled \
   -Dcairo=disabled -Dicu=disabled -Dchafa=disabled -Dtests=disabled -Ddocs=disabled \
   -Dutilities=disabled -Dintrospection=disabled
-meson_build libass "$(fetch libass)" -Dfontconfig=disabled -Ddirectwrite=disabled \
+meson_build libass "$(fetch libass)" "${libass_options[@]}" \
   -Dlibunibreak=disabled -Dasm="$asm" -Dtest=disabled -Dprofile=disabled
 
 placebo="$(fetch libplacebo)"
@@ -138,10 +191,18 @@ if ! { meson setup "$mpv_build" "$mpv_src" --cross-file "$cross" --prefix="$pref
     -Drubberband=disabled -Dzimg=disabled -Dlcms2=disabled -Dvapoursynth=disabled \
     -Dlibcurl=disabled -Dlibavdevice=disabled -Dvulkan=disabled \
     ${swift_flags:+-Dswift-flags="$swift_flags"} \
-    -Dgl=enabled -Dvideotoolbox-gl=enabled -Dcoreaudio=enabled \
-    -Dc_link_args="-Wl,-headerpad_max_install_names" &&
+    -Dgl=enabled "${platform_options[@]}" \
+    ${apple_link:+-Dc_link_args="$apple_link"} &&
   meson compile -C "$mpv_build" -j "$jobs" && meson install -C "$mpv_build"; } > "$mpv_build.log" 2>&1; then
   tail -40 "$mpv_build.log" >&2; exit 1
+fi
+if [[ "$target" = android-* ]]; then
+  # media_kit loads libmpv.so and its JNI helper from the APK.
+  # mpv names the library libmpv.so on Android (no versioned soname).
+  cp -L "$prefix/lib/libmpv.so" "$prefix/lib/libmpv.so.packaged"
+  "$cc" -shared -fPIC -O2 -fvisibility=hidden -Wl,-z,max-page-size=16384 \
+    "$root/tool/android/mediakitandroidhelper.c" -landroid -llog \
+    -o "$prefix/lib/libmediakitandroidhelper.so"
 fi
 version="$(awk '$1 == "mpv" {n = split($3, part, "/"); print part[n]}' "$root/tool/mpv-deps.tsv")"
 {

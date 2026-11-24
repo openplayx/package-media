@@ -3,12 +3,14 @@
 # when missing or stale, then wraps it as Mpv.xcframework. Called at
 # `pod install` by libs/media_kit_libs_<platform>_video. The first build takes
 # several minutes.
-#   tool/ensure_mpv_apple.sh macos
+#   tool/ensure_mpv_apple.sh macos|ios|tvos
 set -euo pipefail
 platform="${1:?usage: ensure_mpv_apple.sh macos}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
 case "$platform" in
   macos) targets=(macos-arm64 macos-x86_64) ;;
+  ios) targets=(ios-arm64 ios-sim-arm64 ios-sim-x86_64) ;;
+  tvos) targets=(tvos-arm64 tvos-sim-arm64) ;;
   *) echo "unsupported platform $platform" >&2; exit 1 ;;
 esac
 for target in "${targets[@]}"; do

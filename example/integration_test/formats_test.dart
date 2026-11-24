@@ -30,6 +30,10 @@ import 'package:integration_test/integration_test.dart';
 import 'package:openplayx_media/openplayx_media.dart';
 
 const _samplesPath = String.fromEnvironment('OPX_SAMPLES');
+
+/// Remote runs (Android): the sample list itself, base64 JSON, because the
+/// device cannot read the host's file.
+const _samplesBase64 = String.fromEnvironment('OPX_SAMPLES_B64');
 const _reportPath = String.fromEnvironment('OPX_REPORT');
 const _engine = String.fromEnvironment('OPX_ENGINE', defaultValue: 'mpv');
 
@@ -55,7 +59,7 @@ const _maxLossRatio = 0.1;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  if (_samplesPath.isEmpty) {
+  if (_samplesPath.isEmpty && _samplesBase64.isEmpty) {
     test('format samples are configured', () {
       fail('OPX_SAMPLES is not set; run tool/test_formats.sh');
     });
@@ -63,16 +67,29 @@ void main() {
   }
   final samples = [
     for (final s
-        in (jsonDecode(File(_samplesPath).readAsStringSync())
-                as Map<String, dynamic>)['samples']
+        in (jsonDecode(
+              _samplesBase64.isNotEmpty
+                  ? utf8.decode(base64.decode(_samplesBase64))
+                  : File(_samplesPath).readAsStringSync(),
+            ) as Map<String, dynamic>)['samples']
             as List)
       s as Map<String, dynamic>,
   ];
-  final reportDir = Directory(_reportPath)..createSync(recursive: true);
+  // On a device (Android) the host's report directory does not exist: the
+  // results are printed (OPX_RESULT lines) and collected from the log.
+  var reportDir = Directory(_reportPath);
+  try {
+    reportDir.createSync(recursive: true);
+  } catch (_) {
+    reportDir = Directory.systemTemp.createTempSync('opx-formats');
+  }
   final results = <Map<String, dynamic>>[];
   tearDownAll(() {
     // One file per app launch; tool/format_report.py merges them.
-    final name = File(_samplesPath).uri.pathSegments.last
+    final name = File(_samplesPath.isEmpty ? 'samples.json' : _samplesPath)
+        .uri
+        .pathSegments
+        .last
         .replaceAll('samples', 'results');
     File('${reportDir.path}/$name').writeAsStringSync(
       const JsonEncoder.withIndent(' ').convert({'results': results}),
@@ -89,6 +106,8 @@ void main() {
         await check.run(tester, reportDir);
       }
       check.result['result'] = check.failures.isEmpty ? 'passed' : 'failed';
+      // ignore: avoid_print
+      print('OPX_RESULT ${jsonEncode(check.result)}');
       expect(check.failures, isEmpty, reason: check.failures.join('\n'));
     }, timeout: const Timeout(Duration(minutes: 2)));
   }
@@ -135,7 +154,8 @@ class _Check {
               // Statistics over 50 codec frames (TrueHD frames are only 40
               // samples) behind a low-pass: lossy codecs add noise around
               // zero that would count as crossings.
-              if (wantAudio) 'af': '@st:lavfi=[lowpass=f=3000,astats=metadata=1:reset=50]',
+              if (wantAudio)
+                'af': '@st:lavfi=[lowpass=f=3000,astats=metadata=1:reset=50]',
             },
           )
         : LibVlcBackend(
@@ -225,7 +245,10 @@ class _Check {
 
     // 1. Start.
     final opened = Stopwatch()..start();
-    await backend.open(Uri.file(sample['path'] as String));
+    final path = sample['path'] as String;
+    await backend.open(
+      path.startsWith('http') ? Uri.parse(path) : Uri.file(path),
+    );
     final started = await waitFor(
       () =>
           backend.value.status == PlaybackStatus.error ||
@@ -259,7 +282,9 @@ class _Check {
           final grid = (sample['grid'] as List).cast<int>();
           final diff = await _frameDiff(
             png,
-            File(frameRef).readAsBytesSync(),
+            frameRef.startsWith('http')
+                ? await _fetch(frameRef)
+                : File(frameRef).readAsBytesSync(),
             grid[0],
             grid[1],
           );
@@ -593,4 +618,17 @@ _Level _measure(Uint8List bytes) {
   if (n <= 0) return const _Level(0, 0, 0);
   final seconds = n / rate;
   return _Level(math.sqrt(sum / n), crossings / 2 / seconds, frames / rate);
+}
+
+/// Bytes of an HTTP resource (samples served by the host in remote runs).
+Future<Uint8List> _fetch(String url) async {
+  final client = HttpClient();
+  try {
+    final response = await (await client.getUrl(Uri.parse(url))).close();
+    final builder = BytesBuilder(copy: false);
+    await response.forEach(builder.add);
+    return builder.takeBytes();
+  } finally {
+    client.close();
+  }
 }

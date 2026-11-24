@@ -56,7 +56,12 @@ class MpvBackend extends PlayerBackend {
 
   /// Platforms with a package-media libmpv build.
   static bool get isSupported =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
+      !kIsWeb &&
+      [
+        TargetPlatform.macOS,
+        TargetPlatform.iOS,
+        TargetPlatform.android,
+      ].contains(defaultTargetPlatform);
 
   late final Player _player;
   late final VideoController _video;

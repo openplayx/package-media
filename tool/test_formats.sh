@@ -43,14 +43,75 @@ for i in range(0, len(samples), size):
     (report / f"samples-{i // size + 1:02d}.json").write_text(json.dumps({"samples": samples[i:i + size]}))
 PY
 
+# Android devices cannot read the host's cache: serve it over HTTP (the
+# emulator reaches the host as 10.0.2.2) and collect the printed results.
+remote=""
+if flutter devices --machine 2>/dev/null | python3 -I -c '
+import json, sys
+dev = sys.argv[1]
+sys.exit(0 if any(d["id"] == dev and d["targetPlatform"].startswith("android") for d in json.load(sys.stdin)) else 1)
+' "$device"; then
+  remote="http://10.0.2.2:${OPX_SAMPLE_PORT:-8765}"
+  python3 -I "$root/tool/serve_samples.py" "${OPX_SAMPLE_PORT:-8765}" "$cache" >/dev/null 2>&1 &
+  server=$!
+  trap 'kill $server 2>/dev/null' EXIT
+fi
+
 cd "$root/example"
 flutter pub get >/dev/null
+# Remote runs: sample paths (and playlist entries) become host URLs.
+to_remote() {
+  python3 -I - "$1" "$cache" "$remote" <<'PY'
+import json, pathlib, sys
+part, cache, remote = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
+(cache / "remote").mkdir(exist_ok=True)
+def url(path: str) -> str:
+    return remote + "/" + str(pathlib.Path(path).relative_to(cache))
+data = json.loads(part.read_text())
+for s in data["samples"]:
+    if s.get("status") != "ok" or s["path"].startswith("http"):
+        continue
+    path = pathlib.Path(s["path"])
+    if s["ext"] in ("pls", "m3u", "asx", "cue"):
+        # Playlist entries point at host paths: copies with sample URLs.
+        text = path.read_text().replace((cache / "media").as_uri(), remote + "/media")
+        text = text.replace(str(cache / "media"), remote + "/media")
+        path = cache / "remote" / path.name
+        path.write_text(text)
+    s["path"] = url(str(path))
+    if s.get("expect", {}).get("frame"):
+        s["expect"]["frame"] = url(s["expect"]["frame"])
+part.write_text(json.dumps(data))
+PY
+}
 run_part() {
+  [ -z "$remote" ] || to_remote "$1"
   echo "== playback tests ($device): $(basename "$1")"
-  flutter test integration_test/formats_test.dart -d "$device" \
-    --dart-define=OPX_SAMPLES="$1" \
-    --dart-define=OPX_REPORT="$report" --dart-define=OPX_ENGINE="$engine" 2>&1 | tee -a "$report/flutter.log" |
-    grep -E '^[0-9]+:[0-9]+ \+[0-9]+.*: [^ ]+$|Some tests failed|All tests passed' || true
+  local log="$report/$(basename "$1" .json).log"
+  # A watchdog: flutter test occasionally hangs while attaching to an app on
+  # a simulator or device; the batch's samples are then rerun alone.
+  local samples_define=(--dart-define=OPX_SAMPLES="$1")
+  [ -z "$remote" ] || samples_define=(--dart-define=OPX_SAMPLES_B64="$(base64 < "$1" | tr -d '\n')")
+  flutter test integration_test/formats_test.dart -d "$device" "${samples_define[@]}" \
+    --dart-define=OPX_REPORT="$report" --dart-define=OPX_ENGINE="$engine" > "$log" 2>&1 &
+  local pid=$! waited=0
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep 5; waited=$((waited + 5))
+    if [ "$waited" -ge "${OPX_BATCH_TIMEOUT:-900}" ]; then
+      echo "   batch timed out after ${waited}s"; pkill -P "$pid" 2>/dev/null; kill "$pid" 2>/dev/null; break
+    fi
+  done
+  wait "$pid" 2>/dev/null || true
+  grep -E '^[0-9]+:[0-9]+ \+[0-9]+.*: [^ ]+$|Some tests failed|All tests passed' "$log" | tail -3 || true
+  cat "$log" >> "$report/flutter.log"
+  if [ -n "$remote" ]; then
+    # Results printed by the test on the device (OPX_RESULT lines).
+    python3 -I - "$log" "$report/$(basename "$1" .json | sed 's/samples/results/').json" <<'PY'
+import json, sys
+results = [json.loads(line.split("OPX_RESULT ", 1)[1]) for line in open(sys.argv[1], errors="replace") if "OPX_RESULT " in line]
+open(sys.argv[2], "w").write(json.dumps({"results": results}, indent=1))
+PY
+  fi
 }
 for part in "$report"/samples-[0-9]*.json; do run_part "$part"; done
 

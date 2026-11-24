@@ -1,0 +1,56 @@
+// libmpv for media_kit on Android, built by package-media from pinned sources
+// (tool/build_mpv.sh) and linked to package-ffmpeg's shared FFmpeg, which
+// openplayx_ffmpeg packages: the APK has one FFmpeg.
+group = "com.alexmercerind.media_kit_libs_android_video"
+version = "1.0"
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.7.3")
+    }
+}
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+apply plugin: "com.android.library"
+
+def packageRoot = file("../../..").canonicalFile
+def abiByPlatform = ["android-arm": "armeabi-v7a", "android-arm64": "arm64-v8a", "android-x64": "x86_64"]
+def targetPlatforms = project.findProperty("target-platform")
+def abis = targetPlatforms == null ? ["arm64-v8a", "armeabi-v7a", "x86_64"] :
+    targetPlatforms.toString().split(",").collect { abiByPlatform[it.trim()] }.findAll { it != null }
+
+android {
+    namespace = "com.alexmercerind.media_kit_libs_android_video"
+    compileSdk = 35
+    defaultConfig {
+        minSdk = 24
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = [new File(packageRoot, "third_party/mpv/jniLibs")]
+        }
+    }
+}
+
+dependencies {
+    implementation("androidx.annotation:annotation:1.9.1")
+}
+
+// Builds (or reuses) libmpv for the ABIs of this build before packaging.
+def ndkDir = android.ndkDirectory
+tasks.register("buildLibmpv", Exec) {
+    commandLine "bash", new File(packageRoot, "tool/ensure_mpv_android.sh").path, *abis
+    environment "ANDROID_NDK_HOME", System.getenv("ANDROID_NDK_HOME") ?: ndkDir.path
+}
+preBuild.dependsOn("buildLibmpv")
