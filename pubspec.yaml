@@ -1,0 +1,26 @@
+name: openplayx_media
+description: OpenPlayX playback - libVLC and libmpv engines behind one interface, with format routing.
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.13.7
+  flutter: ">=3.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  # libVLC engine (sibling checkout of openplayx/package-libvlc).
+  openplayx_playback:
+    path: ../package-libvlc
+  # The one FFmpeg of the app; libmpv links its shared build.
+  openplayx_ffmpeg:
+    path: ../ffmpeg-package
+  # libmpv engine: media_kit's Dart API and video widget. Its native
+  # libraries are this repository's builds (libs/), not media_kit's.
+  media_kit: 1.2.6
+  media_kit_video: 2.0.1
+  media_kit_libs_macos_video:
+    path: libs/media_kit_libs_macos_video
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
