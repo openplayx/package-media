@@ -133,8 +133,15 @@ case "$target" in
     system=windows; cpu=x86_64; family=x86_64
     libass_options=(-Dfontconfig=disabled -Ddirectwrite=enabled)
     # Render API over the app's OpenGL (ANGLE in media_kit_video); WASAPI.
+    # MSYS2's packages (pulled in by its ffmpeg for the sample tools) must not
+    # be autodetected (meson also looks through CMake): shaderc, disc and
+    # SDL/OpenAL/JACK support are not used by the render API.
     platform_options=(-Dgl-win32=enabled -Dwasapi=enabled -Dd3d11=disabled
-      -Dd3d-hwaccel=enabled -Diconv=disabled -Dwin32-smtc=disabled)
+      -Dd3d-hwaccel=enabled -Diconv=disabled -Dwin32-smtc=disabled
+      -Dshaderc=disabled -Dspirv-cross=disabled -Dlibbluray=disabled -Ddvdnav=disabled
+      -Dcdda=disabled -Dopenal=disabled -Djack=disabled -Dsdl2-audio=disabled
+      -Dsdl2-video=disabled -Dsdl2-gamepad=disabled -Dsixel=disabled -Dcaca=disabled
+      -Djpeg=disabled)
     ;;
   linux-*)
     case "$target/$(uname -m)" in linux-arm64/aarch64|linux-x86_64/x86_64) ;; *) echo "build $target on a matching Linux host" >&2; exit 1 ;; esac
