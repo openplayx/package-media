@@ -63,16 +63,19 @@ tool/test_formats.sh --engine mpv              # 或 --engine vlc；默认 macOS
 tool/test_formats.sh --engine mpv --only 'truehd,ast,mp3*'
 tool/test_formats.sh --engine mpv --pack --only 'pack-*'   # 素材包样本
 tool/test_formats.sh --engine mpv --device <iOS 模拟器 | emulator-5554 | Apple TV 模拟器>
+tool/test_formats.sh --engine auto --device emulator-5554,emulator-5556   # 两个进程
 tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engine mpv --device linux
 ```
 
 `--pack` 把 [openplayx-test](https://github.com/openplayx/openplayx-test) `formats/` 素材包（ALL-370）中的本地文件加为样本，命名为 `pack-<编号>-<扩展名>`，并标注 Linear 编号；期望值来自 ffprobe 和素材包的 440 Hz 正弦音。素材包的视频是动态测试图案，没有参考画面，这些样本不做截图比对。
 
+`OPX_PARALLEL` 指定测试进程数（Mac Studio 上默认 2）。每个进程使用一份独立的宿主 App 目录（`example-w<N>/`）和一台设备：macOS 共用本机，模拟器需要每个进程一台，用 `--device` 逗号分隔传入（例如再开一台 Android 模拟器：`emulator -avd <avd> -read-only -port 5556`）。原生库在各进程启动前统一编译一次。
+
 Android 设备通过 HTTP 从电脑读取样本（`tool/serve_samples.py`，支持 Range），结果打印到日志后收集；Apple TV 运行冒烟测试（起播、尺寸、Seek 后播到结尾、音量和频率，不做截图比对）。
 
 mpv 用空音频输出播放（不出声），用 FFmpeg 的 `astats` 滤镜（先低通，每 50 个编码帧统计一次）测量解码音频的音量和频率，与 1 kHz 正弦音比较。报告位于 `build/formats/<引擎>-<时间>/report.md`。
 
-mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple TV 模拟器 73、Android 模拟器 72、Linux arm64 72（Linux amd64 关键样本全部通过）。失败的是 ASX（mpv 不支持）和 `.mmf` 音量问题（ALL-373）。libVLC 在 macOS 上通过 66 个。经过路由（`--engine auto`，含素材包共 141 个样本，macOS）：通过 135 个；失败的是 ASX（两个引擎都不支持）、左右并排 3D 的尺寸、DSF 的 Seek、损坏的 RA 素材和素材包里的 `.mmf`。
+mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple TV 模拟器 73、Android 模拟器 72、Linux arm64 72（Linux amd64 关键样本全部通过）。失败的是 ASX（mpv 不支持）和 `.mmf` 音量问题（ALL-373）。libVLC 在 macOS 上通过 66 个。经过路由（`--engine auto`，含素材包共 141 个样本）：macOS 通过 135 个，iOS 模拟器 133 个，Android 模拟器 135 个；失败的是 ASX（两个引擎都不支持）、左右并排 3D 的尺寸、DSF 的 Seek、损坏的 RA 素材和素材包里的 `.mmf`。
 各引擎单独跑素材包（67 个样本，macOS）：mpv 通过 61 个，libVLC 通过 48 个。mpv 失败的是 ASX、DSF 和 WavPack 的 Seek、MOD（package-ffmpeg 未启用 libopenmpt），以及左右并排 3D 文件按校正后的尺寸报告；RA 素材本身损坏。libVLC 的很多失败是 3 秒音频在 Seek 后立即结束，同样的编码在 6 秒样本上通过（待查）。libVLC 播不了而 mpv 能播的：TrueHD、AST、Ogg 中的 FLAC、pls/m3u/cue 播放列表、带进度的裸 MPEG-2 视频。两者都不支持 ASX 播放列表。
 
 ### 已知问题

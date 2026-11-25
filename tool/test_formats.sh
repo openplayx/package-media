@@ -5,10 +5,15 @@
 # engine's PlayerBackend in the example host app (macOS). Not part of
 # `flutter test`; run them when this package changes (see README).
 #
-# Usage: tool/test_formats.sh [--engine mpv|vlc|auto] [--only ID[,ID|GLOB...]] [--pack] [--device macos]
+# Usage: tool/test_formats.sh [--engine mpv|vlc|auto] [--only ID[,ID|GLOB...]] [--pack]
+#                             [--device macos | DEVICE[,DEVICE...]]
 # Env:   OPX_LIBVLC_PACKAGE  package-libvlc checkout (default ../package-libvlc)
 # Env:   OPX_SAMPLE_CACHE  sample cache (default ~/.cache/openplayx-libvlc-samples)
 #        OPX_REPORT_DIR    report directory (default build/formats/<timestamp>)
+#        OPX_PARALLEL      test processes (default 2 on a Mac Studio, else 1). Each
+#                          has its own copy of the host app (example-w<N>/, own build
+#                          directory) and its own device: macOS/Linux share the host,
+#                          simulators and emulators need one --device each.
 #        OPX_FORMAT_PACK   material pack for --pack (default ../openplayx-test/formats;
 #                          its samples are "pack-<issue>-<ext>", e.g. --only 'pack-*')
 set -euo pipefail
@@ -72,7 +77,7 @@ import json, sys
 dev, text = sys.argv[1], sys.stdin.read()
 devices = json.loads(text[text.find("["):]) if "[" in text else []  # skip banners
 sys.exit(0 if any(d["id"] == dev and d["targetPlatform"].startswith("android") for d in devices) else 1)
-' "$device"; then
+' "${device%%,*}"; then
   remote="http://10.0.2.2:${OPX_SAMPLE_PORT:-8765}"
   python3 -I "$root/tool/serve_samples.py" "${OPX_SAMPLE_PORT:-8765}" "$cache" >/dev/null 2>&1 &
   server=$!
@@ -82,13 +87,64 @@ fi
 # Apple TV simulators: flutter-tvos runs lib/tvos_smoke.dart (no
 # integration_test runner); the simulator reads the host's sample paths.
 tvos=""
-if xcrun simctl list devices 2>/dev/null | grep -F "($device)" | grep -q "Apple TV"; then
+if xcrun simctl list devices 2>/dev/null | grep -F "(${device%%,*})" | grep -q "Apple TV"; then
   tvos="${FLUTTER_TVOS_BIN:-$root/../.toolchains/flutter-tvos/bin/flutter-tvos}"
   [ -x "$tvos" ] || { echo "flutter-tvos not found ($tvos); set FLUTTER_TVOS_BIN" >&2; exit 2; }
 fi
 
-cd "$root/example"
-flutter pub get >/dev/null
+# Parallel test processes: worker 1 uses example/, worker N a copy in
+# example-w<N>/ (same parent, so its relative path dependencies still
+# resolve), each with its own build directory and device.
+IFS=, read -r -a devices <<< "$device"
+if [ -z "${OPX_PARALLEL:-}" ] && [ "$(uname -s)" = Darwin ] &&
+   system_profiler SPHardwareDataType 2>/dev/null | grep -q "Model Name: Mac Studio"; then
+  parallel=2
+else
+  parallel="${OPX_PARALLEL:-1}"
+fi
+case "${devices[0]}" in macos|linux|windows) ;; *)
+  if [ "${#devices[@]}" -lt "$parallel" ]; then
+    echo "== $parallel processes need $parallel devices (--device a,b); running ${#devices[@]}"
+    parallel="${#devices[@]}"
+  fi ;;
+esac
+# Native libraries are built once, before the processes start: their pod
+# install / Gradle runs would otherwise build the same FFmpeg and libmpv
+# side by side (the builds are cached, so this is quick when current).
+if [ "$parallel" -gt 1 ]; then
+  first="${devices[0]}"
+  native_platform=""
+  if [ "$first" = macos ]; then
+    native_platform=macos
+  elif [ -n "$remote" ]; then
+    abi="$(adb -s "$first" shell getprop ro.product.cpu.abi 2>/dev/null | tr -d '\r')"
+    echo "== native libraries (android-$abi)"
+    bash "$root/tool/ensure_mpv_android.sh" "$abi" > "$report/native.log" 2>&1 ||
+      { echo "native build failed, see $report/native.log" >&2; exit 1; }
+  elif xcrun simctl list devices 2>/dev/null | grep -F "($first)" | grep -q "Apple TV"; then
+    native_platform=tvos
+  elif xcrun simctl list devices 2>/dev/null | grep -qF "($first)"; then
+    native_platform=ios
+  fi
+  if [ -n "$native_platform" ]; then
+    echo "== native libraries ($native_platform)"
+    { bash "${OPX_FFMPEG_PACKAGE:-$root/../ffmpeg-package}/tool/ensure_ffmpeg_apple.sh" "$native_platform" &&
+      bash "$root/tool/ensure_mpv_apple.sh" "$native_platform"; } > "$report/native.log" 2>&1 ||
+      { echo "native build failed, see $report/native.log" >&2; exit 1; }
+  fi
+fi
+worker_dir() { [ "$1" -eq 1 ] && echo "$root/example" || echo "$root/example-w$1"; }
+worker_device() { local d="${devices[$(( $1 - 1 ))]:-}"; echo "${d:-${devices[0]}}"; }
+for ((w = 1; w <= parallel; w++)); do
+  dir="$(worker_dir "$w")"
+  if [ "$w" -gt 1 ]; then
+    mkdir -p "$dir"
+    rsync -a --delete --exclude build/ --exclude .dart_tool/ --exclude Pods/ \
+      --exclude ephemeral/ "$root/example/" "$dir/"
+  fi
+  (cd "$dir" && flutter pub get >/dev/null)
+done
+echo "== $parallel test process(es): $(for ((w = 1; w <= parallel; w++)); do printf '%s ' "$(worker_device "$w")"; done)"
 # Remote runs: sample paths (and playlist entries) become host URLs.
 to_remote() {
   python3 -I - "$1" "$cache" "$remote" <<'PY'
@@ -115,14 +171,18 @@ for s in data["samples"]:
 part.write_text(json.dumps(data))
 PY
 }
-run_part() {
+run_part() {  # samples.json worker
+  local device dir
+  device="$(worker_device "$2")"
+  dir="$(worker_dir "$2")"
   [ -z "$remote" ] || to_remote "$1"
-  echo "== playback tests ($device): $(basename "$1")"
+  echo "== playback tests ($device, worker $2): $(basename "$1")"
   local log="$report/$(basename "$1" .json).log"
   # A watchdog: flutter test occasionally hangs while attaching to an app on
   # a simulator or device; the batch's samples are then rerun alone.
   local samples_define=(--dart-define=OPX_SAMPLES="$(native "$1")")
   [ -z "$remote" ] || samples_define=(--dart-define=OPX_SAMPLES_B64="$(base64 < "$1" | tr -d '\n')")
+  cd "$dir"
   if [ -n "$tvos" ]; then
     "$tvos" run -d "$device" -t lib/tvos_smoke.dart \
       --dart-define=OPX_SAMPLES_B64="$(base64 < "$1" | tr -d '\n')" > "$log" 2>&1 &
@@ -139,7 +199,7 @@ run_part() {
   done
   wait "$pid" 2>/dev/null || true
   grep -E '^[0-9]+:[0-9]+ \+[0-9]+.*: [^ ]+$|Some tests failed|All tests passed' "$log" | tail -3 || true
-  cat "$log" >> "$report/flutter.log"
+  cat "$log" >> "$report/flutter-w$2.log"
   if [ -n "$tvos" ]; then
     # Base64 chunks printed by lib/tvos_smoke.dart (OPX_CHUNK lines).
     python3 -I - "$log" "$report/$(basename "$1" .json | sed 's/samples/results/').json" <<'PY'
@@ -165,7 +225,31 @@ open(sys.argv[2], "w").write(json.dumps({"results": results}, indent=1))
 PY
   fi
 }
-for part in "$report"/samples-[0-9]*.json; do run_part "$part"; done
+# Batches are dealt to the workers in turn; each worker runs its share in order.
+run_worker() {  # worker glob
+  local n=0 part
+  for part in $2; do
+    [ -e "$part" ] || continue
+    n=$((n + 1))
+    [ $(( (n - 1) % parallel + 1 )) -eq "$1" ] || continue
+    run_part "$part" "$1"
+    # A lone sample that timed out: flutter test sometimes waits forever for
+    # the first frame of a freshly launched app that did not come to the
+    # foreground. One more launch.
+    case "$part" in *-retry-*)
+      if grep -q "TimeoutException after" "${part%.json}.log"; then
+        echo "   timed out alone; one more launch"
+        run_part "$part" "$1"
+      fi ;;
+    esac
+  done
+}
+run_all() {
+  local pids=() w
+  for ((w = 1; w <= parallel; w++)); do run_worker "$w" "$1" & pids+=($!); done
+  for w in "${pids[@]}"; do wait "$w" || true; done
+}
+run_all "$report/samples-[0-9]*.json"
 
 python3 -I - "$report" <<'PY'
 import json, pathlib, sys
@@ -178,19 +262,9 @@ failed += [i for i in samples if i not in ran]  # crashed batches
 for n, i in enumerate(dict.fromkeys(failed), 1):
     (report / f"samples-retry-{n:02d}.json").write_text(json.dumps({"samples": [samples[i]]}))
 PY
-for part in "$report"/samples-retry-*.json; do
-  [ -e "$part" ] || continue
-  run_part "$part"
-  # A lone sample that timed out: flutter test sometimes waits forever for
-  # the first frame of a freshly launched app that did not come to the
-  # foreground. One more launch.
-  if grep -q "TimeoutException after" "${part%.json}.log"; then
-    echo "   timed out alone; one more launch"
-    run_part "$part"
-  fi
-done
+run_all "$report/samples-retry-*.json"
 
 status=0
 
-python3 -I "$root/tool/format_report.py" "$report" "$device" "$engine" || status=1
+python3 -I "$root/tool/format_report.py" "$report" "${device%%,*}" "$engine" || status=1
 exit $status

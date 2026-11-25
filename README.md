@@ -84,6 +84,7 @@ tool/test_formats.sh --engine mpv              # or --engine vlc; macOS by defau
 tool/test_formats.sh --engine mpv --only 'truehd,ast,mp3*'
 tool/test_formats.sh --engine mpv --pack --only 'pack-*'   # material pack samples
 tool/test_formats.sh --engine mpv --device <iOS simulator | emulator-5554 | Apple TV simulator>
+tool/test_formats.sh --engine auto --device emulator-5554,emulator-5556   # two processes
 tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engine mpv --device linux
 ```
 
@@ -92,6 +93,12 @@ tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engin
 (ALL-370) as samples named `pack-<issue>-<ext>`, tagged with their Linear
 issues; expectations come from ffprobe and its 440 Hz tone. Its moving test
 pattern has no reference frame, so these samples get no snapshot comparison.
+
+`OPX_PARALLEL` runs that many test processes (2 by default on a Mac Studio),
+each with its own copy of the host app (`example-w<N>/`) and its own device:
+macOS shares the host, simulators and emulators need one `--device` each
+(e.g. two Android emulators: `emulator -avd <avd> -read-only -port 5556`).
+The native libraries are built once before the processes start.
 
 Android devices get the samples over HTTP from the host (`tool/serve_samples.py`,
 with Range support) and print their results; Apple TV runs a smoke test
@@ -106,8 +113,8 @@ Latest results with mpv (74 generated samples): macOS 73, iOS simulator 73,
 Apple TV simulator 73, Android emulator 72, Linux arm64 72 (Linux amd64: the
 key samples pass). Failures: ASX (not supported by mpv) and the `.mmf` level
 issue (ALL-373). libVLC on macOS: 66.
-Through the router (`--engine auto`, 141 samples with the pack, macOS): 135
-pass; failures: ASX (both engines), the side-by-side 3D size, DSF seeking,
+Through the router (`--engine auto`, 141 samples with the pack): macOS 135,
+iOS simulator 133, Android emulator 135; failures: ASX (both engines), the side-by-side 3D size, DSF seeking,
 the broken RA fixture and the pack's `.mmf`.
 Material pack per engine (67 samples, macOS): mpv 61, libVLC 48. mpv fails ASX, DSF and
 WavPack seeking, MOD (no libopenmpt in package-ffmpeg), and reports the
