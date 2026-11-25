@@ -29,8 +29,15 @@ done
 
 fingerprint="$( { echo "$target"; cat "$0" "$root/tool/mpv-deps.tsv"; cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null || true; } |
   { if command -v sha256sum >/dev/null; then sha256sum; else shasum -a 256; fi; } | cut -d ' ' -f 1)"
+# Windows: libmpv staged inside libs/media_kit_libs_windows_video (its CMake
+# looks there; see below).
+stage_windows() {
+  local staged="$root/libs/media_kit_libs_windows_video/windows/libmpv"
+  rm -rf "$staged" && cp -R "$prefix/media_kit" "$staged"
+}
 if [ -f "$prefix/BUILD_FINGERPRINT" ] && [ "$(cat "$prefix/BUILD_FINGERPRINT")" = "$fingerprint" ]; then
   echo "libmpv $target is current"
+  [[ "$target" != windows-* ]] || stage_windows
   exit 0
 fi
 
@@ -309,6 +316,7 @@ if [[ "$target" = windows-* ]]; then
     echo "libmpv-2.dll imports DLLs the app does not ship: $(echo $foreign)" >&2
     exit 1
   fi
+  stage_windows
 fi
 if [[ "$target" = linux-* ]]; then
   # Users link the shared libmpv only: its static dependencies are inside, so
