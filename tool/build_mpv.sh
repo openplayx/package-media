@@ -127,6 +127,9 @@ case "$target" in
     mkdir -p "$runtime"
     for lib in winpthread stdc++; do cp "$(gcc -print-file-name=lib$lib.a)" "$runtime/"; done
     cp "$runtime/libwinpthread.a" "$runtime/libpthread.a"
+    # A dependency's pkg-config adds -lgcc_s (libgcc_s_seh-1.dll's import
+    # library); the static unwinder under that name keeps libgcc static too.
+    cp "$(gcc -print-file-name=libgcc_eh.a)" "$runtime/libgcc_s.a"
     link_flags="-L$(win "$runtime") -static-libgcc -static-libstdc++"
     system=windows; cpu=x86_64; family=x86_64
     libass_options=(-Dfontconfig=disabled -Ddirectwrite=enabled)
