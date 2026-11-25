@@ -9,9 +9,10 @@ workspace="$(cd "$here/../../.." && pwd)"
 platform=()
 if [ "${1:-}" = --platform ]; then platform=(--platform "$2"); shift 2; fi
 [ "${1:-}" = -- ] && shift
-image="openplayx/package-media-linux:$(shasum -a 256 "$here/Dockerfile" | cut -c1-12)"
+image="openplayx/package-media-linux:$( (shasum -a 256 2>/dev/null || sha256sum) < "$here/Dockerfile" | cut -c1-12)"
 docker image inspect "$image" >/dev/null 2>&1 || docker build ${platform[@]+"${platform[@]}"} -t "$image" "$here"
-flutter_rev="$(git -C "$(dirname "$(dirname "$(readlink -f "$(command -v flutter)")")")" rev-parse HEAD)"
+# The host's Flutter revision, or OPX_FLUTTER_REV on hosts without Flutter.
+flutter_rev="${OPX_FLUTTER_REV:-$(git -C "$(dirname "$(dirname "$(readlink -f "$(command -v flutter)")")")" rev-parse HEAD)}"
 cache="$HOME/.cache/openplayx-libvlc-samples"
 mkdir -p "$cache"
 exec docker run --rm ${platform[@]+"${platform[@]}"} \

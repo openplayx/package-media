@@ -58,6 +58,14 @@ sys.exit(0 if any(d["id"] == dev and d["targetPlatform"].startswith("android") f
   trap 'kill $server 2>/dev/null' EXIT
 fi
 
+# Apple TV simulators: flutter-tvos runs lib/tvos_smoke.dart (no
+# integration_test runner); the simulator reads the host's sample paths.
+tvos=""
+if xcrun simctl list devices 2>/dev/null | grep -F "($device)" | grep -q "Apple TV"; then
+  tvos="${FLUTTER_TVOS_BIN:-$root/../.toolchains/flutter-tvos/bin/flutter-tvos}"
+  [ -x "$tvos" ] || { echo "flutter-tvos not found ($tvos); set FLUTTER_TVOS_BIN" >&2; exit 2; }
+fi
+
 cd "$root/example"
 flutter pub get >/dev/null
 # Remote runs: sample paths (and playlist entries) become host URLs.
@@ -74,10 +82,11 @@ for s in data["samples"]:
         continue
     path = pathlib.Path(s["path"])
     if s["ext"] in ("pls", "m3u", "asx", "cue"):
-        # Playlist entries point at host paths: copies with sample URLs.
+        # Playlist entries point at host paths: copies with sample URLs, next
+        # to the samples (cue sheets name their file relatively).
         text = path.read_text().replace((cache / "media").as_uri(), remote + "/media")
         text = text.replace(str(cache / "media"), remote + "/media")
-        path = cache / "remote" / path.name
+        path = path.with_name(f"{path.stem}.remote{path.suffix}")
         path.write_text(text)
     s["path"] = url(str(path))
     if s.get("expect", {}).get("frame"):
@@ -93,8 +102,13 @@ run_part() {
   # a simulator or device; the batch's samples are then rerun alone.
   local samples_define=(--dart-define=OPX_SAMPLES="$1")
   [ -z "$remote" ] || samples_define=(--dart-define=OPX_SAMPLES_B64="$(base64 < "$1" | tr -d '\n')")
-  flutter test integration_test/formats_test.dart -d "$device" "${samples_define[@]}" \
-    --dart-define=OPX_REPORT="$report" --dart-define=OPX_ENGINE="$engine" > "$log" 2>&1 &
+  if [ -n "$tvos" ]; then
+    "$tvos" run -d "$device" -t lib/tvos_smoke.dart \
+      --dart-define=OPX_SAMPLES_B64="$(base64 < "$1" | tr -d '\n')" > "$log" 2>&1 &
+  else
+    flutter test integration_test/formats_test.dart -d "$device" "${samples_define[@]}" \
+      --dart-define=OPX_REPORT="$report" --dart-define=OPX_ENGINE="$engine" > "$log" 2>&1 &
+  fi
   local pid=$! waited=0
   while kill -0 "$pid" 2>/dev/null; do
     sleep 5; waited=$((waited + 5))
@@ -105,7 +119,23 @@ run_part() {
   wait "$pid" 2>/dev/null || true
   grep -E '^[0-9]+:[0-9]+ \+[0-9]+.*: [^ ]+$|Some tests failed|All tests passed' "$log" | tail -3 || true
   cat "$log" >> "$report/flutter.log"
-  if [ -n "$remote" ]; then
+  if [ -n "$tvos" ]; then
+    # Base64 chunks printed by lib/tvos_smoke.dart (OPX_CHUNK lines).
+    python3 -I - "$log" "$report/$(basename "$1" .json | sed 's/samples/results/').json" <<'PY'
+import base64, collections, json, re, sys
+chunks = collections.defaultdict(dict)
+for line in open(sys.argv[1], errors="replace"):
+    m = re.search(r"OPX_CHUNK (\S+) (\d+)/(\d+) ([A-Za-z0-9+/=]+)", line)
+    if m:
+        chunks[m.group(1)][int(m.group(2))] = (int(m.group(3)), m.group(4))
+results = []
+for parts in chunks.values():
+    n = next(iter(parts.values()))[0]
+    if len(parts) == n:
+        results.append(json.loads(base64.b64decode("".join(parts[i][1] for i in range(n)))))
+open(sys.argv[2], "w").write(json.dumps({"results": results}, indent=1))
+PY
+  elif [ -n "$remote" ]; then
     # Results printed by the test on the device (OPX_RESULT lines).
     python3 -I - "$log" "$report/$(basename "$1" .json | sed 's/samples/results/').json" <<'PY'
 import json, sys

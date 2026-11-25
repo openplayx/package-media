@@ -4,6 +4,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart';
+
+import 'tvos.dart';
+
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:openplayx_playback/playback.dart';
 
@@ -57,12 +60,13 @@ class MpvBackend extends PlayerBackend {
   /// Platforms with a package-media libmpv build.
   static bool get isSupported =>
       !kIsWeb &&
-      [
-        TargetPlatform.macOS,
-        TargetPlatform.iOS,
-        TargetPlatform.android,
-        TargetPlatform.linux,
-      ].contains(defaultTargetPlatform);
+      (isTvOS ||
+          [
+            TargetPlatform.macOS,
+            TargetPlatform.iOS,
+            TargetPlatform.android,
+            TargetPlatform.linux,
+          ].contains(defaultTargetPlatform));
 
   late final Player _player;
   late final VideoController _video;

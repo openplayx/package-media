@@ -16,8 +16,11 @@ dependencies:
     path: ../ffmpeg-package
   # libmpv engine: media_kit's Dart API and video widget. Its native
   # libraries are this repository's builds (libs/), not media_kit's.
-  media_kit: 1.2.6
-  media_kit_video: 2.0.1
+  # Forks with Apple TV support (forks/*/OPENPLAYX.md).
+  media_kit:
+    path: forks/media_kit
+  media_kit_video:
+    path: forks/media_kit_video
   media_kit_libs_macos_video:
     path: libs/media_kit_libs_macos_video
   media_kit_libs_ios_video:
@@ -26,6 +29,8 @@ dependencies:
     path: libs/media_kit_libs_android_video
   media_kit_libs_linux:
     path: libs/media_kit_libs_linux
+  media_kit_libs_tvos_video:
+    path: libs/media_kit_libs_tvos_video
 dev_dependencies:
   flutter_test:
     sdk: flutter

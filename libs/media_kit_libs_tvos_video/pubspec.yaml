@@ -1,0 +1,17 @@
+name: media_kit_libs_tvos_video
+description: >-
+  OpenPlayX: libmpv for media_kit on Apple TV (flutter-tvos), built from
+  source by package-media and linked to package-ffmpeg's FFmpeg.
+version: 1.0.0
+publish_to: none
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+flutter:
+  plugin:
+    platforms:
+      tvos:
+        pluginClass: MediaKitLibsTvosVideoPlugin

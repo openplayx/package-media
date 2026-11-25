@@ -6,15 +6,11 @@ import FlutterMacOS
 import Foundation
 
 import media_kit_libs_macos_video
-import package_info_plus
-import vlc_player
-import wakelock_plus
 import media_kit_video
+import vlc_player
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   MediaKitLibsMacosVideoPlugin.register(with: registry.registrar(forPlugin: "MediaKitLibsMacosVideoPlugin"))
-  FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
-  VlcPlayerPlugin.register(with: registry.registrar(forPlugin: "VlcPlayerPlugin"))
-  WakelockPlusMacosPlugin.register(with: registry.registrar(forPlugin: "WakelockPlusMacosPlugin"))
   MediaKitVideoPlugin.register(with: registry.registrar(forPlugin: "MediaKitVideoPlugin"))
+  VlcPlayerPlugin.register(with: registry.registrar(forPlugin: "VlcPlayerPlugin"))
 }
