@@ -117,9 +117,19 @@ case "$target" in
     cc="$(win "$(command -v gcc)")"; cxx="$(win "$(command -v g++)")"
     ar="$(win "$(command -v ar)")"; strip_tool="$(win "$(command -v strip)")"
     pkgconf_bin="$(win "$(command -v pkgconf)")"
-    flags=""
+    # MinGW's headers declare DXGI_DEBUG_D3D11; mpv only checks for it with
+    # d3d11 enabled and would define it again.
+    flags="-DHAVE_DXGI_DEBUG_D3D11=1"
     # One DLL without libgcc/libstdc++/winpthread DLLs (as package-ffmpeg's).
-    link_flags="-static"
+    # Not a global -static: it would take MSYS2's static FFmpeg archives for
+    # -lavcodec instead of package-ffmpeg's DLL import libraries. Static
+    # copies of the runtime libraries (winpthread also as libpthread) sit in
+    # the first -L directory, found before MinGW's DLL import libraries.
+    runtime="$work/mpv-build/$target/runtime"
+    mkdir -p "$runtime"
+    for lib in winpthread stdc++; do cp "$(gcc -print-file-name=lib$lib.a)" "$runtime/"; done
+    cp "$runtime/libwinpthread.a" "$runtime/libpthread.a"
+    link_flags="-L$(win "$runtime") -static-libgcc -static-libstdc++"
     system=windows; cpu=x86_64; family=x86_64
     libass_options=(-Dfontconfig=disabled -Ddirectwrite=enabled)
     # Render API over the app's OpenGL (ANGLE in media_kit_video); WASAPI.
