@@ -3,7 +3,8 @@
 // tool/prepare_samples.py. Run them with tool/test_formats.sh, which passes:
 //   --dart-define=OPX_SAMPLES=<resolved samples json>
 //   --dart-define=OPX_REPORT=<report directory>
-//   --dart-define=OPX_ENGINE=mpv|vlc (default mpv)
+//   --dart-define=OPX_ENGINE=mpv|vlc|auto (default mpv; auto: RoutedPlayerBackend,
+//     the engine router the app uses)
 //
 // Each sample plays through the engine's PlayerBackend, i.e. the same
 // libmpv/libVLC build and options as the app:
@@ -145,34 +146,44 @@ class _Check {
     final wav = File('${reportDir.path}/$id.wav');
     if (wav.existsSync()) wav.deleteSync();
     // Decoded audio is measured without reaching the speakers.
-    final mpv = _engine == 'mpv';
-    result['engine'] = _engine;
-    final PlayerBackend backend = mpv
-        ? MpvBackend(
-            mpvOptions: {
-              'ao': 'null',
-              // Statistics over 50 codec frames (TrueHD frames are only 40
-              // samples) behind a low-pass: lossy codecs add noise around
-              // zero that would count as crossings.
-              if (wantAudio)
-                'af': '@st:lavfi=[lowpass=f=3000,astats=metadata=1:reset=50]',
-            },
-          )
-        : LibVlcBackend(
-            extraOptions: wantAudio && !_systemAudio
-                ? [
-                    '--aout=afile',
-                    '--audiofile-file=${wav.path}',
-                    '--audiofile-format=s16',
-                    '--audiofile-wav',
-                  ]
-                : const [],
-          );
+    PlayerBackend createMpv() => MpvBackend(
+      mpvOptions: {
+        'ao': 'null',
+        // Statistics over 50 codec frames (TrueHD frames are only 40
+        // samples) behind a low-pass: lossy codecs add noise around
+        // zero that would count as crossings.
+        if (wantAudio)
+          'af': '@st:lavfi=[lowpass=f=3000,astats=metadata=1:reset=50]',
+      },
+    );
+    PlayerBackend createVlc() => LibVlcBackend(
+      extraOptions: wantAudio && !_systemAudio
+          ? [
+              '--aout=afile',
+              '--audiofile-file=${wav.path}',
+              '--audiofile-format=s16',
+              '--audiofile-wav',
+            ]
+          : const [],
+    );
+    final routed = _engine == 'auto'
+        ? RoutedPlayerBackend(createMpv: createMpv, createVlc: createVlc)
+        : null;
+    final PlayerBackend backend =
+        routed ?? (_engine == 'mpv' ? createMpv() : createVlc());
+    // The engine backend actually playing (the router's choice in auto mode).
+    PlayerBackend engineBackend() => routed?.inner ?? backend;
+    bool isMpv() => engineBackend() is MpvBackend;
+    void recordEngine() => result['engine'] = routed == null
+        ? _engine
+        : 'auto:${routed.engine?.name}${routed.fellBack ? ' (fallback)' : ''}';
+    recordEngine();
     // mpv: cumulative astats of the decoded audio.
     Future<Map<String, dynamic>> astats() async {
-      if (backend is! MpvBackend) return const {};
+      final engine = engineBackend();
+      if (engine is! MpvBackend) return const {};
       try {
-        return jsonDecode(await backend.getProperty('af-metadata/st'))
+        return jsonDecode(await engine.getProperty('af-metadata/st'))
             as Map<String, dynamic>;
       } catch (_) {
         return const {};
@@ -182,9 +193,10 @@ class _Check {
     // mpv: audio frames seen, sampled every 200 ms (RMS dB, crossings rate).
     final frames = <(double, double)>[];
     var sampledFrames = 0;
-    final sampler = !mpv || !wantAudio
+    final sampler = !wantAudio || _engine == 'vlc'
         ? null
         : Timer.periodic(const Duration(milliseconds: 200), (_) async {
+            if (!isMpv()) return;
             final st = await astats();
             final db = double.tryParse(
               '${st['lavfi.astats.Overall.RMS_level']}',
@@ -198,7 +210,7 @@ class _Check {
             }
           });
     addTearDown(() => sampler?.cancel());
-    Future<int?> audioSamples() async => mpv ? sampledFrames : null;
+    Future<int?> audioSamples() async => isMpv() ? sampledFrames : null;
     _Level? mpvLevel;
     var disposed = false;
     Future<void> release() async {
@@ -246,9 +258,14 @@ class _Check {
     // 1. Start.
     final opened = Stopwatch()..start();
     final path = sample['path'] as String;
-    await backend.open(
-      path.startsWith('http') ? Uri.parse(path) : Uri.file(path),
-    );
+    // Frames keep coming while opening: in auto mode the engine is created
+    // inside open(), and its setup needs the frame loop running.
+    var openDone = false;
+    final opening = backend
+        .open(path.startsWith('http') ? Uri.parse(path) : Uri.file(path))
+        .whenComplete(() => openDone = true);
+    await waitFor(() => openDone, timeout: const Duration(seconds: 15));
+    await opening;
     final started = await waitFor(
       () =>
           backend.value.status == PlaybackStatus.error ||
@@ -258,6 +275,7 @@ class _Check {
       timeout: const Duration(seconds: 15),
     );
     metrics['start_ms'] = opened.elapsedMilliseconds;
+    recordEngine();
     if (!started || backend.value.status != PlaybackStatus.playing) {
       final ended = backend.value.status == PlaybackStatus.ended;
       fail(
@@ -309,7 +327,7 @@ class _Check {
         backend,
         wantVideo: wantVideo,
         wantAudio: wantAudio,
-        audioSamples: mpv ? audioSamples : null,
+        audioSamples: isMpv() ? audioSamples : null,
       );
       if (problems.isEmpty) break;
       if (window == 2) problems.forEach(fail);
@@ -438,7 +456,7 @@ class _Check {
 
     // 4. Sound: mpv from astats before release; libVLC from the WAV file
     // once its audio output closed it.
-    if (mpv && wantAudio) {
+    if (isMpv() && wantAudio) {
       sampler?.cancel();
       // astats sees the decoder's rate (before any resampling for output).
       final rate = (probe['sample_rate'] as int?) ?? 48000;
@@ -460,11 +478,11 @@ class _Check {
     await release();
     if (wantAudio) {
       final tone = expectations['tone_hz'] as int?;
-      if (mpv
+      if (isMpv()
           ? mpvLevel == null
           : !wav.existsSync() || wav.lengthSync() <= 44) {
         fail(
-          mpv
+          isMpv()
               ? 'no audio statistics (astats)'
               : 'no decoded audio written (afile output)',
         );

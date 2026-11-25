@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# File format playback tests for one engine: prepares the samples of
+# File format playback tests for one engine (or auto: the engine router,
+# RoutedPlayerBackend, as the app uses it): prepares the samples of
 # package-libvlc's formats/manifest.json and plays each one through the
 # engine's PlayerBackend in the example host app (macOS). Not part of
 # `flutter test`; run them when this package changes (see README).
 #
-# Usage: tool/test_formats.sh [--engine mpv|vlc] [--only ID[,ID|GLOB...]] [--pack] [--device macos]
+# Usage: tool/test_formats.sh [--engine mpv|vlc|auto] [--only ID[,ID|GLOB...]] [--pack] [--device macos]
 # Env:   OPX_LIBVLC_PACKAGE  package-libvlc checkout (default ../package-libvlc)
 # Env:   OPX_SAMPLE_CACHE  sample cache (default ~/.cache/openplayx-libvlc-samples)
 #        OPX_REPORT_DIR    report directory (default build/formats/<timestamp>)
@@ -178,7 +179,15 @@ for n, i in enumerate(dict.fromkeys(failed), 1):
     (report / f"samples-retry-{n:02d}.json").write_text(json.dumps({"samples": [samples[i]]}))
 PY
 for part in "$report"/samples-retry-*.json; do
-  [ -e "$part" ] && run_part "$part"
+  [ -e "$part" ] || continue
+  run_part "$part"
+  # A lone sample that timed out: flutter test sometimes waits forever for
+  # the first frame of a freshly launched app that did not come to the
+  # foreground. One more launch.
+  if grep -q "TimeoutException after" "${part%.json}.log"; then
+    echo "   timed out alone; one more launch"
+    run_part "$part"
+  fi
 done
 
 status=0

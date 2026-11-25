@@ -2,10 +2,12 @@
 
 [English](README.md) | 简体中文
 
-[OpenPlayX](https://github.com/openplayx/openplayx) 的播放层：libVLC 和 libmpv 两个引擎统一在 `PlayerBackend` 接口之后，下一步加入按格式选择引擎的路由。
+[OpenPlayX](https://github.com/openplayx/openplayx) 的播放层：libVLC 和 libmpv 两个引擎统一在 `PlayerBackend` 接口之后，并由路由（`RoutedPlayerBackend`）为每个媒体选择引擎。
 
 ```
-OpenPlayX App ─ openplayx_media ─┬─ LibVlcBackend  → package-libvlc → libVLC（VLCKit，自带 FFmpeg）
+OpenPlayX App ─ openplayx_media ─ RoutedPlayerBackend（EngineRouter）
+                                  ┌──────────────┘
+                                  ├─ LibVlcBackend  → package-libvlc → libVLC（VLCKit，自带 FFmpeg）
                                   └─ MpvBackend     → media_kit（Dart 接口、视频组件）
                                                       → 本仓库编译的 libmpv → package-ffmpeg 的 FFmpeg 9.1
 ```
@@ -23,11 +25,22 @@ OpenPlayX App ─ openplayx_media ─┬─ LibVlcBackend  → package-libvlc �
 
 media_kit 和 media_kit_video 在 `forks/` 下各有一份副本（MIT，见 `forks/*/OPENPLAYX.md`）：增加 Apple TV 支持（Dart 层判断，以及从 iOS 移植的 `tvos/` 视频插件）；media_kit_video 去掉了没有 Apple TV 实现的 wakelock_plus，播放时保持屏幕常亮由 App 负责。
 
+## 引擎路由
+
+```dart
+final player = RoutedPlayerBackend();      // 默认的 EngineRouter
+await player.open(Uri.file('/media/a.mkv')); // libmpv
+await player.open(Uri.file('/media/b.mod')); // libVLC
+player.engine;                              // MediaEngine.vlc
+```
+
+`EngineRouter` 默认把媒体交给 libmpv；模块音乐（`.mod`、`.xm`、`.it`、`.s3m` 等，package-ffmpeg 没有 libopenmpt）以及没有 libmpv 构建的平台交给 libVLC。选中的引擎在起播前失败时，`RoutedPlayerBackend` 会用另一个引擎再打开一次（`fellBack`）。默认引擎、扩展名表和可用引擎都可以通过构造参数指定。单元测试：`flutter test`。
+
 ## 目录
 
 | 路径 | 内容 |
 |---|---|
-| `lib/` | 基于 media_kit 实现 `PlayerBackend` 的 `MpvBackend`；同时导出接口和 `LibVlcBackend` |
+| `lib/` | `RoutedPlayerBackend` 和 `EngineRouter`；基于 media_kit 实现 `PlayerBackend` 的 `MpvBackend`；同时导出接口和 `LibVlcBackend` |
 | `tool/mpv-deps.tsv` | 锁定的源码：mpv 0.42.0、libplacebo 7.387.0、libass 0.17.5、freetype、harfbuzz、fribidi、glad、jinja2、markupsafe、fast_float、Vulkan-Headers |
 | `tool/build_mpv.sh <目标>` | 静态编译依赖，动态编译 libmpv，链接 package-ffmpeg |
 | `tool/make_mpv_frameworks.sh`、`tool/ensure_mpv_apple.sh` | 生成通用 `Mpv.xcframework`，FFmpeg 引用指向 package-ffmpeg 的框架 |
@@ -45,6 +58,7 @@ media_kit 和 media_kit_video 在 `forks/` 下各有一份副本（MIT，见 `fo
 默认不运行。样本和检查项沿用 package-libvlc（`formats/manifest.json`），可以选择引擎：
 
 ```sh
+tool/test_formats.sh --engine auto --pack      # 经过路由，与 App 的播放方式一致
 tool/test_formats.sh --engine mpv              # 或 --engine vlc；默认 macOS
 tool/test_formats.sh --engine mpv --only 'truehd,ast,mp3*'
 tool/test_formats.sh --engine mpv --pack --only 'pack-*'   # 素材包样本
@@ -58,7 +72,8 @@ Android 设备通过 HTTP 从电脑读取样本（`tool/serve_samples.py`，支�
 
 mpv 用空音频输出播放（不出声），用 FFmpeg 的 `astats` 滤镜（先低通，每 50 个编码帧统计一次）测量解码音频的音量和频率，与 1 kHz 正弦音比较。报告位于 `build/formats/<引擎>-<时间>/report.md`。
 
-mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple TV 模拟器 73、Android 模拟器 72、Linux arm64 72（Linux amd64 关键样本全部通过）。失败的是 ASX（mpv 不支持）和 `.mmf` 音量问题（ALL-373）。libVLC 在 macOS 上通过 66 个。素材包（67 个样本，macOS）：mpv 通过 61 个，libVLC 通过 48 个。mpv 失败的是 ASX、DSF 和 WavPack 的 Seek、MOD（package-ffmpeg 未启用 libopenmpt），以及左右并排 3D 文件按校正后的尺寸报告；RA 素材本身损坏。libVLC 的很多失败是 3 秒音频在 Seek 后立即结束，同样的编码在 6 秒样本上通过（待查）。libVLC 播不了而 mpv 能播的：TrueHD、AST、Ogg 中的 FLAC、pls/m3u/cue 播放列表、带进度的裸 MPEG-2 视频。两者都不支持 ASX 播放列表。
+mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple TV 模拟器 73、Android 模拟器 72、Linux arm64 72（Linux amd64 关键样本全部通过）。失败的是 ASX（mpv 不支持）和 `.mmf` 音量问题（ALL-373）。libVLC 在 macOS 上通过 66 个。经过路由（`--engine auto`，含素材包共 141 个样本，macOS）：通过 135 个；失败的是 ASX（两个引擎都不支持）、左右并排 3D 的尺寸、DSF 的 Seek、损坏的 RA 素材和素材包里的 `.mmf`。
+各引擎单独跑素材包（67 个样本，macOS）：mpv 通过 61 个，libVLC 通过 48 个。mpv 失败的是 ASX、DSF 和 WavPack 的 Seek、MOD（package-ffmpeg 未启用 libopenmpt），以及左右并排 3D 文件按校正后的尺寸报告；RA 素材本身损坏。libVLC 的很多失败是 3 秒音频在 Seek 后立即结束，同样的编码在 6 秒样本上通过（待查）。libVLC 播不了而 mpv 能播的：TrueHD、AST、Ogg 中的 FLAC、pls/m3u/cue 播放列表、带进度的裸 MPEG-2 视频。两者都不支持 ASX 播放列表。
 
 ### 已知问题
 

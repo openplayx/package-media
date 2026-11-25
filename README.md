@@ -3,11 +3,13 @@
 English | [简体中文](README.zh-CN.md)
 
 Playback for [OpenPlayX](https://github.com/openplayx/openplayx): the libVLC and
-libmpv engines behind one `PlayerBackend` interface, and (next) the router that
-picks an engine per format.
+libmpv engines behind one `PlayerBackend` interface, and the router that
+picks an engine per media (`RoutedPlayerBackend`).
 
 ```
-OpenPlayX app ─ openplayx_media ─┬─ LibVlcBackend  → package-libvlc → libVLC (VLCKit, own FFmpeg)
+OpenPlayX app ─ openplayx_media ─ RoutedPlayerBackend (EngineRouter)
+                                  ┌──────────────┘
+                                  ├─ LibVlcBackend  → package-libvlc → libVLC (VLCKit, own FFmpeg)
                                   └─ MpvBackend     → media_kit (Dart API, video widget)
                                                       → libmpv built here → package-ffmpeg's FFmpeg 9.1
 ```
@@ -31,11 +33,27 @@ media_kit and media_kit_video are forked in `forks/` (MIT, see
 plugin ported from iOS); media_kit_video drops wakelock_plus, which has no
 Apple TV implementation, so the app keeps the screen on during playback.
 
+## Engine routing
+
+```dart
+final player = RoutedPlayerBackend();      // EngineRouter defaults
+await player.open(Uri.file('/media/a.mkv')); // libmpv
+await player.open(Uri.file('/media/b.mod')); // libVLC
+player.engine;                              // MediaEngine.vlc
+```
+
+`EngineRouter` sends media to libmpv by default and to libVLC for tracker
+modules (`.mod`, `.xm`, `.it`, `.s3m`, ...: package-ffmpeg has no libopenmpt)
+and on platforms without a libmpv build. When the chosen engine fails before
+playback starts, `RoutedPlayerBackend` opens the media once with the other
+engine (`fellBack`). The defaults, the extension table and the available
+engines are constructor parameters. Unit tests: `flutter test`.
+
 ## Layout
 
 | Path | What |
 |---|---|
-| `lib/` | `MpvBackend` (media_kit) implementing `PlayerBackend`; re-exports the contract and `LibVlcBackend` |
+| `lib/` | `RoutedPlayerBackend` and `EngineRouter`; `MpvBackend` (media_kit) implementing `PlayerBackend`; re-exports the contract and `LibVlcBackend` |
 | `tool/mpv-deps.tsv` | Pinned sources: mpv 0.42.0, libplacebo 7.387.0, libass 0.17.5, freetype, harfbuzz, fribidi, glad, jinja2, markupsafe, fast_float, Vulkan-Headers |
 | `tool/build_mpv.sh <target>` | Builds the dependencies statically and libmpv as a shared library against package-ffmpeg |
 | `tool/make_mpv_frameworks.sh`, `tool/ensure_mpv_apple.sh` | Universal `Mpv.xcframework` whose FFmpeg references point at package-ffmpeg's frameworks |
@@ -61,6 +79,7 @@ Not run by default. Samples and the checks are those of package-libvlc
 (`formats/manifest.json`); the engine is selectable:
 
 ```sh
+tool/test_formats.sh --engine auto --pack      # through the router, as the app plays
 tool/test_formats.sh --engine mpv              # or --engine vlc; macOS by default
 tool/test_formats.sh --engine mpv --only 'truehd,ast,mp3*'
 tool/test_formats.sh --engine mpv --pack --only 'pack-*'   # material pack samples
@@ -87,7 +106,10 @@ Latest results with mpv (74 generated samples): macOS 73, iOS simulator 73,
 Apple TV simulator 73, Android emulator 72, Linux arm64 72 (Linux amd64: the
 key samples pass). Failures: ASX (not supported by mpv) and the `.mmf` level
 issue (ALL-373). libVLC on macOS: 66.
-Material pack (67 samples, macOS): mpv 61, libVLC 48. mpv fails ASX, DSF and
+Through the router (`--engine auto`, 141 samples with the pack, macOS): 135
+pass; failures: ASX (both engines), the side-by-side 3D size, DSF seeking,
+the broken RA fixture and the pack's `.mmf`.
+Material pack per engine (67 samples, macOS): mpv 61, libVLC 48. mpv fails ASX, DSF and
 WavPack seeking, MOD (no libopenmpt in package-ffmpeg), and reports the
 side-by-side 3D file at a corrected size; the RA fixture itself is broken.
 Many libVLC failures are 3-second audio files ending right after the seek,

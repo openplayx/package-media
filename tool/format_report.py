@@ -16,6 +16,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
 def engine_version(device: str, engine: str) -> str:
+    if engine == "auto":
+        return f"router (RoutedPlayerBackend): {engine_version(device, 'mpv')} / {engine_version(device, 'vlc')}"
     if engine == "mpv":
         info = ROOT / "third_party" / "mpv" / f"{device}-arm64" / "BUILDINFO"
         if info.exists():
@@ -63,7 +65,8 @@ def main() -> int:
         why = "; ".join(r.get("failures", [])) or (s.get("error") or "")
         if outcome == "passed" and r.get("batch_failures"):
             why = "passed alone; failed after other players in the same process: " + "; ".join(r["batch_failures"])
-        rows.append(f"| {s['id']} | {', '.join(s.get('linear', []))} | .{s['ext']} | {codecs} | "
+        used = f" ({r['engine'].removeprefix('auto:')})" if engine == "auto" and r.get("engine") else ""
+        rows.append(f"| {s['id']}{used} | {', '.join(s.get('linear', []))} | .{s['ext']} | {codecs} | "
                     f"{'✅' if outcome == 'passed' else '❌' if outcome == 'failed' else '⚪'} {outcome} | "
                     f"{m.get('start_ms', '')} | {m.get('frame_diff', '')} | {audio} | {why.replace('|', '/')} |")
     lines = [

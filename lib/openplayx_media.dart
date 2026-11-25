@@ -1,8 +1,10 @@
-/// OpenPlayX playback: libVLC and libmpv engines behind one interface.
+/// OpenPlayX playback: libVLC and libmpv engines behind one interface, and
+/// [RoutedPlayerBackend], which picks the engine per media.
 library;
 
 // The playback contract (PlayerBackend and its value types) and the libVLC
-// engine. The contract moves into this package with the engine router.
+// engine.
 export 'package:openplayx_playback/playback.dart';
 
 export 'src/mpv_backend.dart';
+export 'src/routed_backend.dart';
