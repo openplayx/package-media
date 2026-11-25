@@ -6,3 +6,4 @@ analyzer:
     - macos/**
     - ios/**
     - android/**
+    - linux/**

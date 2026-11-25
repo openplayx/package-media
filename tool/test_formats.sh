@@ -48,8 +48,9 @@ PY
 remote=""
 if flutter devices --machine 2>/dev/null | python3 -I -c '
 import json, sys
-dev = sys.argv[1]
-sys.exit(0 if any(d["id"] == dev and d["targetPlatform"].startswith("android") for d in json.load(sys.stdin)) else 1)
+dev, text = sys.argv[1], sys.stdin.read()
+devices = json.loads(text[text.find("["):]) if "[" in text else []  # skip banners
+sys.exit(0 if any(d["id"] == dev and d["targetPlatform"].startswith("android") for d in devices) else 1)
 ' "$device"; then
   remote="http://10.0.2.2:${OPX_SAMPLE_PORT:-8765}"
   python3 -I "$root/tool/serve_samples.py" "${OPX_SAMPLE_PORT:-8765}" "$cache" >/dev/null 2>&1 &

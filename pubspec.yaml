@@ -24,6 +24,8 @@ dependencies:
     path: libs/media_kit_libs_ios_video
   media_kit_libs_android_video:
     path: libs/media_kit_libs_android_video
+  media_kit_libs_linux:
+    path: libs/media_kit_libs_linux
 dev_dependencies:
   flutter_test:
     sdk: flutter

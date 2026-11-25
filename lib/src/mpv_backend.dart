@@ -61,6 +61,7 @@ class MpvBackend extends PlayerBackend {
         TargetPlatform.macOS,
         TargetPlatform.iOS,
         TargetPlatform.android,
+        TargetPlatform.linux,
       ].contains(defaultTargetPlatform);
 
   late final Player _player;

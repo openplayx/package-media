@@ -8,6 +8,7 @@
 #   targets: macos-arm64 macos-x86_64 ios-arm64 ios-sim-arm64 ios-sim-x86_64
 #            tvos-arm64 tvos-sim-arm64
 #            android-arm64-v8a android-armeabi-v7a android-x86_64 (ANDROID_NDK_HOME)
+#            linux-x86_64 linux-arm64 (on a matching Linux host)
 #
 # Env:    OPX_FFMPEG_PACKAGE  package-ffmpeg checkout (default ../ffmpeg-package)
 # Output: third_party/mpv/<target>/lib/libmpv.2.dylib (git-ignored), whose
@@ -25,7 +26,7 @@ for tool in meson ninja pkg-config python3; do
   command -v "$tool" >/dev/null || { echo "$tool is required" >&2; exit 1; }
 done
 
-fingerprint="$( { echo "$target"; cat "$0" "$root/tool/mpv-deps.tsv"; cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null; } |
+fingerprint="$( { echo "$target"; cat "$0" "$root/tool/mpv-deps.tsv"; cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null || true; } |
   { if command -v sha256sum >/dev/null; then sha256sum; else shasum -a 256; fi; } | cut -d ' ' -f 1)"
 if [ -f "$prefix/BUILD_FINGERPRINT" ] && [ "$(cat "$prefix/BUILD_FINGERPRINT")" = "$fingerprint" ]; then
   echo "libmpv $target is current"
@@ -37,7 +38,7 @@ case "$target" in
   macos-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" macos ;;
   ios-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" ios ;;
   tvos-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" tvos ;;
-  android-*)
+  android-*|linux-*)
     if [ ! -f "$ffmpeg/lib/libavformat.so" ] ||
       [ "$(cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null)" != "$(bash "$ffmpeg_package/tool/build_fingerprint.sh" "$target")" ]; then
       bash "$ffmpeg_package/tool/build_ffmpeg.sh" "$target"
@@ -102,6 +103,18 @@ case "$target" in
     platform_options=(-Degl-android=enabled -Dandroid-media-ndk=enabled -Daaudio=enabled
       -Dopensles=enabled -Daudiotrack=enabled -Diconv=disabled)
     ;;
+  linux-*)
+    case "$target/$(uname -m)" in linux-arm64/aarch64|linux-x86_64/x86_64) ;; *) echo "build $target on a matching Linux host" >&2; exit 1 ;; esac
+    cc=gcc; cxx=g++; ar=ar; strip_tool=strip
+    flags="-fPIC"
+    # Next to FFmpeg in the app's lib/; C++ dependencies keep libstdc++ static.
+    link_flags="-Wl,-rpath,\$ORIGIN -static-libstdc++"
+    system=linux; cpu="$(uname -m)"; family="$cpu"
+    # System Fontconfig for libass; render API over EGL; PulseAudio/ALSA.
+    libass_options=(-Dfontconfig=enabled -Ddirectwrite=disabled)
+    platform_options=(-Degl=enabled -Dpulse=enabled -Dalsa=enabled -Dx11=disabled
+      -Dwayland=disabled -Ddrm=disabled -Dgbm=disabled -Dvaapi=disabled -Dvdpau=disabled)
+    ;;
 esac
 mkdir -p "$work/downloads" "$deps/lib/pkgconfig"
 cross="$deps/cross.txt"
@@ -119,6 +132,11 @@ quote() { local out='' w; for w in $1; do out="$out'$w', "; done; printf '[%s]' 
 } > "$cross"
 # Only the pinned dependencies and package-ffmpeg are visible, never the host's.
 export PKG_CONFIG_LIBDIR="$deps/lib/pkgconfig:$ffmpeg/lib/pkgconfig"
+if [ "$system" = linux ]; then
+  # Desktop system libraries (Fontconfig, EGL, PulseAudio, ALSA) are linked
+  # dynamically from the distribution.
+  PKG_CONFIG_LIBDIR="$PKG_CONFIG_LIBDIR:$(pkg-config --variable pc_path pkg-config)"
+fi
 export PKG_CONFIG_PATH="$PKG_CONFIG_LIBDIR"
 unset CC CXX CFLAGS CXXFLAGS LDFLAGS CPPFLAGS OBJC OBJCFLAGS
 
@@ -196,6 +214,19 @@ if ! { meson setup "$mpv_build" "$mpv_src" --cross-file "$cross" --prefix="$pref
   meson compile -C "$mpv_build" -j "$jobs" && meson install -C "$mpv_build"; } > "$mpv_build.log" 2>&1; then
   tail -40 "$mpv_build.log" >&2; exit 1
 fi
+if [[ "$target" = linux-* ]]; then
+  # Users link the shared libmpv only: its static dependencies are inside, so
+  # the private requirements (not installed anywhere) must not be checked.
+  # Linking against it needs package-ffmpeg's libraries (its NEEDED entries).
+  sed -i -e '/^Requires.private:/d' -e '/^Libs.private:/d' \
+    -e "s#^Libs: \(.*\)#Libs: \1 -Wl,-rpath-link,$ffmpeg/lib#" "$prefix/lib/pkgconfig/mpv.pc"
+  # Executables linking a library that needs libmpv resolve FFmpeg through
+  # libmpv's RUNPATH ($ORIGIN): FFmpeg next to it, as in the app bundle.
+  ln -sf "$ffmpeg"/lib/lib*.so.[0-9]* "$prefix/lib/"
+  # A real file named by soname for the app bundle (lib/, next to FFmpeg).
+  mkdir -p "$prefix/bundle"
+  cp -L "$prefix/lib/libmpv.so.2" "$prefix/bundle/libmpv.so.2"
+fi
 if [[ "$target" = android-* ]]; then
   # media_kit loads libmpv.so and its JNI helper from the APK.
   # mpv names the library libmpv.so on Android (no versioned soname).
@@ -209,6 +240,7 @@ version="$(awk '$1 == "mpv" {n = split($3, part, "/"); print part[n]}' "$root/to
   echo "mpv=$version"
   echo "target=$target"
   echo "ffmpeg=$(sed -n 's/^version=//p' "$ffmpeg/BUILDINFO")"
+  echo "ffmpeg_prefix=$ffmpeg"
   echo "features=$(grep -m1 'List of enabled features' "$mpv_build.log" | sed 's/.*features: //')"
 } > "$prefix/BUILDINFO"
 printf '%s\n' "$fingerprint" > "$prefix/BUILD_FINGERPRINT"
