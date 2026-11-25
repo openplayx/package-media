@@ -7,12 +7,35 @@ cmake_minimum_required(VERSION 3.14)
 set(PROJECT_NAME "media_kit_libs_windows_video")
 project(${PROJECT_NAME} LANGUAGES CXX)
 set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
-# Read by media_kit_video: without it, it builds a stub.
-option(MEDIA_KIT_LIBS_AVAILABLE "package:media_kit libraries are available." ON)
-
 get_filename_component(OPX_LIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}" REALPATH)
 get_filename_component(OPX_MEDIA_ROOT "${OPX_LIBS_DIR}/../../.." ABSOLUTE)
 set(OPX_MPV_PREFIX "${OPX_MEDIA_ROOT}/third_party/mpv/windows-x86_64")
+
+# libmpv for Windows is not finished (ALL-382): it is used when already built
+# (package-media's CI builds it before flutter build) or when OPX_MPV_WINDOWS=1
+# asks to build it here. Otherwise media_kit_video builds a stub and the
+# engine router plays everything with libVLC on Windows.
+if(EXISTS "${OPX_MPV_PREFIX}/media_kit/libmpv-2.dll" OR "$ENV{OPX_MPV_WINDOWS}" STREQUAL "1")
+  set(OPX_MPV_WINDOWS ON)
+else()
+  set(OPX_MPV_WINDOWS OFF)
+endif()
+# Read by media_kit_video: without it, it builds a stub.
+set(MEDIA_KIT_LIBS_AVAILABLE ${OPX_MPV_WINDOWS} CACHE BOOL "package:media_kit libraries are available." FORCE)
+
+add_library(${PLUGIN_NAME} SHARED
+  "include/media_kit_libs_windows_video/media_kit_libs_windows_video_plugin_c_api.h"
+  "media_kit_libs_windows_video_plugin_c_api.cpp")
+apply_standard_settings(${PLUGIN_NAME})
+set_target_properties(${PLUGIN_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
+target_include_directories(${PLUGIN_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
+
+if(NOT OPX_MPV_WINDOWS)
+  set(media_kit_libs_windows_video_bundled_libraries "" PARENT_SCOPE)
+  return()
+endif()
 
 # libmpv: built by the CI before flutter build (like package-ffmpeg), or here.
 if(NOT EXISTS "${OPX_MPV_PREFIX}/media_kit/libmpv-2.dll")
@@ -45,15 +68,6 @@ if(NOT EXISTS "${ANGLE_SRC}/libEGL.dll")
     message(FATAL_ERROR "Extracting ANGLE failed")
   endif()
 endif()
-
-add_library(${PLUGIN_NAME} SHARED
-  "include/media_kit_libs_windows_video/media_kit_libs_windows_video_plugin_c_api.h"
-  "media_kit_libs_windows_video_plugin_c_api.cpp")
-apply_standard_settings(${PLUGIN_NAME})
-set_target_properties(${PLUGIN_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
-target_include_directories(${PLUGIN_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
 
 set(media_kit_libs_windows_video_bundled_libraries
   "${LIBMPV_SRC}/libmpv-2.dll"
