@@ -117,9 +117,7 @@ case "$target" in
     cc="$(win "$(command -v gcc)")"; cxx="$(win "$(command -v g++)")"
     ar="$(win "$(command -v ar)")"; strip_tool="$(win "$(command -v strip)")"
     pkgconf_bin="$(win "$(command -v pkgconf)")"
-    # MinGW's headers declare DXGI_DEBUG_D3D11; mpv only checks for it with
-    # d3d11 enabled and would define it again.
-    flags="-DHAVE_DXGI_DEBUG_D3D11=1"
+    flags=""
     # One DLL without libgcc/libstdc++/winpthread DLLs (as package-ffmpeg's).
     # Not a global -static: it would take MSYS2's static FFmpeg archives for
     # -lavcodec instead of package-ffmpeg's DLL import libraries. Static

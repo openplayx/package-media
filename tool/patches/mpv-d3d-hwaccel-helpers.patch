@@ -1,0 +1,19 @@
+mpv 0.42.0 compiles the D3D11 helpers (video/out/gpu/d3d11_helpers.c) only
+with d3d11, ANGLE or Vulkan, but d3d-hwaccel (D3D11VA/DXVA2 decoding,
+video/d3d.c and vf_d3d11vpp.c) uses them too: a Windows build with d3d11
+disabled (it needs shaderc and SPIRV-Cross) and d3d-hwaccel enabled fails to
+link. Compile them for d3d-hwaccel as well; this block also checks whether
+the system headers declare DXGI_DEBUG_D3D11.
+
+--- a/meson.build
++++ b/meson.build
+@@ -1386,7 +1386,8 @@
+     sources += files('video/filter/vf_gpu.c')
+ endif
+ 
+-if features['d3d11'] or features['egl-angle-win32'] or (features['vulkan'] and win32)
++if (features['d3d11'] or features['egl-angle-win32'] or (features['vulkan'] and win32) or
++    get_option('d3d-hwaccel').allowed() and win32)
+     sources += files('video/out/gpu/d3d11_helpers.c')
+     features += {'dxgi-debug-d3d11': cc.has_header_symbol('d3d11sdklayers.h', 'DXGI_DEBUG_D3D11')}
+ endif
