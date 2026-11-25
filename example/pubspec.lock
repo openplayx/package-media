@@ -244,6 +244,13 @@ packages:
       relative: true
     source: path
     version: "1.0.0"
+  media_kit_libs_windows_video:
+    dependency: transitive
+    description:
+      path: "../libs/media_kit_libs_windows_video"
+      relative: true
+    source: path
+    version: "1.0.11+openplayx"
   media_kit_video:
     dependency: transitive
     description:

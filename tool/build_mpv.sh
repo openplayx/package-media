@@ -9,6 +9,7 @@
 #            tvos-arm64 tvos-sim-arm64
 #            android-arm64-v8a android-armeabi-v7a android-x86_64 (ANDROID_NDK_HOME)
 #            linux-x86_64 linux-arm64 (on a matching Linux host)
+#            windows-x86_64 (MSYS2 with MinGW-w64 gcc, meson, ninja, pkgconf)
 #
 # Env:    OPX_FFMPEG_PACKAGE  package-ffmpeg checkout (default ../ffmpeg-package)
 # Output: third_party/mpv/<target>/lib/libmpv.2.dylib (git-ignored), whose
@@ -38,6 +39,11 @@ case "$target" in
   macos-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" macos ;;
   ios-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" ios ;;
   tvos-*) bash "$ffmpeg_package/tool/ensure_ffmpeg_apple.sh" tvos ;;
+  windows-*)
+    if [ ! -f "$ffmpeg/BUILDINFO" ] ||
+      [ "$(cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null)" != "$(bash "$ffmpeg_package/tool/build_fingerprint.sh" "$target")" ]; then
+      bash "$ffmpeg_package/tool/build_ffmpeg.sh" "$target"
+    fi ;;
   android-*|linux-*)
     if [ ! -f "$ffmpeg/lib/libavformat.so" ] ||
       [ "$(cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null)" != "$(bash "$ffmpeg_package/tool/build_fingerprint.sh" "$target")" ]; then
@@ -103,6 +109,23 @@ case "$target" in
     platform_options=(-Degl-android=enabled -Dandroid-media-ndk=enabled -Daaudio=enabled
       -Dopensles=enabled -Daudiotrack=enabled -Diconv=disabled)
     ;;
+  windows-x86_64)
+    # Native MinGW-w64 tools see Windows paths only: every path meson, gcc or
+    # pkgconf gets is converted, and pkgconf derives prefixes from the .pc
+    # location (package-ffmpeg's .pc files carry MSYS paths).
+    win() { cygpath -m "$1"; }
+    cc="$(win "$(command -v gcc)")"; cxx="$(win "$(command -v g++)")"
+    ar="$(win "$(command -v ar)")"; strip_tool="$(win "$(command -v strip)")"
+    pkgconf_bin="$(win "$(command -v pkgconf)")"
+    flags=""
+    # One DLL without libgcc/libstdc++/winpthread DLLs (as package-ffmpeg's).
+    link_flags="-static"
+    system=windows; cpu=x86_64; family=x86_64
+    libass_options=(-Dfontconfig=disabled -Ddirectwrite=enabled)
+    # Render API over the app's OpenGL (ANGLE in media_kit_video); WASAPI.
+    platform_options=(-Dgl-win32=enabled -Dwasapi=enabled -Dd3d11=disabled
+      -Dd3d-hwaccel=enabled -Diconv=disabled -Dwin32-smtc=disabled)
+    ;;
   linux-*)
     case "$target/$(uname -m)" in linux-arm64/aarch64|linux-x86_64/x86_64) ;; *) echo "build $target on a matching Linux host" >&2; exit 1 ;; esac
     cc=gcc; cxx=g++; ar=ar; strip_tool=strip
@@ -122,9 +145,17 @@ quote() { local out='' w; for w in $1; do out="$out'$w', "; done; printf '[%s]' 
 {
   echo "[binaries]"
   echo "c = '$cc'"; echo "cpp = '$cxx'"; echo "objc = '$cc'"; echo "objcpp = '$cxx'"
-  echo "ar = '$ar'"; echo "strip = '$strip_tool'"; echo "pkg-config = 'pkg-config'"
+  echo "ar = '$ar'"; echo "strip = '$strip_tool'"
+  if [ "$system" = windows ]; then
+    echo "pkg-config = ['$pkgconf_bin', '--define-prefix']"
+  else
+    echo "pkg-config = 'pkg-config'"
+  fi
   # x86 assembly (libass, dav1d-style code) needs nasm named in the cross file.
-  if command -v nasm >/dev/null; then echo "nasm = '$(command -v nasm)'"; fi
+  if command -v nasm >/dev/null; then
+    nasm_bin="$(command -v nasm)"; [ "$system" = windows ] && nasm_bin="$(cygpath -m "$nasm_bin")"
+    echo "nasm = '$nasm_bin'"
+  fi
   echo "[built-in options]"
   for lang in c cpp objc objcpp; do
     echo "${lang}_args = $(quote "$flags")"; echo "${lang}_link_args = $(quote "$flags ${link_flags:-}")"
@@ -138,7 +169,10 @@ quote() { local out='' w; for w in $1; do out="$out'$w', "; done; printf '[%s]' 
 prefer_static=--prefer-static
 [ "$system" = linux ] && prefer_static=''
 # Only the pinned dependencies and package-ffmpeg are visible, never the host's.
+# Paths for native tools: Windows form on Windows, unchanged elsewhere.
+tp() { if [ "$system" = windows ]; then cygpath -m "$1"; else printf '%s' "$1"; fi; }
 export PKG_CONFIG_LIBDIR="$deps/lib/pkgconfig:$ffmpeg/lib/pkgconfig"
+[ "$system" = windows ] && PKG_CONFIG_LIBDIR="$(tp "$deps/lib/pkgconfig");$(tp "$ffmpeg/lib/pkgconfig")"
 if [ "$system" = linux ]; then
   # Desktop system libraries (Fontconfig, EGL, PulseAudio, ALSA) are linked
   # dynamically from the distribution.
@@ -168,9 +202,9 @@ meson_build() { # name source [meson options...]
   rm -rf "$build"
   echo "Building $name for $target (log: $build.log)"
   mkdir -p "$(dirname "$build")"
-  if ! { meson setup "$build" "$source" --cross-file "$cross" --prefix="$deps" --libdir=lib \
+  if ! { meson setup "$(tp "$build")" "$(tp "$source")" --cross-file "$(tp "$cross")" --prefix="$(tp "$deps")" --libdir=lib \
       --buildtype=release --default-library=static ${prefer_static} -Db_staticpic=true "$@" &&
-    meson compile -C "$build" -j "$jobs" && meson install -C "$build"; } > "$build.log" 2>&1; then
+    meson compile -C "$(tp "$build")" -j "$jobs" && meson install -C "$(tp "$build")"; } > "$build.log" 2>&1; then
     tail -40 "$build.log" >&2; exit 1
   fi
 }
@@ -208,7 +242,7 @@ mpv_src="$(fetch mpv)"
 for patch in "$root"/tool/patches/mpv-*.patch; do
   patch -d "$mpv_src" -p1 --quiet < "$patch"
 done
-if ! { meson setup "$mpv_build" "$mpv_src" --cross-file "$cross" --prefix="$prefix" --libdir=lib \
+if ! { meson setup "$(tp "$mpv_build")" "$(tp "$mpv_src")" --cross-file "$(tp "$cross")" --prefix="$(tp "$prefix")" --libdir=lib \
     --buildtype=release --default-library=shared ${prefer_static} \
     -Dlibmpv=true -Dcplayer=false -Dtests=false -Dfuzzers=false \
     -Dmanpage-build=disabled -Dhtml-build=disabled -Dpdf-build=disabled \
@@ -218,8 +252,15 @@ if ! { meson setup "$mpv_build" "$mpv_src" --cross-file "$cross" --prefix="$pref
     ${swift_flags:+-Dswift-flags="$swift_flags"} \
     -Dgl=enabled "${platform_options[@]}" \
     ${apple_link:+-Dc_link_args="$apple_link"} &&
-  meson compile -C "$mpv_build" -j "$jobs" && meson install -C "$mpv_build"; } > "$mpv_build.log" 2>&1; then
+  meson compile -C "$(tp "$mpv_build")" -j "$jobs" && meson install -C "$(tp "$mpv_build")"; } > "$mpv_build.log" 2>&1; then
   tail -40 "$mpv_build.log" >&2; exit 1
+fi
+if [[ "$target" = windows-* ]]; then
+  # The layout media_kit_video expects (libs/media_kit_libs_windows_video
+  # copies it to <build>/libmpv): flat headers, import library, DLL.
+  rm -rf "$prefix/media_kit" && mkdir -p "$prefix/media_kit/include"
+  cp "$prefix"/include/mpv/*.h "$prefix/media_kit/include/"
+  cp "$prefix/lib/libmpv.dll.a" "$prefix/bin/libmpv-2.dll" "$prefix/media_kit/"
 fi
 if [[ "$target" = linux-* ]]; then
   # Users link the shared libmpv only: its static dependencies are inside, so

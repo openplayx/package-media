@@ -31,6 +31,8 @@ dependencies:
     path: libs/media_kit_libs_linux
   media_kit_libs_tvos_video:
     path: libs/media_kit_libs_tvos_video
+  media_kit_libs_windows_video:
+    path: libs/media_kit_libs_windows_video
 dev_dependencies:
   flutter_test:
     sdk: flutter

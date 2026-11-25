@@ -28,8 +28,25 @@ report="${OPX_REPORT_DIR:-$root/build/formats/$engine-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "$report"
 report="$(cd "$report" && pwd)"
 
+# On Windows (MSYS2), Dart and Flutter need Windows paths.
+native() { case "$(uname -s)" in MINGW*|MSYS*) cygpath -m "$1" ;; *) printf '%s' "$1" ;; esac; }
+
 echo "== samples ($cache)"
 python3 -I "$libvlc/tool/prepare_samples.py" --cache "$cache" --out "$report/samples.json" ${only:+--only "$only"}
+case "$(uname -s)" in MINGW*|MSYS*)
+  python3 -I - "$report/samples.json" <<'PY'
+import json, subprocess, sys
+p = sys.argv[1]
+data = json.load(open(p))
+win = lambda path: subprocess.run(["cygpath", "-m", path], capture_output=True, text=True).stdout.strip()
+for s in data["samples"]:
+    if s.get("path"):
+        s["path"] = win(s["path"])
+    if (s.get("expect") or {}).get("frame"):
+        s["expect"]["frame"] = win(s["expect"]["frame"])
+json.dump(data, open(p, "w"))
+PY
+;; esac
 
 # The host app is restarted every $batch samples, and every failed sample is
 # then run once more alone: a player can disturb later players in the same
@@ -100,14 +117,14 @@ run_part() {
   local log="$report/$(basename "$1" .json).log"
   # A watchdog: flutter test occasionally hangs while attaching to an app on
   # a simulator or device; the batch's samples are then rerun alone.
-  local samples_define=(--dart-define=OPX_SAMPLES="$1")
+  local samples_define=(--dart-define=OPX_SAMPLES="$(native "$1")")
   [ -z "$remote" ] || samples_define=(--dart-define=OPX_SAMPLES_B64="$(base64 < "$1" | tr -d '\n')")
   if [ -n "$tvos" ]; then
     "$tvos" run -d "$device" -t lib/tvos_smoke.dart \
       --dart-define=OPX_SAMPLES_B64="$(base64 < "$1" | tr -d '\n')" > "$log" 2>&1 &
   else
     flutter test integration_test/formats_test.dart -d "$device" "${samples_define[@]}" \
-      --dart-define=OPX_REPORT="$report" --dart-define=OPX_ENGINE="$engine" > "$log" 2>&1 &
+      --dart-define=OPX_REPORT="$(native "$report")" --dart-define=OPX_ENGINE="$engine" > "$log" 2>&1 &
   fi
   local pid=$! waited=0
   while kill -0 "$pid" 2>/dev/null; do
