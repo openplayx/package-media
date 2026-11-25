@@ -76,7 +76,10 @@ mpv plays to a null audio output; the decoded audio is measured with FFmpeg's
 `astats` filter (low-pass, statistics over 50 codec frames): level and
 frequency against the 1 kHz tone. Report: `build/formats/<engine>-<time>/report.md`.
 
-Latest macOS results (74 generated samples): mpv 73 passed (all but ASX); libVLC 66.
+Latest results with mpv (74 generated samples): macOS 73, iOS simulator 73,
+Apple TV simulator 73, Android emulator 72, Linux arm64 72 (Linux amd64: the
+key samples pass). Failures: ASX (not supported by mpv) and the `.mmf` level
+issue (ALL-373). libVLC on macOS: 66.
 mpv plays what libVLC cannot: TrueHD, AST, FLAC in Ogg, pls/m3u/cue
 playlists, raw MPEG-2 video with timing. Neither plays ASX playlists.
 

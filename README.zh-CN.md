@@ -55,7 +55,7 @@ Android 设备通过 HTTP 从电脑读取样本（`tool/serve_samples.py`，支�
 
 mpv 用空音频输出播放（不出声），用 FFmpeg 的 `astats` 滤镜（先低通，每 50 个编码帧统计一次）测量解码音频的音量和频率，与 1 kHz 正弦音比较。报告位于 `build/formats/<引擎>-<时间>/report.md`。
 
-最新 macOS 结果（74 个生成样本）：mpv 通过 73 个（只有 ASX 不行），libVLC 通过 66 个。libVLC 播不了而 mpv 能播的：TrueHD、AST、Ogg 中的 FLAC、pls/m3u/cue 播放列表、带进度的裸 MPEG-2 视频。两者都不支持 ASX 播放列表。
+mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple TV 模拟器 73、Android 模拟器 72、Linux arm64 72（Linux amd64 关键样本全部通过）。失败的是 ASX（mpv 不支持）和 `.mmf` 音量问题（ALL-373）。libVLC 在 macOS 上通过 66 个。libVLC 播不了而 mpv 能播的：TrueHD、AST、Ogg 中的 FLAC、pls/m3u/cue 播放列表、带进度的裸 MPEG-2 视频。两者都不支持 ASX 播放列表。
 
 ### 已知问题
 
