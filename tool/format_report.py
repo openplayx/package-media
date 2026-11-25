@@ -21,27 +21,29 @@ def engine_version(device: str, engine: str) -> str:
     if engine == "mpv":
         info = ROOT / "third_party" / "mpv" / f"{device}-arm64" / "BUILDINFO"
         if info.exists():
-            kv = dict(l.split("=", 1) for l in info.read_text().splitlines() if "=" in l)
+            kv = dict(l.split("=", 1) for l in info.read_text(encoding="utf-8").splitlines() if "=" in l)
             return f"libmpv {kv.get('mpv', '?')}, FFmpeg {kv.get('ffmpeg', '?')} (package-ffmpeg)"
         return "libmpv (unknown build)"
     lock = ROOT / "example" / device / "Podfile.lock"
     if lock.exists():
-        m = re.search(r"^  - (\w*VLCKit) \(([^)]+)\)", lock.read_text(), re.M)
+        m = re.search(r"^  - (\w*VLCKit) \(([^)]+)\)", lock.read_text(encoding="utf-8"), re.M)
         if m:
             return f"{m.group(1)} {m.group(2)}"
     return "unknown"
 
 
 def main() -> int:
+    # Windows consoles default to a code page without the report's marks.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     report = pathlib.Path(sys.argv[1])
     device = sys.argv[2]
     engine = sys.argv[3] if len(sys.argv) > 3 else "vlc"
-    samples = json.loads((report / "samples.json").read_text())["samples"]
+    samples = json.loads((report / "samples.json").read_text(encoding="utf-8"))["samples"]
     # Batch results first, then isolated reruns of the failed samples, which
     # decide; a sample that only failed in its batch is marked.
     results: dict[str, dict] = {}
     for f in [*sorted(report.glob("results-[0-9]*.json")), *sorted(report.glob("results-retry-*.json"))]:
-        for r in json.loads(f.read_text())["results"]:
+        for r in json.loads(f.read_text(encoding="utf-8"))["results"]:
             first = results.get(r["id"])
             if first is not None and first.get("result") != "passed":
                 r["batch_failures"] = first.get("failures") or ["not run"]
@@ -83,7 +85,7 @@ def main() -> int:
         *rows,
         "",
     ]
-    (report / "report.md").write_text("\n".join(lines))
+    (report / "report.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines[:6]))
     print(f"report: {report / 'report.md'}")
     return 0 if counts["failed"] == 0 and counts["not run"] == 0 else 1
