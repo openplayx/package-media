@@ -132,6 +132,11 @@ quote() { local out='' w; for w in $1; do out="$out'$w', "; done; printf '[%s]' 
   echo "[host_machine]"
   echo "system = '$system'"; echo "cpu_family = '$family'"; echo "cpu = '$cpu'"; echo "endian = 'little'"
 } > "$cross"
+# Our dependencies exist only as static libraries. On Linux, desktop system
+# libraries (Fontconfig, ...) must link dynamically: their static archives are
+# not position-independent, so meson must not prefer them.
+prefer_static=--prefer-static
+[ "$system" = linux ] && prefer_static=''
 # Only the pinned dependencies and package-ffmpeg are visible, never the host's.
 export PKG_CONFIG_LIBDIR="$deps/lib/pkgconfig:$ffmpeg/lib/pkgconfig"
 if [ "$system" = linux ]; then
@@ -164,7 +169,7 @@ meson_build() { # name source [meson options...]
   echo "Building $name for $target (log: $build.log)"
   mkdir -p "$(dirname "$build")"
   if ! { meson setup "$build" "$source" --cross-file "$cross" --prefix="$deps" --libdir=lib \
-      --buildtype=release --default-library=static --prefer-static -Db_staticpic=true "$@" &&
+      --buildtype=release --default-library=static ${prefer_static} -Db_staticpic=true "$@" &&
     meson compile -C "$build" -j "$jobs" && meson install -C "$build"; } > "$build.log" 2>&1; then
     tail -40 "$build.log" >&2; exit 1
   fi
@@ -204,7 +209,7 @@ for patch in "$root"/tool/patches/mpv-*.patch; do
   patch -d "$mpv_src" -p1 --quiet < "$patch"
 done
 if ! { meson setup "$mpv_build" "$mpv_src" --cross-file "$cross" --prefix="$prefix" --libdir=lib \
-    --buildtype=release --default-library=shared --prefer-static \
+    --buildtype=release --default-library=shared ${prefer_static} \
     -Dlibmpv=true -Dcplayer=false -Dtests=false -Dfuzzers=false \
     -Dmanpage-build=disabled -Dhtml-build=disabled -Dpdf-build=disabled \
     -Dlua=disabled -Djavascript=disabled -Dlibarchive=disabled -Duchardet=disabled \
