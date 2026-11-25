@@ -286,6 +286,18 @@ if [[ "$target" = windows-* ]]; then
   rm -rf "$prefix/media_kit" && mkdir -p "$prefix/media_kit/include"
   cp "$prefix"/include/mpv/*.h "$prefix/media_kit/include/"
   cp "$prefix/lib/libmpv.dll.a" "$prefix/bin/libmpv-2.dll" "$prefix/media_kit/"
+  # libmpv-2.dll may import only Windows' own DLLs and package-ffmpeg's: a DLL
+  # from MSYS2 (zlib1, libiconv, libwinpthread, ...) is not shipped with the
+  # app, and loading libmpv then fails as "cannot find libmpv-2.dll".
+  imports="$(objdump -p "$prefix/bin/libmpv-2.dll" | sed -n 's/^[[:space:]]*DLL Name: //p' | sort -u)"
+  echo "libmpv-2.dll imports: $(echo $imports)"
+  foreign="$(printf '%s\n' "$imports" | grep -viE '^(av(codec|filter|format|util)|sw(resample|scale))-[0-9]+\.dll$' |
+    grep -viE '^(kernel32|user32|gdi32|advapi32|shell32|ole32|oleaut32|ws2_32|bcrypt|crypt32|secur32|ntdll|shlwapi|imm32|winmm|avrt|dwmapi|uxtheme|version|pathcch|shcore|uuid|dxgi|d3d9|d3d11|dxva2|mfplat|propsys|dwrite|usp10|opengl32|comctl32|comdlg32|setupapi|powrprof|userenv|msvcrt|ucrtbase)\.dll$' |
+    grep -viE '^api-ms-win-.*\.dll$' || true)"
+  if [ -n "$foreign" ]; then
+    echo "libmpv-2.dll imports DLLs the app does not ship: $(echo $foreign)" >&2
+    exit 1
+  fi
 fi
 if [[ "$target" = linux-* ]]; then
   # Users link the shared libmpv only: its static dependencies are inside, so
