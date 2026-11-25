@@ -15,7 +15,7 @@ docker image inspect "$image" >/dev/null 2>&1 || docker build ${platform[@]+"${p
 flutter_rev="${OPX_FLUTTER_REV:-$(git -C "$(dirname "$(dirname "$(readlink -f "$(command -v flutter)")")")" rev-parse HEAD)}"
 cache="$HOME/.cache/openplayx-libvlc-samples"
 mkdir -p "$cache"
-exec docker run --rm ${platform[@]+"${platform[@]}"} \
+exec docker run --rm --init ${platform[@]+"${platform[@]}"} \
   -v "$workspace:$workspace" -v "$cache:$cache" -v opx-linux-flutter:/opt/flutter \
   -v opx-linux-home:/root -e HOME=/root -e FLUTTER_REV="$flutter_rev" -e OPX_SAMPLE_CACHE="$cache" \
   -w "$workspace" "$image" bash -lc '

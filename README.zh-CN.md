@@ -12,7 +12,16 @@ OpenPlayX App ─ openplayx_media ─┬─ LibVlcBackend  → package-libvlc �
 
 **只有一份 FFmpeg。** libmpv 由本仓库从锁定版本的源码编译，链接 package-ffmpeg 的 FFmpeg 动态库，与 App 媒体处理（opx_media）用的是同一份。media_kit 自带的预编译原生库由 `libs/media_kit_libs_<平台>_video` 替换。
 
-当前状态：只完成了 macOS（arm64 + x86_64）。iOS、tvOS、Android、Windows、Linux 依次跟进；tvOS 需要自己实现视频组件。
+| 平台 | libmpv 构建 | media_kit 原生库包 | 格式测试 |
+|---|---|---|---|
+| macOS（arm64、x86_64） | `tool/ensure_mpv_apple.sh macos` | `libs/media_kit_libs_macos_video` | integration_test |
+| iOS（真机、模拟器） | `tool/ensure_mpv_apple.sh ios` | `libs/media_kit_libs_ios_video` | integration_test（模拟器） |
+| tvOS（真机、模拟器） | `tool/ensure_mpv_apple.sh tvos` | `libs/media_kit_libs_tvos_video` + `forks/` | 通过 flutter-tvos 运行 `example/lib/tvos_smoke.dart` |
+| Android（arm64-v8a、armeabi-v7a、x86_64） | `tool/ensure_mpv_android.sh`（Gradle 调用） | `libs/media_kit_libs_android_video` | integration_test，样本通过 HTTP 提供 |
+| Linux（x86_64、arm64） | `tool/build_mpv.sh linux-<架构>`（CMake 调用） | `libs/media_kit_libs_linux` | Xvfb 下的 integration_test（`tool/linux/run.sh`） |
+| Windows | 尚未完成 | – | – |
+
+media_kit 和 media_kit_video 在 `forks/` 下各有一份副本（MIT，见 `forks/*/OPENPLAYX.md`）：增加 Apple TV 支持（Dart 层判断，以及从 iOS 移植的 `tvos/` 视频插件）；media_kit_video 去掉了没有 Apple TV 实现的 wakelock_plus，播放时保持屏幕常亮由 App 负责。
 
 ## 目录
 
@@ -29,16 +38,20 @@ OpenPlayX App ─ openplayx_media ─┬─ LibVlcBackend  → package-libvlc �
 
 ## 环境要求
 
-同级目录需要有 `../ffmpeg-package`（package-ffmpeg）和 `../package-libvlc`；需要 Xcode、meson、ninja、pkg-config、cmake、python3。首次构建会编译 FFmpeg 和 libmpv（每个架构几分钟），之后按指纹缓存。
+同级目录需要有 `../ffmpeg-package`（package-ffmpeg）和 `../package-libvlc`；需要 meson、ninja、pkg-config、cmake、python3；Apple 平台需要 Xcode，Android 需要 `ANDROID_NDK_HOME`；Linux 在同架构的 Linux 主机上编译，或使用 `tool/linux/run.sh`（Docker，Ubuntu 24.04，带 libmpv 动态链接的系统库：Fontconfig、EGL、PulseAudio、ALSA）。tvOS 使用 `../.toolchains/flutter-tvos` 中固定版本的 flutter-tvos（`FLUTTER_TVOS_BIN`）。首次构建会编译 FFmpeg 和 libmpv（每个架构几分钟），之后按指纹缓存。
 
 ## 文件格式播放测试
 
 默认不运行。样本和检查项沿用 package-libvlc（`formats/manifest.json`），可以选择引擎：
 
 ```sh
-tool/test_formats.sh --engine mpv              # 或 --engine vlc
+tool/test_formats.sh --engine mpv              # 或 --engine vlc；默认 macOS
 tool/test_formats.sh --engine mpv --only 'truehd,ast,mp3*'
+tool/test_formats.sh --engine mpv --device <iOS 模拟器 | emulator-5554 | Apple TV 模拟器>
+tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engine mpv --device linux
 ```
+
+Android 设备通过 HTTP 从电脑读取样本（`tool/serve_samples.py`，支持 Range），结果打印到日志后收集；Apple TV 运行冒烟测试（起播、尺寸、Seek 后播到结尾、音量和频率，不做截图比对）。
 
 mpv 用空音频输出播放（不出声），用 FFmpeg 的 `astats` 滤镜（先低通，每 50 个编码帧统计一次）测量解码音频的音量和频率，与 1 kHz 正弦音比较。报告位于 `build/formats/<引擎>-<时间>/report.md`。
 

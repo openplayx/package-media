@@ -17,8 +17,19 @@ links package-ffmpeg's shared FFmpeg, the same copy that the app's media
 processing (opx_media) uses. media_kit's prebuilt native libraries are
 replaced by `libs/media_kit_libs_<platform>_video`.
 
-Status: macOS only so far (arm64 + x86_64). iOS, tvOS, Android, Windows and
-Linux follow; tvOS needs its own video widget implementation.
+| Platform | libmpv build | media_kit native package | Format tests |
+|---|---|---|---|
+| macOS (arm64, x86_64) | `tool/ensure_mpv_apple.sh macos` | `libs/media_kit_libs_macos_video` | integration_test |
+| iOS (device, simulator) | `tool/ensure_mpv_apple.sh ios` | `libs/media_kit_libs_ios_video` | integration_test (simulator) |
+| tvOS (device, simulator) | `tool/ensure_mpv_apple.sh tvos` | `libs/media_kit_libs_tvos_video` + `forks/` | `example/lib/tvos_smoke.dart` via flutter-tvos |
+| Android (arm64-v8a, armeabi-v7a, x86_64) | `tool/ensure_mpv_android.sh` (Gradle) | `libs/media_kit_libs_android_video` | integration_test, samples over HTTP |
+| Linux (x86_64, arm64) | `tool/build_mpv.sh linux-<arch>` (CMake) | `libs/media_kit_libs_linux` | integration_test under Xvfb (`tool/linux/run.sh`) |
+| Windows | not yet | – | – |
+
+media_kit and media_kit_video are forked in `forks/` (MIT, see
+`forks/*/OPENPLAYX.md`): Apple TV support (Dart checks and a `tvos/` video
+plugin ported from iOS); media_kit_video drops wakelock_plus, which has no
+Apple TV implementation, so the app keeps the screen on during playback.
 
 ## Layout
 
@@ -36,8 +47,12 @@ Linux follow; tvOS needs its own video widget implementation.
 ## Requirements
 
 Sibling checkouts `../ffmpeg-package` (package-ffmpeg) and `../package-libvlc`;
-Xcode, meson, ninja, pkg-config, cmake, python3. The first build compiles FFmpeg
-and libmpv (several minutes per architecture); later builds are cached by
+meson, ninja, pkg-config, cmake, python3; Xcode (Apple), `ANDROID_NDK_HOME`
+(Android); Linux builds run on a matching Linux host or in `tool/linux/run.sh`
+(Docker, Ubuntu 24.04 with the desktop libraries libmpv links: Fontconfig,
+EGL, PulseAudio, ALSA). tvOS uses the pinned flutter-tvos toolchain in
+`../.toolchains/flutter-tvos` (`FLUTTER_TVOS_BIN`). The first build compiles
+FFmpeg and libmpv (minutes per architecture); later builds are cached by
 fingerprint.
 
 ## File format playback tests
@@ -46,9 +61,16 @@ Not run by default. Samples and the checks are those of package-libvlc
 (`formats/manifest.json`); the engine is selectable:
 
 ```sh
-tool/test_formats.sh --engine mpv              # or --engine vlc
+tool/test_formats.sh --engine mpv              # or --engine vlc; macOS by default
 tool/test_formats.sh --engine mpv --only 'truehd,ast,mp3*'
+tool/test_formats.sh --engine mpv --device <iOS simulator | emulator-5554 | Apple TV simulator>
+tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engine mpv --device linux
 ```
+
+Android devices get the samples over HTTP from the host (`tool/serve_samples.py`,
+with Range support) and print their results; Apple TV runs a smoke test
+(start, size, seek to the end, audio level and frequency; no snapshot
+comparison).
 
 mpv plays to a null audio output; the decoded audio is measured with FFmpeg's
 `astats` filter (low-pass, statistics over 50 codec frames): level and
