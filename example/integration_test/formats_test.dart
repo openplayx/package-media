@@ -23,10 +23,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:integration_test/integration_test.dart';
 import 'package:openplayx_media/openplayx_media.dart';
 
@@ -568,11 +568,14 @@ Future<double> _frameDiff(
   int gw,
   int gh,
 ) async {
-  final codec = await ui.instantiateImageCodec(png);
-  final image = (await codec.getNextFrame()).image;
-  final w = image.width, h = image.height;
-  final rgba = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
-  image.dispose();
+  // Decoded in Dart: dart:ui needs a GPU context, which a VM may not have
+  // (Windows CI: "No Impeller context is available").
+  final decoded = img.decodePng(png);
+  if (decoded == null) throw const FormatException('snapshot is not a PNG');
+  final w = decoded.width, h = decoded.height;
+  final rgba = ByteData.sublistView(
+    decoded.getBytes(order: img.ChannelOrder.rgba),
+  );
   var total = 0.0;
   for (var gy = 0; gy < gh; gy++) {
     final y0 = gy * h ~/ gh, y1 = math.max(y0 + 1, (gy + 1) * h ~/ gh);
