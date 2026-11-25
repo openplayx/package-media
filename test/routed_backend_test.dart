@@ -66,16 +66,25 @@ void main() {
   const both = EngineRouter(available: {MediaEngine.mpv, MediaEngine.vlc});
 
   group('EngineRouter', () {
-    test('libmpv by default, libVLC for tracker modules', () {
+    test('libmpv by default, tracker modules included', () {
       expect(both.engineFor(Uri.file('/m/a.mkv')), MediaEngine.mpv);
       expect(both.engineFor(Uri.file('/m/b.thd')), MediaEngine.mpv);
-      expect(both.engineFor(Uri.file('/m/tone.MOD')), MediaEngine.vlc);
-      expect(both.engineFor(Uri.file('/m/song.xm')), MediaEngine.vlc);
+      expect(both.engineFor(Uri.file('/m/tone.MOD')), MediaEngine.mpv);
+      expect(both.engineFor(Uri.file('/m/song.nsf')), MediaEngine.mpv);
+      expect(both.engineFor(Uri.parse('http://h/stream')), MediaEngine.mpv);
+    });
+
+    test('byExtension overrides the default engine', () {
+      const custom = EngineRouter(
+        available: {MediaEngine.mpv, MediaEngine.vlc},
+        byExtension: {'xm': MediaEngine.vlc},
+      );
+      expect(custom.engineFor(Uri.file('/m/song.XM')), MediaEngine.vlc);
       expect(
-        both.engineFor(Uri.parse('http://h/x/a.it?token=1')),
+        custom.engineFor(Uri.parse('http://h/x/a.xm?token=1')),
         MediaEngine.vlc,
       );
-      expect(both.engineFor(Uri.parse('http://h/stream')), MediaEngine.mpv);
+      expect(custom.engineFor(Uri.file('/m/a.mkv')), MediaEngine.mpv);
     });
 
     test('libVLC only where libmpv is not built', () {
@@ -91,11 +100,20 @@ void main() {
       expect(EngineRouter.extensionOf(Uri.file('/a/.hidden')), '');
       expect(EngineRouter.extensionOf(Uri.parse('http://h/')), '');
     });
+
+    test('desktop disc URIs use the native mpv readers', () {
+      expect(
+        both.engineFor(Uri.parse('bluray:///movies/disc')),
+        MediaEngine.mpv,
+      );
+      expect(both.engineFor(Uri.parse('dvd:///movies/disc')), MediaEngine.mpv);
+    });
   });
 
   group('RoutedPlayerBackend', () {
     late List<_FakeEngine> created;
     RoutedPlayerBackend routed({
+      EngineRouter router = both,
       bool mpvFails = false,
       bool vlcFails = false,
       PlaybackStatus? vlcGivesUp,
@@ -103,7 +121,7 @@ void main() {
     }) {
       created = [];
       return RoutedPlayerBackend(
-        router: both,
+        router: router,
         createMpv: () {
           final e = _FakeEngine('mpv', failOpen: mpvFails, failsOn: failsOn);
           created.add(e);
@@ -139,13 +157,18 @@ void main() {
     });
 
     test('switches engines between media and disposes the old one', () async {
-      final b = routed();
+      final b = routed(
+        router: const EngineRouter(
+          available: {MediaEngine.mpv, MediaEngine.vlc},
+          byExtension: {'vlconly': MediaEngine.vlc},
+        ),
+      );
       await b.open(Uri.file('/m/a.mkv'));
-      await b.open(Uri.file('/m/b.mod'));
+      await b.open(Uri.file('/m/b.vlconly'));
       expect(b.engine, MediaEngine.vlc);
       expect(created.map((e) => e.name), ['mpv', 'vlc']);
       expect(created.first.disposed, isTrue);
-      await b.open(Uri.file('/m/c.mod'));
+      await b.open(Uri.file('/m/c.vlconly'));
       expect(created.length, 2, reason: 'same engine is reused');
       b.dispose();
     });
@@ -243,12 +266,17 @@ void main() {
     });
 
     testWidgets('video view follows the engine', (tester) async {
-      final b = routed();
+      final b = routed(
+        router: const EngineRouter(
+          available: {MediaEngine.mpv, MediaEngine.vlc},
+          byExtension: {'vlconly': MediaEngine.vlc},
+        ),
+      );
       await tester.pumpWidget(PlayerVideoView(backend: b));
       await tester.runAsync(() => b.open(Uri.file('/m/a.mkv')));
       await tester.pump();
       expect(find.text('mpv'), findsOneWidget);
-      await tester.runAsync(() => b.open(Uri.file('/m/a.mod')));
+      await tester.runAsync(() => b.open(Uri.file('/m/a.vlconly')));
       await tester.pump();
       expect(find.text('vlc'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());

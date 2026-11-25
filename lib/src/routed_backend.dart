@@ -12,10 +12,12 @@ enum MediaEngine { mpv, vlc }
 /// Picks the engine for a media URI.
 ///
 /// libmpv (package-media's build on package-ffmpeg's FFmpeg 9.1) is the
-/// default: in the format tests it plays everything libVLC plays except
-/// tracker modules, plus TrueHD, AST, FLAC in Ogg, playlists and raw
-/// MPEG-2 video. libVLC takes tracker modules (package-ffmpeg has no
-/// libopenmpt) and every platform without a libmpv build.
+/// default: in the format tests it plays everything libVLC plays, plus
+/// TrueHD, AST, FLAC in Ogg, playlists and raw MPEG-2 video, and with
+/// package-ffmpeg's libopenmpt and libgme also tracker modules (more formats
+/// than VLCKit's libmodplug) and game console music. Desktop disc navigation
+/// also uses libmpv. libVLC takes [byExtension] overrides, every platform without a libmpv
+/// build, and media libmpv fails to open ([fallbackFor]).
 @immutable
 class EngineRouter {
   const EngineRouter({
@@ -24,24 +26,9 @@ class EngineRouter {
     this.available,
   });
 
-  /// Extensions routed to libVLC: tracker modules.
-  static const vlcExtensions = <String, MediaEngine>{
-    'mod': MediaEngine.vlc,
-    'xm': MediaEngine.vlc,
-    'it': MediaEngine.vlc,
-    's3m': MediaEngine.vlc,
-    'mtm': MediaEngine.vlc,
-    'stm': MediaEngine.vlc,
-    '669': MediaEngine.vlc,
-    'ult': MediaEngine.vlc,
-    'far': MediaEngine.vlc,
-    'med': MediaEngine.vlc,
-    'okt': MediaEngine.vlc,
-    'amf': MediaEngine.vlc,
-    'dsm': MediaEngine.vlc,
-    'umx': MediaEngine.vlc,
-    'mptm': MediaEngine.vlc,
-  };
+  /// Extensions routed to libVLC. Empty: tracker modules moved to libmpv
+  /// once package-ffmpeg gained libopenmpt.
+  static const vlcExtensions = <String, MediaEngine>{};
 
   final MediaEngine defaultEngine;
 

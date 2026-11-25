@@ -263,6 +263,18 @@ meson_build harfbuzz "$(fetch harfbuzz)" -Dfreetype=enabled -Dglib=disabled -Dgo
 meson_build libass "$(fetch libass)" "${libass_options[@]}" \
   -Dlibunibreak=disabled -Dasm="$asm" -Dtest=disabled -Dprofile=disabled
 
+# Desktop disc directories: pinned static readers, no host/Homebrew runtime
+# dependency. BD-J menus and decryption libraries are not bundled.
+disc_options=(-Ddvda=disabled)
+case "$target" in macos-*|linux-*)
+  meson_build libdvdread "$(fetch libdvdread)" -Dlibdvdcss=disabled -Denable_docs=false
+  meson_build libdvdnav "$(fetch libdvdnav)" -Denable_docs=false -Denable_examples=false
+  # The release tarball includes its pinned libudfread subproject.
+  meson_build libbluray "$(fetch libbluray)" -Denable_tools=false -Dbdj_jar=disabled \
+    -Dfreetype=disabled -Dfontconfig=disabled -Dlibxml2=disabled
+  disc_options=(-Dlibbluray=enabled -Ddvdnav=enabled -Ddvda=disabled)
+;; esac
+
 placebo="$(fetch libplacebo)"
 # The release archive lacks libplacebo's git submodules; Vulkan headers are
 # needed by its stubs even with Vulkan disabled.
@@ -304,7 +316,7 @@ if ! { meson setup "$(tp "$mpv_build")" "$(tp "$mpv_src")" --cross-file "$(tp "$
     -Drubberband=disabled -Dzimg=disabled -Dlcms2=disabled -Dvapoursynth=disabled \
     -Dlibcurl=disabled -Dlibavdevice=disabled -Dvulkan=disabled \
     ${swift_flags:+-Dswift-flags="$swift_flags"} \
-    -Dgl=enabled "${platform_options[@]}" \
+    -Dgl=enabled "${platform_options[@]}" "${disc_options[@]}" \
     ${apple_link:+-Dc_link_args="$apple_link"} &&
   meson compile -C "$(tp "$mpv_build")" -j "$jobs" && meson install -C "$(tp "$mpv_build")"; } > "$mpv_build.log" 2>&1; then
   tail -40 "$mpv_build.log" >&2; exit 1

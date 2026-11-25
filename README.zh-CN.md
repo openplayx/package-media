@@ -34,7 +34,7 @@ await player.open(Uri.file('/media/b.mod')); // libVLC
 player.engine;                              // MediaEngine.vlc
 ```
 
-`EngineRouter` 默认把媒体交给 libmpv；模块音乐（`.mod`、`.xm`、`.it`、`.s3m` 等，package-ffmpeg 没有 libopenmpt）以及没有 libmpv 构建的平台（Windows 上指没有打包 `libmpv-2.dll` 的构建）交给 libVLC。选中的引擎在起播前失败时，`RoutedPlayerBackend` 会用另一个引擎再打开一次（`fellBack`）。默认引擎、扩展名表和可用引擎都可以通过构造参数指定。单元测试：`flutter test`。
+`EngineRouter` 默认把媒体交给 libmpv，包括模块音乐（`.mod`、`.xm`、`.it`、`.s3m` 等，由 package-ffmpeg 的 libopenmpt 解码）和游戏机音乐（`.nsf`、`.gym`、`.spc`、`.vgm` 等，由 package-ffmpeg 的 libgme 解码，`MpvBackend` 会对这些后缀直接指定该解封装器）。光盘导航以及没有 libmpv 构建的平台（Windows 上指没有打包 `libmpv-2.dll` 的构建）交给 libVLC。选中的引擎在起播前失败时，`RoutedPlayerBackend` 会用另一个引擎再打开一次（`fellBack`）。默认引擎、扩展名表和可用引擎都可以通过构造参数指定。单元测试：`flutter test`。
 
 ## 目录
 
@@ -87,3 +87,9 @@ mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple T
 ## 许可
 
 本仓库代码为 MIT（[LICENSE](LICENSE)）。与 FFmpeg（含 x264/x265）一起编译分发时，整体适用 GPL-2.0-or-later。mpv、libplacebo、libass 等依赖适用其各自的许可证。
+
+### 高级播放回归
+
+在 `../openplayx-test/formats` 运行 `python3 build_advanced.py --tsmuxer /path/to/tsMuxeR --download-dv` 准备已登记的素材，再在本仓库运行 `bash tool/test_advanced.sh`。覆盖 HDR10+、Dolby Vision P5/P8.1/P8.4、完整 Blu-ray/DVD 目录及 Web 基础 MP4。可用 `--only 'advanced-bluray,advanced-dvd'` 只执行目录测试；报告写入 `build/formats/advanced-*`，或由 `OPX_REPORT_DIR` 指定。
+
+macOS/Linux 的 mpv 构建静态链接固定版本的 libbluray 1.5.0（附带 libudfread）、libdvdread 7.1.1 和 libdvdnav 7.0.0。仅验收未加密本地目录的主片与 Seek，不提供 BD-J 菜单或解密库。其他平台尚未启用这组依赖；Linux 构建与播放需要独立验证。依赖来源和 SHA-256 在 `tool/mpv-deps.tsv`，许可文本在 `LICENSES/`。

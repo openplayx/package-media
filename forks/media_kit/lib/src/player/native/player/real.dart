@@ -178,10 +178,15 @@ class NativePlayer extends PlatformPlayer {
       // Enter paused state.
       await _setPropertyFlag('pause', true);
 
-      if (playlist.any((media) => media.uri.startsWith('fd://'))) {
+      if (playlist.any((media) =>
+          media.uri.startsWith('fd://') ||
+          media.uri.startsWith('bluray://') ||
+          media.uri.startsWith('dvd://'))) {
         // The fd:// scheme is used to reference content:// URIs on Android.
         // The loadlist command does not support this by default, yielding "Refusing to load potentially unsafe URL from a playlist."
         // So, we fallback to loading each file individually.
+        // Disc readers also require a trusted loadfile origin: mpv's
+        // generated loadlist otherwise refuses their filesystem access.
         for (int i = 0; i < playlist.length; i++) {
           await _command(
             [

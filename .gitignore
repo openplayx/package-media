@@ -8,3 +8,7 @@ example/build/
 /example-w*/
 # Staged by tool/build_mpv.sh windows-x86_64
 libs/media_kit_libs_windows_video/windows/libmpv/
+
+# Python interpreter caches
+__pycache__/
+*.pyc

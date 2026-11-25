@@ -44,7 +44,11 @@ class MpvBackend extends PlayerBackend {
       _player.stream.buffering.listen((_) => _sync()),
       _player.stream.rate.listen((_) => _sync()),
       _player.stream.volume.listen((_) => _sync()),
-      _player.stream.error.listen((_) {
+      _player.stream.error.listen((message) {
+        // Decoder log errors can recover (e.g. AC3 after a DVD cell seek).
+        // Our media_kit fork reports fatal MPV_EVENT_END_FILE errors with
+        // this prefix; only those make the playback session fail.
+        if (!message.startsWith('end-file:')) return;
         _error = true;
         _sync();
       }),
@@ -127,6 +131,15 @@ class MpvBackend extends PlayerBackend {
     } catch (_) {}
   }
 
+  /// Game console music played by FFmpeg's libgme demuxer (package-ffmpeg).
+  /// Its probe scores files under 16 KB at 25, below mpv's minimum of 26
+  /// (`demuxer-lavf-probescore`), and most such files are that small: the
+  /// demuxer is named for these extensions instead. VGZ needs zlib, which
+  /// package-ffmpeg's libgme is built without.
+  static const gmeExtensions = {
+    'nsf', 'nsfe', 'gym', 'spc', 'vgm', 'gbs', 'hes', 'kss', 'sap', 'ay', //
+  };
+
   @override
   Future<void> open(Uri uri) async {
     await _ready;
@@ -134,7 +147,18 @@ class MpvBackend extends PlayerBackend {
     _ended = false;
     _error = false;
     _seekable = false;
-    await _player.open(Media(uri.toString()));
+    final name = uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ?? '';
+    final dot = name.lastIndexOf('.');
+    final ext = dot <= 0 ? '' : name.substring(dot + 1).toLowerCase();
+    await _native.setProperty(
+      'demuxer-lavf-format',
+      gmeExtensions.contains(ext) ? 'libgme' : '',
+    );
+    // Disc stream readers expect a local device path, not URL-escaped text.
+    final location = {'bluray', 'dvd'}.contains(uri.scheme)
+        ? '${uri.scheme}://longest/${uri.replace(scheme: 'file').toFilePath()}'
+        : uri.toString();
+    await _player.open(Media(location));
     _sync();
   }
 

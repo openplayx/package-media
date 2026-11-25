@@ -42,10 +42,12 @@ await player.open(Uri.file('/media/b.mod')); // libVLC
 player.engine;                              // MediaEngine.vlc
 ```
 
-`EngineRouter` sends media to libmpv by default and to libVLC for tracker
-modules (`.mod`, `.xm`, `.it`, `.s3m`, ...: package-ffmpeg has no libopenmpt)
-and on platforms without a libmpv build (on Windows: when no `libmpv-2.dll`
-was bundled). When the chosen engine fails before
+`EngineRouter` sends media to libmpv by default, tracker modules (`.mod`,
+`.xm`, `.it`, `.s3m`, ...: package-ffmpeg's libopenmpt) and game console music
+(`.nsf`, `.gym`, `.spc`, `.vgm`, ...: package-ffmpeg's libgme, which
+`MpvBackend` names as the demuxer for these extensions) included. libVLC takes
+disc navigation and platforms without a libmpv build (on Windows: when no
+`libmpv-2.dll` was bundled). When the chosen engine fails before
 playback starts, `RoutedPlayerBackend` opens the media once with the other
 engine (`fellBack`). The defaults, the extension table and the available
 engines are constructor parameters. Unit tests: `flutter test`.
@@ -138,3 +140,18 @@ playlists, raw MPEG-2 video with timing. Neither plays ASX playlists.
 This repository's code is MIT ([LICENSE](LICENSE)). Built and distributed
 with FFmpeg (x264/x265), the combination is GPL-2.0-or-later. mpv, libplacebo,
 libass and the other dependencies keep their own licenses.
+
+### Advanced playback regression
+
+Generate the original HDR10+/BDMV/DVD and browser fixtures with
+`python3 ../openplayx-test/formats/build_advanced.py --tsmuxer /path/to/tsMuxeR --download-dv`,
+then run `bash tool/test_advanced.sh`. `--only 'advanced-bluray,advanced-dvd'`
+selects disc tests. Reports and snapshots go to `build/formats/advanced-*`.
+Dolby Vision colour checks use the matching official Jellyfin SDR pattern,
+so successful decoding alone does not pass a visibly colour-shifted profile.
+
+macOS/Linux builds statically include pinned libbluray (with libudfread),
+libdvdread and libdvdnav for unencrypted local main-title playback. BD-J menus
+and decryption libraries are not bundled. Linux runtime and other platforms
+need their own verification. Sources/checksums are in `tool/mpv-deps.tsv`;
+license texts are in `LICENSES/`.

@@ -149,6 +149,8 @@ class _Check {
     PlayerBackend createMpv() => MpvBackend(
       mpvOptions: {
         'ao': 'null',
+        if ({'bluray', 'dvd'}.contains(sample['ext']))
+          'log-file': '${reportDir.path}/$id-mpv.log',
         // Statistics over 50 codec frames (TrueHD frames are only 40
         // samples) behind a low-pass: lossy codecs add noise around
         // zero that would count as crossings.
@@ -262,7 +264,11 @@ class _Check {
     // inside open(), and its setup needs the frame loop running.
     var openDone = false;
     final opening = backend
-        .open(path.startsWith('http') ? Uri.parse(path) : Uri.file(path))
+        .open(
+          Uri.tryParse(path)?.hasScheme == true
+              ? Uri.parse(path)
+              : Uri.file(path),
+        )
         .whenComplete(() => openDone = true);
     await waitFor(() => openDone, timeout: const Duration(seconds: 15));
     await opening;
@@ -296,6 +302,39 @@ class _Check {
         final png = await backend.takeSnapshot();
         File('${reportDir.path}/$id.png').writeAsBytesSync(png);
         result['snapshot'] = '$id.png';
+        final color = expectations['mean_chroma'] as List?;
+        if (color != null) {
+          final picture = img.decodeImage(png)!;
+          final sums = [0.0, 0.0, 0.0];
+          for (
+            var y = 0;
+            y < picture.height;
+            y += math.max(1, picture.height ~/ 36)
+          ) {
+            for (
+              var x = 0;
+              x < picture.width;
+              x += math.max(1, picture.width ~/ 64)
+            ) {
+              final pixel = picture.getPixel(x, y);
+              sums[0] += pixel.r;
+              sums[1] += pixel.g;
+              sums[2] += pixel.b;
+            }
+          }
+          final total = sums.reduce((a, b) => a + b);
+          final chroma = sums.map((s) => total > 0 ? s / total : 0.0).toList();
+          metrics['mean_chroma'] = chroma;
+          final error = [
+            for (var i = 0; i < 3; i++) (chroma[i] - (color[i] as num)).abs(),
+          ].reduce(math.max);
+          metrics['chroma_error'] = error;
+          if (error > (expectations['chroma_tolerance'] as num? ?? 0.12)) {
+            fail(
+              'snapshot colour cast: normalized mean RGB $chroma, expected ~$color (error $error)',
+            );
+          }
+        }
         if (frameRef != null) {
           final grid = (sample['grid'] as List).cast<int>();
           final diff = await _frameDiff(
@@ -421,6 +460,9 @@ class _Check {
             '${backend.value.status} '
             'at ${backend.value.position}',
           );
+        } else if (expectations['play_to_end'] == false) {
+          // Long real-world files: advancing after the seek is enough.
+          metrics['end_status'] = 'skipped (long file)';
         } else {
           // After the seek the media must play on to its end, not stop early.
           final end = Duration(
