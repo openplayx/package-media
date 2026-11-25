@@ -203,6 +203,14 @@ if [ "$system" = windows ]; then
     cp "$implib" "${implib%.dll.a}.a"
   done
 fi
+# The FFmpeg prefix may come from a CI cache built in another checkout, and
+# FFmpeg writes absolute libdir/includedir into its pkg-config files: point
+# them at this location (otherwise the headers "are not found").
+for pc in "$ffmpeg"/lib/pkgconfig/*.pc; do
+  [ -e "$pc" ] || continue
+  sed -i.orig -e "s#^prefix=.*#prefix=$(tp "$ffmpeg")#" -e "s#^libdir=.*#libdir=$(tp "$ffmpeg/lib")#" \
+    -e "s#^includedir=.*#includedir=$(tp "$ffmpeg/include")#" "$pc" && rm -f "$pc.orig"
+done
 export PKG_CONFIG_LIBDIR="$deps/lib/pkgconfig:$ffmpeg/lib/pkgconfig"
 [ "$system" = windows ] && PKG_CONFIG_LIBDIR="$(tp "$deps/lib/pkgconfig");$(tp "$ffmpeg/lib/pkgconfig")"
 if [ "$system" = linux ]; then
