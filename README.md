@@ -63,9 +63,16 @@ Not run by default. Samples and the checks are those of package-libvlc
 ```sh
 tool/test_formats.sh --engine mpv              # or --engine vlc; macOS by default
 tool/test_formats.sh --engine mpv --only 'truehd,ast,mp3*'
+tool/test_formats.sh --engine mpv --pack --only 'pack-*'   # material pack samples
 tool/test_formats.sh --engine mpv --device <iOS simulator | emulator-5554 | Apple TV simulator>
 tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engine mpv --device linux
 ```
+
+`--pack` adds the local files of the format material pack in
+[openplayx-test](https://github.com/openplayx/openplayx-test) `formats/`
+(ALL-370) as samples named `pack-<issue>-<ext>`, tagged with their Linear
+issues; expectations come from ffprobe and its 440 Hz tone. Its moving test
+pattern has no reference frame, so these samples get no snapshot comparison.
 
 Android devices get the samples over HTTP from the host (`tool/serve_samples.py`,
 with Range support) and print their results; Apple TV runs a smoke test
@@ -80,6 +87,11 @@ Latest results with mpv (74 generated samples): macOS 73, iOS simulator 73,
 Apple TV simulator 73, Android emulator 72, Linux arm64 72 (Linux amd64: the
 key samples pass). Failures: ASX (not supported by mpv) and the `.mmf` level
 issue (ALL-373). libVLC on macOS: 66.
+Material pack (67 samples, macOS): mpv 61, libVLC 48. mpv fails ASX, DSF and
+WavPack seeking, MOD (no libopenmpt in package-ffmpeg), and reports the
+side-by-side 3D file at a corrected size; the RA fixture itself is broken.
+Many libVLC failures are 3-second audio files ending right after the seek,
+which pass at 6 seconds (under investigation).
 mpv plays what libVLC cannot: TrueHD, AST, FLAC in Ogg, pls/m3u/cue
 playlists, raw MPEG-2 video with timing. Neither plays ASX playlists.
 
