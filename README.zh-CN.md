@@ -21,7 +21,7 @@ OpenPlayX App ─ openplayx_media ─ RoutedPlayerBackend（EngineRouter）
 | tvOS（真机、模拟器） | `tool/ensure_mpv_apple.sh tvos` | `libs/media_kit_libs_tvos_video` + `forks/` | 通过 flutter-tvos 运行 `example/lib/tvos_smoke.dart` |
 | Android（arm64-v8a、armeabi-v7a、x86_64） | `tool/ensure_mpv_android.sh`（Gradle 调用） | `libs/media_kit_libs_android_video` | integration_test，样本通过 HTTP 提供 |
 | Linux（x86_64、arm64） | `tool/build_mpv.sh linux-<架构>`（CMake 调用） | `libs/media_kit_libs_linux` | Xvfb 下的 integration_test（`tool/linux/run.sh`） |
-| Windows | 尚未完成 | – | – |
+| Windows（x86_64） | `tool/build_mpv.sh windows-x86_64`（MSYS2、MinGW-w64；CI 在 `flutter build` 前编译） | `libs/media_kit_libs_windows_video`（没有 libmpv 时为空实现） | integration_test（Windows CI 上的关键样本） |
 
 media_kit 和 media_kit_video 在 `forks/` 下各有一份副本（MIT，见 `forks/*/OPENPLAYX.md`）：增加 Apple TV 支持（Dart 层判断，以及从 iOS 移植的 `tvos/` 视频插件）；media_kit_video 去掉了没有 Apple TV 实现的 wakelock_plus，播放时保持屏幕常亮由 App 负责。
 
@@ -34,7 +34,7 @@ await player.open(Uri.file('/media/b.mod')); // libVLC
 player.engine;                              // MediaEngine.vlc
 ```
 
-`EngineRouter` 默认把媒体交给 libmpv；模块音乐（`.mod`、`.xm`、`.it`、`.s3m` 等，package-ffmpeg 没有 libopenmpt）以及没有 libmpv 构建的平台交给 libVLC。选中的引擎在起播前失败时，`RoutedPlayerBackend` 会用另一个引擎再打开一次（`fellBack`）。默认引擎、扩展名表和可用引擎都可以通过构造参数指定。单元测试：`flutter test`。
+`EngineRouter` 默认把媒体交给 libmpv；模块音乐（`.mod`、`.xm`、`.it`、`.s3m` 等，package-ffmpeg 没有 libopenmpt）以及没有 libmpv 构建的平台（Windows 上指没有打包 `libmpv-2.dll` 的构建）交给 libVLC。选中的引擎在起播前失败时，`RoutedPlayerBackend` 会用另一个引擎再打开一次（`fellBack`）。默认引擎、扩展名表和可用引擎都可以通过构造参数指定。单元测试：`flutter test`。
 
 ## 目录
 
@@ -75,7 +75,8 @@ Android 设备通过 HTTP 从电脑读取样本（`tool/serve_samples.py`，支�
 
 mpv 用空音频输出播放（不出声），用 FFmpeg 的 `astats` 滤镜（先低通，每 50 个编码帧统计一次）测量解码音频的音量和频率，与 1 kHz 正弦音比较。报告位于 `build/formats/<引擎>-<时间>/report.md`。
 
-mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple TV 模拟器 73、Android 模拟器 72、Linux arm64 72（Linux amd64 关键样本全部通过）。失败的是 ASX（mpv 不支持）和 `.mmf` 音量问题（ALL-373）。libVLC 在 macOS 上通过 66 个。经过路由（`--engine auto`，含素材包共 141 个样本）：macOS 通过 135 个，iOS 模拟器 133 个，Android 模拟器 135 个；失败的是 ASX（两个引擎都不支持）、左右并排 3D 的尺寸、DSF 的 Seek、损坏的 RA 素材和素材包里的 `.mmf`。
+mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple TV 模拟器 73、Android 模拟器 72、Linux arm64 72（Linux amd64 关键样本全部通过）。失败的是 ASX（mpv 不支持）和 `.mmf` 音量问题（ALL-373）。libVLC 在 macOS 上通过 66 个。Windows CI（mpv，关键样本）：7 个全部通过。
+经过路由（`--engine auto`，含素材包共 141 个样本）：macOS 通过 135 个，iOS 模拟器 133 个，Android 模拟器 135 个；失败的是 ASX（两个引擎都不支持）、左右并排 3D 的尺寸、DSF 的 Seek、损坏的 RA 素材和素材包里的 `.mmf`。
 各引擎单独跑素材包（67 个样本，macOS）：mpv 通过 61 个，libVLC 通过 48 个。mpv 失败的是 ASX、DSF 和 WavPack 的 Seek、MOD（package-ffmpeg 未启用 libopenmpt），以及左右并排 3D 文件按校正后的尺寸报告；RA 素材本身损坏。libVLC 的很多失败是 3 秒音频在 Seek 后立即结束，同样的编码在 6 秒样本上通过（待查）。libVLC 播不了而 mpv 能播的：TrueHD、AST、Ogg 中的 FLAC、pls/m3u/cue 播放列表、带进度的裸 MPEG-2 视频。两者都不支持 ASX 播放列表。
 
 ### 已知问题

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show File, Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -57,7 +58,9 @@ class MpvBackend extends PlayerBackend {
     _initialized = true;
   }
 
-  /// Platforms with a package-media libmpv build.
+  /// Platforms with a package-media libmpv build. On Windows, only when
+  /// libmpv-2.dll was bundled: without a libmpv build the app gets
+  /// media_kit_video's stub (libs/media_kit_libs_windows_video).
   static bool get isSupported =>
       !kIsWeb &&
       (isTvOS ||
@@ -66,7 +69,13 @@ class MpvBackend extends PlayerBackend {
             TargetPlatform.iOS,
             TargetPlatform.android,
             TargetPlatform.linux,
-          ].contains(defaultTargetPlatform));
+          ].contains(defaultTargetPlatform) ||
+          (defaultTargetPlatform == TargetPlatform.windows &&
+              _windowsLibmpvBundled));
+
+  static final bool _windowsLibmpvBundled = File(
+    '${File(Platform.resolvedExecutable).parent.path}${Platform.pathSeparator}libmpv-2.dll',
+  ).existsSync();
 
   late final Player _player;
   late final VideoController _video;

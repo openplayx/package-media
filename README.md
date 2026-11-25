@@ -26,7 +26,7 @@ replaced by `libs/media_kit_libs_<platform>_video`.
 | tvOS (device, simulator) | `tool/ensure_mpv_apple.sh tvos` | `libs/media_kit_libs_tvos_video` + `forks/` | `example/lib/tvos_smoke.dart` via flutter-tvos |
 | Android (arm64-v8a, armeabi-v7a, x86_64) | `tool/ensure_mpv_android.sh` (Gradle) | `libs/media_kit_libs_android_video` | integration_test, samples over HTTP |
 | Linux (x86_64, arm64) | `tool/build_mpv.sh linux-<arch>` (CMake) | `libs/media_kit_libs_linux` | integration_test under Xvfb (`tool/linux/run.sh`) |
-| Windows | not yet | – | – |
+| Windows (x86_64) | `tool/build_mpv.sh windows-x86_64` (MSYS2, MinGW-w64; CI before `flutter build`) | `libs/media_kit_libs_windows_video` (stub without a libmpv build) | integration_test (key samples on the Windows CI) |
 
 media_kit and media_kit_video are forked in `forks/` (MIT, see
 `forks/*/OPENPLAYX.md`): Apple TV support (Dart checks and a `tvos/` video
@@ -44,7 +44,8 @@ player.engine;                              // MediaEngine.vlc
 
 `EngineRouter` sends media to libmpv by default and to libVLC for tracker
 modules (`.mod`, `.xm`, `.it`, `.s3m`, ...: package-ffmpeg has no libopenmpt)
-and on platforms without a libmpv build. When the chosen engine fails before
+and on platforms without a libmpv build (on Windows: when no `libmpv-2.dll`
+was bundled). When the chosen engine fails before
 playback starts, `RoutedPlayerBackend` opens the media once with the other
 engine (`fellBack`). The defaults, the extension table and the available
 engines are constructor parameters. Unit tests: `flutter test`.
@@ -113,6 +114,7 @@ Latest results with mpv (74 generated samples): macOS 73, iOS simulator 73,
 Apple TV simulator 73, Android emulator 72, Linux arm64 72 (Linux amd64: the
 key samples pass). Failures: ASX (not supported by mpv) and the `.mmf` level
 issue (ALL-373). libVLC on macOS: 66.
+Windows CI (mpv, key samples): 7 of 7.
 Through the router (`--engine auto`, 141 samples with the pack): macOS 135,
 iOS simulator 133, Android emulator 135; failures: ASX (both engines), the side-by-side 3D size, DSF seeking,
 the broken RA fixture and the pack's `.mmf`.
