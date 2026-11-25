@@ -1501,6 +1501,21 @@ class NativePlayer extends PlatformPlayer {
     //     }
     //   }
     // }
+    // OpenPlayX: a media that cannot be loaded (unrecognized format, HTTP
+    // error, ...) ends with MPV_END_FILE_REASON_ERROR. Report it on the error
+    // stream: the log-based detection below misses many of these, and the
+    // player would otherwise look idle or ended.
+    if (event.ref.event_id == generated.mpv_event_id.MPV_EVENT_END_FILE) {
+      final end = event.ref.data.cast<generated.mpv_event_end_file>().ref;
+      if (end.reason ==
+          generated.mpv_end_file_reason.MPV_END_FILE_REASON_ERROR) {
+        final text =
+            mpv.mpv_error_string(end.error).cast<Utf8>().toDartString();
+        if (!errorController.isClosed) {
+          errorController.add('end-file: $text');
+        }
+      }
+    }
     if (event.ref.event_id ==
         generated.mpv_event_id.MPV_EVENT_PROPERTY_CHANGE) {
       final prop = event.ref.data.cast<generated.mpv_event_property>();

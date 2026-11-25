@@ -2,19 +2,32 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openplayx_media/openplayx_media.dart';
 
-/// Engine stand-in: records calls; [failOpen] reports an error on open.
+/// Engine stand-in: records calls; [failOpen] reports an error on open,
+/// [gaveUp] reports that status instead (opening first) without playing.
 class _FakeEngine extends PlayerBackend {
-  _FakeEngine(this.name, {this.failOpen = false});
+  _FakeEngine(this.name, {this.failOpen = false, this.gaveUp, this.failsOn});
   final String name;
   final bool failOpen;
+  final PlaybackStatus? gaveUp;
+
+  /// When set, failures apply only to URIs containing it.
+  final String? failsOn;
   final calls = <String>[];
   bool disposed = false;
 
   @override
   Future<void> open(Uri uri) async {
     calls.add('open $uri');
+    final fails = failsOn == null || uri.toString().contains(failsOn!);
+    final failNow = failOpen && fails;
+    if (gaveUp != null && fails) {
+      value = const PlayerSnapshot(status: PlaybackStatus.opening);
+      value = PlayerSnapshot(status: gaveUp!);
+      return;
+    }
     value = PlayerSnapshot(
-      status: failOpen ? PlaybackStatus.error : PlaybackStatus.playing,
+      status: failNow ? PlaybackStatus.error : PlaybackStatus.playing,
+      position: failNow ? Duration.zero : const Duration(milliseconds: 40),
     );
   }
 
@@ -82,17 +95,27 @@ void main() {
 
   group('RoutedPlayerBackend', () {
     late List<_FakeEngine> created;
-    RoutedPlayerBackend routed({bool mpvFails = false, bool vlcFails = false}) {
+    RoutedPlayerBackend routed({
+      bool mpvFails = false,
+      bool vlcFails = false,
+      PlaybackStatus? vlcGivesUp,
+      String? failsOn,
+    }) {
       created = [];
       return RoutedPlayerBackend(
         router: both,
         createMpv: () {
-          final e = _FakeEngine('mpv', failOpen: mpvFails);
+          final e = _FakeEngine('mpv', failOpen: mpvFails, failsOn: failsOn);
           created.add(e);
           return e;
         },
         createVlc: () {
-          final e = _FakeEngine('vlc', failOpen: vlcFails);
+          final e = _FakeEngine(
+            'vlc',
+            failOpen: vlcFails,
+            gaveUp: vlcGivesUp,
+            failsOn: failsOn,
+          );
           created.add(e);
           return e;
         },
@@ -149,6 +172,75 @@ void main() {
         b.dispose();
       },
     );
+
+    for (final status in [PlaybackStatus.ended, PlaybackStatus.idle]) {
+      test(
+        'a fallback that gives up without playing ($status) is an error',
+        () async {
+          final b = routed(
+            mpvFails: true,
+            vlcGivesUp: status,
+            failsOn: 'corrupt',
+          );
+          await b.open(Uri.file('/m/corrupt.mp4'));
+          await pumpEventQueue();
+          expect(b.fellBack, isTrue);
+          expect(b.value.status, PlaybackStatus.error);
+          // The next media starts clean.
+          await b.open(Uri.file('/m/ok.mkv'));
+          await pumpEventQueue();
+          expect(b.value.status, PlaybackStatus.playing);
+          b.dispose();
+        },
+      );
+    }
+
+    test('a media that ends before playing falls back too', () async {
+      created = [];
+      final b = RoutedPlayerBackend(
+        router: both,
+        createMpv: () {
+          final e = _FakeEngine('mpv', gaveUp: PlaybackStatus.ended);
+          created.add(e);
+          return e;
+        },
+        createVlc: () {
+          final e = _FakeEngine('vlc');
+          created.add(e);
+          return e;
+        },
+      );
+      await b.open(Uri.file('/m/a.mkv'));
+      await pumpEventQueue();
+      expect(b.fellBack, isTrue);
+      expect(b.engine, MediaEngine.vlc);
+      expect(b.value.status, PlaybackStatus.playing);
+      b.dispose();
+    });
+
+    test('playing at 0 then ending is not a start', () async {
+      created = [];
+      final b = RoutedPlayerBackend(
+        router: both,
+        createMpv: () {
+          final e = _FakeEngine('mpv', failOpen: true);
+          created.add(e);
+          return e;
+        },
+        createVlc: () {
+          final e = _FakeEngine('vlc', gaveUp: PlaybackStatus.ended);
+          created.add(e);
+          return e;
+        },
+      );
+      await b.open(Uri.file('/m/corrupt.mp4'));
+      await pumpEventQueue();
+      // libVLC: playing at position 0, then ended.
+      created.last.value = const PlayerSnapshot(status: PlaybackStatus.playing);
+      created.last.value = const PlayerSnapshot(status: PlaybackStatus.ended);
+      expect(b.value.status, PlaybackStatus.error);
+      b.dispose();
+    });
 
     testWidgets('video view follows the engine', (tester) async {
       final b = routed();

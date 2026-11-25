@@ -102,6 +102,8 @@ class RoutedPlayerBackend extends PlayerBackend {
   Uri? _uri;
   bool _started = false;
   bool _fellBack = false;
+  bool _fallbackOpened = false;
+  bool _failed = false;
   bool _disposed = false;
   final _current = ValueNotifier<PlayerBackend?>(null);
 
@@ -131,12 +133,20 @@ class RoutedPlayerBackend extends PlayerBackend {
   void _forward() {
     final inner = _inner;
     if (_disposed || inner == null) return;
-    final snapshot = inner.value;
-    if (snapshot.status == PlaybackStatus.playing) _started = true;
-    if (snapshot.status == PlaybackStatus.error &&
+    var snapshot = inner.value;
+    // Started once the position moves: libVLC reports a corrupt file as
+    // playing at 0 before it ends.
+    if (snapshot.status == PlaybackStatus.playing &&
+        snapshot.position > Duration.zero) {
+      _started = true;
+    }
+    // A media that ends before it ever played failed to open (mpv reports a
+    // corrupt file as ended before its load error): treat it as an error.
+    final failedToStart =
         !_started &&
-        fallback &&
-        !_fellBack) {
+        (snapshot.status == PlaybackStatus.error ||
+            (snapshot.status == PlaybackStatus.ended && !_fellBack));
+    if (failedToStart && fallback && !_fellBack) {
       final other = router.fallbackFor(_engine!);
       final uri = _uri;
       if (other != null && uri != null) {
@@ -150,8 +160,31 @@ class RoutedPlayerBackend extends PlayerBackend {
         return; // keep reporting "opening" while the other engine starts
       }
     }
+    if (_fellBack && !_started) {
+      // The first engine reported an error. A fallback engine that gives up
+      // without playing (libVLC reports a corrupt file as ended, an HTTP
+      // error as idle again) failed too: the media is an error.
+      if (snapshot.status != PlaybackStatus.idle) _fallbackOpened = true;
+      if (snapshot.status == PlaybackStatus.ended ||
+          (snapshot.status == PlaybackStatus.idle && _fallbackOpened)) {
+        _failed = true;
+      }
+    }
+    if (_failed) snapshot = _asError(snapshot);
     value = snapshot;
   }
+
+  static PlayerSnapshot _asError(PlayerSnapshot s) => PlayerSnapshot(
+    status: PlaybackStatus.error,
+    position: s.position,
+    duration: s.duration,
+    canSeek: s.canSeek,
+    videoSize: s.videoSize,
+    isBuffering: false,
+    speed: s.speed,
+    volume: s.volume,
+    readSpeedMBps: s.readSpeedMBps,
+  );
 
   PlayerBackend get _active {
     final inner = _inner;
@@ -164,6 +197,8 @@ class RoutedPlayerBackend extends PlayerBackend {
     _uri = uri;
     _started = false;
     _fellBack = false;
+    _fallbackOpened = false;
+    _failed = false;
     await _switchTo(router.engineFor(uri));
     await _inner!.open(uri);
   }
