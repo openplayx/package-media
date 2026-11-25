@@ -123,6 +123,8 @@ quote() { local out='' w; for w in $1; do out="$out'$w', "; done; printf '[%s]' 
   echo "[binaries]"
   echo "c = '$cc'"; echo "cpp = '$cxx'"; echo "objc = '$cc'"; echo "objcpp = '$cxx'"
   echo "ar = '$ar'"; echo "strip = '$strip_tool'"; echo "pkg-config = 'pkg-config'"
+  # x86 assembly (libass, dav1d-style code) needs nasm named in the cross file.
+  if command -v nasm >/dev/null; then echo "nasm = '$(command -v nasm)'"; fi
   echo "[built-in options]"
   for lang in c cpp objc objcpp; do
     echo "${lang}_args = $(quote "$flags")"; echo "${lang}_link_args = $(quote "$flags ${link_flags:-}")"
