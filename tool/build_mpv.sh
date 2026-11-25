@@ -127,9 +127,6 @@ case "$target" in
     mkdir -p "$runtime"
     for lib in winpthread stdc++; do cp "$(gcc -print-file-name=lib$lib.a)" "$runtime/"; done
     cp "$runtime/libwinpthread.a" "$runtime/libpthread.a"
-    # A dependency's pkg-config adds -lgcc_s (libgcc_s_seh-1.dll's import
-    # library); the static unwinder under that name keeps libgcc static too.
-    cp "$(gcc -print-file-name=libgcc_eh.a)" "$runtime/libgcc_s.a"
     link_flags="-L$(win "$runtime") -static-libgcc -static-libstdc++"
     system=windows; cpu=x86_64; family=x86_64
     libass_options=(-Dfontconfig=disabled -Ddirectwrite=enabled)
@@ -260,6 +257,17 @@ meson_build libplacebo "$placebo" -Dvulkan=disabled -Dopengl=enabled -Dd3d11=dis
   -Dglslang=disabled -Dshaderc=disabled -Dlcms=disabled -Ddovi=enabled -Dlibdovi=disabled \
   -Dxxhash=disabled -Dunwind=disabled -Ddemos=false -Dtests=false -Dbench=false -Dfuzz=false
 
+if [ "$system" = windows ]; then
+  # Dependencies ask for -lgcc_s (x265, also in FFmpeg's Libs.private); with --prefer-static meson
+  # resolves it to MinGW's libgcc_s.a, the import library of
+  # libgcc_s_seh-1.dll (not shipped). libgcc is linked statically anyway.
+  for pc in "$deps"/lib/pkgconfig/*.pc "$ffmpeg"/lib/pkgconfig/*.pc; do
+    if grep -q -- '-lgcc_s' "$pc"; then
+      echo "dropping -lgcc_s from $(basename "$pc")"
+      sed -i 's/[[:space:]]*-lgcc_s\b//g' "$pc"
+    fi
+  done
+fi
 # libmpv itself: shared, embedding its static dependencies. Features for the
 # render API embedding (OpenGL, VideoToolbox interop, Core Audio); Cocoa
 # (with its Swift parts) is required on macOS.
