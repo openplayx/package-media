@@ -240,7 +240,10 @@ meson_build() { # name source [meson options...]
     tail -40 "$build.log" >&2; exit 1
   fi
 }
+# libass has assembly for x86 and 64-bit ARM only (armeabi-v7a fails with
+# "Assembly was requested, but cannot be built").
 asm=enabled
+case "$family" in x86_64|aarch64) ;; *) asm=disabled ;; esac
 [ "$family" = x86_64 ] && ! command -v nasm >/dev/null && asm=disabled
 
 meson_build freetype "$(fetch freetype)" -Dharfbuzz=disabled -Dpng=disabled -Dbzip2=disabled \
