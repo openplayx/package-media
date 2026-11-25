@@ -188,6 +188,16 @@ prefer_static=--prefer-static
 # Only the pinned dependencies and package-ffmpeg are visible, never the host's.
 # Paths for native tools: Windows form on Windows, unchanged elsewhere.
 tp() { if [ "$system" = windows ]; then cygpath -m "$1"; else printf '%s' "$1"; fi; }
+if [ "$system" = windows ]; then
+  # With --prefer-static, meson resolves -lavformat to a static archive in any
+  # library directory and took MSYS2's static FFmpeg (C:/msys64/mingw64/lib)
+  # over package-ffmpeg's DLL import libraries. Copies of the import libraries
+  # named lib*.a, in package-ffmpeg's lib directory (searched first), win.
+  for implib in "$ffmpeg"/lib/lib*.dll.a; do
+    [ -e "$implib" ] || { echo "no FFmpeg import libraries in $ffmpeg/lib" >&2; exit 1; }
+    cp "$implib" "${implib%.dll.a}.a"
+  done
+fi
 export PKG_CONFIG_LIBDIR="$deps/lib/pkgconfig:$ffmpeg/lib/pkgconfig"
 [ "$system" = windows ] && PKG_CONFIG_LIBDIR="$(tp "$deps/lib/pkgconfig");$(tp "$ffmpeg/lib/pkgconfig")"
 if [ "$system" = linux ]; then
