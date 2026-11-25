@@ -4,16 +4,19 @@
 # engine's PlayerBackend in the example host app (macOS). Not part of
 # `flutter test`; run them when this package changes (see README).
 #
-# Usage: tool/test_formats.sh [--engine mpv|vlc] [--only ID[,ID|GLOB...]] [--device macos]
+# Usage: tool/test_formats.sh [--engine mpv|vlc] [--only ID[,ID|GLOB...]] [--pack] [--device macos]
 # Env:   OPX_LIBVLC_PACKAGE  package-libvlc checkout (default ../package-libvlc)
 # Env:   OPX_SAMPLE_CACHE  sample cache (default ~/.cache/openplayx-libvlc-samples)
 #        OPX_REPORT_DIR    report directory (default build/formats/<timestamp>)
+#        OPX_FORMAT_PACK   material pack for --pack (default ../openplayx-test/formats;
+#                          its samples are "pack-<issue>-<ext>", e.g. --only 'pack-*')
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
-only="" device="macos" engine="mpv"
+only="" pack="" device="macos" engine="mpv"
 while [ $# -gt 0 ]; do
   case "$1" in
     --only) only="$2"; shift 2 ;;
+    --pack) pack="${OPX_FORMAT_PACK:-$root/../openplayx-test/formats}"; shift ;;
     --device) device="$2"; shift 2 ;;
     --engine) engine="$2"; shift 2 ;;
     *) echo "unknown argument $1" >&2; exit 2 ;;
@@ -32,7 +35,7 @@ report="$(cd "$report" && pwd)"
 native() { case "$(uname -s)" in MINGW*|MSYS*) cygpath -m "$1" ;; *) printf '%s' "$1" ;; esac; }
 
 echo "== samples ($cache)"
-python3 -I "$libvlc/tool/prepare_samples.py" --cache "$cache" --out "$report/samples.json" ${only:+--only "$only"}
+python3 -I "$libvlc/tool/prepare_samples.py" --cache "$cache" --out "$report/samples.json" ${only:+--only "$only"} ${pack:+--pack "$pack"}
 case "$(uname -s)" in MINGW*|MSYS*)
   python3 -I - "$report/samples.json" <<'PY'
 import json, subprocess, sys
@@ -98,7 +101,7 @@ for s in data["samples"]:
     if s.get("status") != "ok" or s["path"].startswith("http"):
         continue
     path = pathlib.Path(s["path"])
-    if s["ext"] in ("pls", "m3u", "asx", "cue"):
+    if s["ext"] in ("pls", "m3u", "asx", "cue", "strm"):
         # Playlist entries point at host paths: copies with sample URLs, next
         # to the samples (cue sheets name their file relatively).
         text = path.read_text().replace((cache / "media").as_uri(), remote + "/media")
