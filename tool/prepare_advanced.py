@@ -7,11 +7,11 @@ build_advanced.py; download licensed DV samples into external/ALL-325.
 import argparse, fnmatch, hashlib, importlib.util, json, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 p = argparse.ArgumentParser()
-p.add_argument('--pack', type=pathlib.Path, default=ROOT.parent/'openplayx-test/formats')
+p.add_argument('--pack', type=pathlib.Path, default=ROOT.parent/'materials/playback')
 p.add_argument('--out', type=pathlib.Path, required=True)
 p.add_argument('--only', default='', help='comma separated sample id globs')
 a = p.parse_args()
-spec = importlib.util.spec_from_file_location('prepare', ROOT.parent/'package-libvlc/tool/prepare_samples.py')
+spec = importlib.util.spec_from_file_location('prepare', ROOT/'tool/prepare_samples.py')
 prepare = importlib.util.module_from_spec(spec); spec.loader.exec_module(prepare)
 pack = a.pack.resolve(); advanced = pack/'fixtures/advanced'
 items = [('hdr10plus', 'ALL-324', advanced/'hdr10plus.mp4', None)]

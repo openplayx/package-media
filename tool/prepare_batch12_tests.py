@@ -62,19 +62,19 @@ def main() -> int:
     ap.add_argument(
         "--samples-dir",
         type=pathlib.Path,
-        default=ROOT.parent / "openplayx-test/formats/public/batch12-samples",
+        default=ROOT.parent / "materials/playback/public/batch12-samples",
     )
     ap.add_argument(
         "--batch2-dir",
         type=pathlib.Path,
-        default=ROOT.parent / "openplayx-test/formats/public/batch2-samples",
+        default=ROOT.parent / "materials/playback/public/batch2-samples",
     )
     ap.add_argument("--out", type=pathlib.Path, required=True)
     args = ap.parse_args()
 
     sdir = args.samples_dir.resolve()
     b2dir = args.batch2_dir.resolve()
-    ifo_path = (ROOT.parent / "openplayx-test/formats/fixtures/advanced/dvd/VIDEO_TS/VIDEO_TS.IFO").resolve()
+    ifo_path = (ROOT.parent / "materials/playback/fixtures/advanced/dvd/VIDEO_TS/VIDEO_TS.IFO").resolve()
 
     disc_probe = {
         "container": "disc",

@@ -26,9 +26,14 @@ class EngineRouter {
     this.available,
   });
 
-  /// Extensions routed to libVLC. Empty: tracker modules moved to libmpv
-  /// once package-ffmpeg gained libopenmpt.
-  static const vlcExtensions = <String, MediaEngine>{};
+  /// Extensions routed to libVLC. Musepack SV7 (`.mpc`/`.mpp`/`.mp+`)
+  /// overshoots to EOF on seek in FFmpeg's mpc demuxer, while libVLC seeks
+  /// cleanly (ALL-267/268/269).
+  static const vlcExtensions = <String, MediaEngine>{
+    'mpc': MediaEngine.vlc,
+    'mpp': MediaEngine.vlc,
+    'mp+': MediaEngine.vlc,
+  };
 
   final MediaEngine defaultEngine;
 
@@ -178,6 +183,13 @@ class RoutedPlayerBackend extends PlayerBackend {
     if (inner == null) throw StateError('no media opened');
     return inner;
   }
+
+  @override
+  bool get supportsPictureInPictureOutput =>
+      _inner?.supportsPictureInPictureOutput ?? false;
+  @override
+  Future<int?> pictureInPictureHandle() async =>
+      _inner?.pictureInPictureHandle();
 
   @override
   Future<void> open(Uri uri) async {

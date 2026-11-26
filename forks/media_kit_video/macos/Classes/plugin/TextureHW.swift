@@ -71,31 +71,38 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
       get_proc_address_ctx: nil
     )
 
-    var params: [mpv_render_param] = withUnsafeMutableBytes(of: &procAddress) {
-      procAddress in
-      return [
-        mpv_render_param(type: MPV_RENDER_PARAM_API_TYPE, data: api),
-        mpv_render_param(
-          type: MPV_RENDER_PARAM_OPENGL_INIT_PARAMS,
-          data: procAddress.baseAddress.map {
-            UnsafeMutableRawPointer($0)
-          }
-        ),
-        mpv_render_param(),
-      ]
+    var advancedControl: CInt = 1
+    withUnsafeMutableBytes(of: &procAddress) { procAddress in
+      withUnsafeMutablePointer(to: &advancedControl) { advPtr in
+        var params: [mpv_render_param] = [
+          mpv_render_param(type: MPV_RENDER_PARAM_API_TYPE, data: api),
+          mpv_render_param(
+            type: MPV_RENDER_PARAM_OPENGL_INIT_PARAMS,
+            data: procAddress.baseAddress.map {
+              UnsafeMutableRawPointer($0)
+            }
+          ),
+          mpv_render_param(
+            type: MPV_RENDER_PARAM_ADVANCED_CONTROL,
+            data: UnsafeMutableRawPointer(advPtr)
+          ),
+          mpv_render_param(),
+        ]
+        MPVHelpers.checkError(
+          mpv_render_context_create(&renderContext, handle, &params)
+        )
+      }
     }
-
-    MPVHelpers.checkError(
-      mpv_render_context_create(&renderContext, handle, &params)
-    )
 
     mpv_render_context_set_update_callback(
       renderContext,
       { (ctx) in
+        // Call updateCallback() directly (it only enqueues onto Worker's
+        // thread-safe queue). Bouncing via DispatchQueue.main.async deadlocks
+        // under MPV_RENDER_PARAM_ADVANCED_CONTROL when the main thread blocks
+        // on mpv core while core waits for dr_helper_get_image / update().
         let that = unsafeBitCast(ctx, to: TextureHW.self)
-        DispatchQueue.main.async {
-          that.updateCallback()
-        }
+        that.updateCallback()
       },
       UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
     )
@@ -148,6 +155,21 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
 
   private func disposePixelBuffer() {
     textureContexts.reinit(objects: [], skipCheckArgs: true)
+  }
+
+  public func update() -> Bool {
+    guard let renderContext = renderContext else {
+      return false
+    }
+
+    CGLSetCurrentContext(context)
+    defer {
+      OpenGLHelpers.checkError("update")
+      CGLSetCurrentContext(nil)
+    }
+
+    let flags = mpv_render_context_update(renderContext)
+    return (flags & UInt64(MPV_RENDER_UPDATE_FRAME.rawValue)) != 0
   }
 
   public func render(_ size: CGSize) {

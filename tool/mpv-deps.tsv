@@ -13,4 +13,4 @@ libplacebo 3bf5d72786682c194387c33d563872f6bfe202a9816f9dde6535a31a9b2e0d74 http
 libdvdread a0d47876548bec806774bbf8dbf20bb19ba139464383156b32eb8e59915b90a9 https://download.videolan.org/pub/videolan/libdvdread/7.1.1/libdvdread-7.1.1.tar.xz
 libdvdnav a2a18f5ad36d133c74bf9106b6445806fa253b09141a46392550394b647b221e https://download.videolan.org/pub/videolan/libdvdnav/7.0.0/libdvdnav-7.0.0.tar.xz
 libbluray f676408e91a5d321abf8b8d4dfdae36205c297dab5c54c3ec519639025f474a2 https://download.videolan.org/pub/videolan/libbluray/1.5.0/libbluray-1.5.0.tar.xz
-mpv bcfebbfa2b65a6d88dc97ea18117831072373e38b5785a2afb874ed4df5070dd https://codeload.github.com/mpv-player/mpv/tar.gz/refs/tags/v0.42.0
+mpv 32ef48d9a8e3ef22ef0d3c49876efb813310bcd23e2e8aa5dc1b37b619f9f5f6 https://codeload.github.com/mpv-player/mpv/tar.gz/09cf7a11f27d9caed31b3e8a6c9ddc45ed788c95

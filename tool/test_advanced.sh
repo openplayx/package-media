@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # macOS advanced playback regression (ALL-324/325/329/330/331).
-# First: ../openplayx-test/formats/build_advanced.py --tsmuxer PATH --download-dv
+# First: ../materials/playback/build_advanced.py --tsmuxer PATH --download-dv
 # Usage: bash tool/test_advanced.sh [--only 'advanced-bluray,advanced-dvd']
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"

@@ -24,9 +24,7 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
 
     super.init()
 
-    DispatchQueue.main.async {
-      self.initMPV()
-    }
+    self.initMPV()
   }
 
   deinit {
@@ -69,9 +67,13 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
   }
 
   private func disposeMPV() {
+    guard let renderContext = renderContext else { return }
     mpv_render_context_set_update_callback(renderContext, nil, nil)
     mpv_render_context_free(renderContext)
+    self.renderContext = nil
   }
+
+  public func disposeRenderContext() { disposeMPV() }
 
   public func resize(_ size: CGSize) {
     if size.width == 0 || size.height == 0 {
@@ -100,6 +102,7 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
   }
 
   public func render(_ size: CGSize) {
+    guard renderContext != nil else { return }
     let textureContext = textureContexts.nextAvailable()
     if textureContext == nil {
       return
@@ -121,25 +124,22 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
     var pitch: Int = CVPixelBufferGetBytesPerRow(textureContext!.pixelBuffer)
     let buffer = CVPixelBufferGetBaseAddress(textureContext!.pixelBuffer)
 
-    // pointers
-    let ssizePtr = ssize.withUnsafeMutableBytes {
-      $0.baseAddress?.assumingMemoryBound(to: Int32.self)
+    // Keep every temporary pointer in scope through the native render call.
+    ssize.withUnsafeMutableBytes { sizeBytes in
+      format.withCString { formatBytes in
+        withUnsafeMutablePointer(to: &pitch) { pitchPointer in
+          var params: [mpv_render_param] = [
+            mpv_render_param(type: MPV_RENDER_PARAM_SW_SIZE, data: sizeBytes.baseAddress),
+            mpv_render_param(type: MPV_RENDER_PARAM_SW_FORMAT,
+                             data: UnsafeMutableRawPointer(mutating: formatBytes)),
+            mpv_render_param(type: MPV_RENDER_PARAM_SW_STRIDE, data: pitchPointer),
+            mpv_render_param(type: MPV_RENDER_PARAM_SW_POINTER, data: buffer),
+            mpv_render_param(type: MPV_RENDER_PARAM_INVALID, data: nil),
+          ]
+          mpv_render_context_render(renderContext, &params)
+        }
+      }
     }
-    let formatPtr = UnsafeMutablePointer(
-      mutating: (format as NSString).utf8String
-    )
-    let pitchPtr = withUnsafeMutablePointer(to: &pitch) { $0 }
-    let bufferPtr = buffer!.assumingMemoryBound(to: UInt8.self)
-
-    var params: [mpv_render_param] = [
-      mpv_render_param(type: MPV_RENDER_PARAM_SW_SIZE, data: ssizePtr),
-      mpv_render_param(type: MPV_RENDER_PARAM_SW_FORMAT, data: formatPtr),
-      mpv_render_param(type: MPV_RENDER_PARAM_SW_STRIDE, data: pitchPtr),
-      mpv_render_param(type: MPV_RENDER_PARAM_SW_POINTER, data: bufferPtr),
-      mpv_render_param(type: MPV_RENDER_PARAM_INVALID, data: nil),
-    ]
-
-    mpv_render_context_render(renderContext, &params)
 
     textureContexts.pushAsReady(textureContext!)
   }

@@ -359,5 +359,29 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       b.dispose();
     });
+
+    test('parses unencrypted Harmonix MOGG header offsets', () {
+      final valid = [
+        0x0A, 0x00, 0x00, 0x00, // version 0x0A
+        0x14, 0x00, 0x00, 0x00, // offset 20
+        ...List.filled(12, 0),
+        0x4F, 0x67, 0x67, 0x53, // OggS
+      ];
+      expect(MpvBackend.parseMoggOffset(valid), 20);
+      // Encrypted MOGG (version 0x0B) is rejected.
+      final encrypted = [0x0B, ...valid.sublist(1)];
+      expect(MpvBackend.parseMoggOffset(encrypted), isNull);
+    });
+
+    test('builds Dialogic OKI ADPCM WAV header for raw .vox files', () {
+      final hdr = MpvBackend.buildVoxWavHeader(17597);
+      expect(hdr.length, 44);
+      expect(String.fromCharCodes(hdr.sublist(0, 4)), 'RIFF');
+      expect(String.fromCharCodes(hdr.sublist(8, 12)), 'WAVE');
+      expect(hdr[20] | (hdr[21] << 8), 0x0017);
+      expect(hdr[22] | (hdr[23] << 8), 1);
+      final rate = hdr[24] | (hdr[25] << 8) | (hdr[26] << 16) | (hdr[27] << 24);
+      expect(rate, 8000);
+    });
   });
 }

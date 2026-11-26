@@ -29,6 +29,12 @@ public class SafeResizableTexture:
     }
   }
 
+  public func update() -> Bool {
+    return locked {
+      return child.update()
+    }
+  }
+
   public func copyPixelBuffer() -> Unmanaged<CVPixelBuffer>? {
     return child.copyPixelBuffer()
   }

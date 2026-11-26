@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare public media corpus samples (openplayx-test/formats/public/manifest.json)
+"""Prepare public media corpus samples (materials/playback/public/manifest.json)
 for the package-media integration test runner (integration_test/formats_test.dart).
 
 Usage:
@@ -47,7 +47,7 @@ def sample_id(source_id: str, filename: str) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--corpus", type=pathlib.Path, default=ROOT.parent / "openplayx-test/formats/public")
+    ap.add_argument("--corpus", type=pathlib.Path, default=ROOT.parent / "materials/playback/public")
     ap.add_argument("--out", type=pathlib.Path, required=True)
     ap.add_argument("--source", default="", help="comma-separated source_ids")
     ap.add_argument("--only", default="", help="comma-separated sample id globs")
@@ -56,7 +56,7 @@ def main() -> int:
     corpus = args.corpus.resolve()
     manifest_path = corpus / "manifest.json"
     if not manifest_path.is_file():
-        print(f"manifest not found: {manifest_path} (run openplayx-test/formats/fetch_public_corpus.py first)", file=sys.stderr)
+        print(f"manifest not found: {manifest_path} (run materials/playback/fetch_public_corpus.py first)", file=sys.stderr)
         return 2
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))

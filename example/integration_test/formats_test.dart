@@ -1,5 +1,5 @@
 // File format playback tests for one engine: one test per sample of
-// package-libvlc's formats/manifest.json, prepared by its
+// formats/manifest.json, prepared by
 // tool/prepare_samples.py. Run them with tool/test_formats.sh, which passes:
 //   --dart-define=OPX_SAMPLES=<resolved samples json>
 //   --dart-define=OPX_REPORT=<report directory>
@@ -146,9 +146,15 @@ class _Check {
     final wav = File('${reportDir.path}/$id.wav');
     if (wav.existsSync()) wav.deleteSync();
     // Decoded audio is measured without reaching the speakers.
+    // On macOS, ao=null leaves CoreAudio idle, so macOS throttles background
+    // rendering after ~35 s (ALL-371); mute=yes keeps the speakers silent while
+    // keeping CoreAudio active (af=astats runs before mute).
     PlayerBackend createMpv() => MpvBackend(
       mpvOptions: {
-        'ao': 'null',
+        if (Platform.isMacOS)
+          'mute': _systemAudio ? 'no' : 'yes'
+        else if (!_systemAudio)
+          'ao': 'null',
         if ({'bluray', 'dvd'}.contains(sample['ext']))
           'log-file': '${reportDir.path}/$id-mpv.log',
         // Statistics over 50 codec frames (TrueHD frames are only 40

@@ -169,9 +169,7 @@ class MpvBackend extends PlayerBackend {
       final line = raw.trim();
       if (line.isEmpty || line.startsWith('#')) continue;
       final parsed = Uri.tryParse(line);
-      if (parsed != null &&
-          parsed.hasScheme &&
-          parsed.scheme.length > 1) {
+      if (parsed != null && parsed.hasScheme && parsed.scheme.length > 1) {
         return parsed;
       }
       if (strmFile != null && strmFile.isScheme('file')) {
@@ -266,7 +264,9 @@ class MpvBackend extends PlayerBackend {
         final len = await raf.length();
         // UDF/ISO-9660 descriptors and root directory entries sit in the first
         // ~2 MB of a disc image.
-        final bytes = await raf.read(len < 2 * 1024 * 1024 ? len : 2 * 1024 * 1024);
+        final bytes = await raf.read(
+          len < 2 * 1024 * 1024 ? len : 2 * 1024 * 1024,
+        );
         return detectIsoScheme(bytes);
       } finally {
         await raf.close();
@@ -280,11 +280,97 @@ class MpvBackend extends PlayerBackend {
   /// to the root directory expected by `libdvdread` (`.../disc`).
   static String resolveIfoDirectory(String ifoPath) {
     final parent = File(ifoPath).parent;
-    final segments = parent.uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    final segments = parent.uri.pathSegments
+        .where((s) => s.isNotEmpty)
+        .toList();
     if (segments.isNotEmpty && segments.last.toLowerCase() == 'video_ts') {
       return Directory(parent.parent.path).path;
     }
     return parent.path;
+  }
+
+  /// Parses an unencrypted Harmonix `.mogg` header (version `0x0A` followed by
+  /// the little-endian byte offset of the embedded `OggS` stream). Returns null
+  /// for encrypted or non-MOGG headers.
+  static int? parseMoggOffset(List<int> header) {
+    if (header.length < 12) return null;
+    int u32(int i) =>
+        header[i] |
+        (header[i + 1] << 8) |
+        (header[i + 2] << 16) |
+        (header[i + 3] << 24);
+    final version = u32(0);
+    final offset = u32(4);
+    if (version != 0x0A || offset < 8) return null;
+    if (header.length >= offset + 4) {
+      if (header[offset] != 0x4F ||
+          header[offset + 1] != 0x67 ||
+          header[offset + 2] != 0x67 ||
+          header[offset + 3] != 0x53) {
+        return null;
+      }
+    }
+    return offset;
+  }
+
+  /// Builds a 44-byte RIFF/WAVE header wrapping headerless Dialogic OKI ADPCM
+  /// (`.vox`) audio (format tag `0x0017`, default 8 kHz mono 4-bit) so FFmpeg's
+  /// `adpcm_ima_oki` decoder can open and seek it cleanly.
+  static Uint8List buildVoxWavHeader(
+    int rawBytes, {
+    int sampleRate = 8000,
+    int channels = 1,
+  }) {
+    final data = ByteData(44);
+    void writeAscii(int offset, String s) {
+      for (var i = 0; i < s.length; i++) {
+        data.setUint8(offset + i, s.codeUnitAt(i));
+      }
+    }
+
+    final byteRate = (sampleRate * channels) ~/ 2;
+    writeAscii(0, 'RIFF');
+    data.setUint32(4, 36 + rawBytes, Endian.little);
+    writeAscii(8, 'WAVE');
+    writeAscii(12, 'fmt ');
+    data.setUint32(16, 16, Endian.little);
+    data.setUint16(20, 0x0017, Endian.little); // Dialogic OKI ADPCM
+    data.setUint16(22, channels, Endian.little);
+    data.setUint32(24, sampleRate, Endian.little);
+    data.setUint32(28, byteRate, Endian.little);
+    data.setUint16(32, 1, Endian.little);
+    data.setUint16(34, 4, Endian.little);
+    writeAscii(36, 'data');
+    data.setUint32(40, rawBytes, Endian.little);
+    return data.buffer.asUint8List();
+  }
+
+  static Future<int?> _detectLocalMoggOffset(Uri uri) async {
+    try {
+      final raf = await File.fromUri(uri).open();
+      try {
+        final len = await raf.length();
+        final bytes = await raf.read(len < 4096 ? len : 4096);
+        final offset = parseMoggOffset(bytes);
+        if (offset == null || offset >= len) return null;
+        if (bytes.length < offset + 4) {
+          await raf.setPosition(offset);
+          final magic = await raf.read(4);
+          if (magic.length < 4 ||
+              magic[0] != 0x4F ||
+              magic[1] != 0x67 ||
+              magic[2] != 0x67 ||
+              magic[3] != 0x53) {
+            return null;
+          }
+        }
+        return offset;
+      } finally {
+        await raf.close();
+      }
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Discovers consecutive split volume parts (`.001`, `.002`, ...) alongside
@@ -314,9 +400,12 @@ class MpvBackend extends PlayerBackend {
     _error = false;
     _seekable = false;
     var target = uri;
-    final rawName = uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ?? '';
+    final rawName =
+        uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ?? '';
     final rawDot = rawName.lastIndexOf('.');
-    final rawExt = rawDot <= 0 ? '' : rawName.substring(rawDot + 1).toLowerCase();
+    final rawExt = rawDot <= 0
+        ? ''
+        : rawName.substring(rawDot + 1).toLowerCase();
     if ((rawExt == 'strm' || rawExt == 'asx') && uri.isScheme('file')) {
       try {
         final content = await File.fromUri(uri).readAsString();
@@ -326,7 +415,8 @@ class MpvBackend extends PlayerBackend {
         if (resolved != null) target = resolved;
       } catch (_) {}
     }
-    final name = target.pathSegments.where((s) => s.isNotEmpty).lastOrNull ?? '';
+    final name =
+        target.pathSegments.where((s) => s.isNotEmpty).lastOrNull ?? '';
     final dot = name.lastIndexOf('.');
     final ext = dot <= 0 ? '' : name.substring(dot + 1).toLowerCase();
     await _splitServer?.close();
@@ -342,7 +432,8 @@ class MpvBackend extends PlayerBackend {
     // Disc stream readers expect a local device/image path, not URL-escaped text.
     String location;
     if ({'bluray', 'dvd'}.contains(target.scheme)) {
-      location = '${target.scheme}://longest/${target.replace(scheme: 'file').toFilePath()}';
+      location =
+          '${target.scheme}://longest/${target.replace(scheme: 'file').toFilePath()}';
     } else if (ext == 'ifo' && target.isScheme('file')) {
       location = 'dvd://longest/${resolveIfoDirectory(target.toFilePath())}';
     } else if (discImageExtensions.contains(ext) && target.isScheme('file')) {
@@ -354,6 +445,31 @@ class MpvBackend extends PlayerBackend {
       final parts = discoverSplitParts(target.toFilePath());
       if (parts.isNotEmpty) {
         _splitServer = await _SplitVolumeServer.start(parts);
+        location = _splitServer!.url.toString();
+      } else {
+        location = target.toString();
+      }
+    } else if (ext == 'mogg' && target.isScheme('file')) {
+      final offset = await _detectLocalMoggOffset(target);
+      if (offset != null) {
+        _splitServer = await _SplitVolumeServer.startSlice(
+          target.toFilePath(),
+          startOffset: offset,
+          suffix: '.ogg',
+        );
+        location = _splitServer!.url.toString();
+      } else {
+        location = target.toString();
+      }
+    } else if (ext == 'vox' && target.isScheme('file')) {
+      final file = File.fromUri(target);
+      if (await file.exists()) {
+        final len = await file.length();
+        _splitServer = await _SplitVolumeServer.startPrefixed(
+          file.path,
+          prefix: buildVoxWavHeader(len),
+          suffix: '.wav',
+        );
         location = _splitServer!.url.toString();
       } else {
         location = target.toString();
@@ -514,6 +630,11 @@ class MpvBackend extends PlayerBackend {
       _native.setProperty(name, value);
 
   @override
+  bool get supportsPictureInPictureOutput => !isTvOS;
+  @override
+  Future<int?> pictureInPictureHandle() => _player.handle;
+
+  @override
   Widget buildVideo() => Video(
     controller: _video,
     controls: NoVideoControls,
@@ -534,19 +655,31 @@ class MpvBackend extends PlayerBackend {
   }
 }
 
-/// Ephemeral loopback HTTP range server that concatenates split `.001/.002/...`
-/// volume files without copying them to disk.
+/// Ephemeral loopback HTTP range server that serves virtual byte streams
+/// (split `.001/.002/...` volumes, `.mogg` Ogg slices, or `.vox` with a WAV
+/// header) without copying media files to disk.
 class _SplitVolumeServer {
-  _SplitVolumeServer._(this._server, this._parts, this._lengths, this._total, this.url);
+  _SplitVolumeServer._(
+    this._server,
+    this._parts,
+    this._partOffsets,
+    this._lengths,
+    this._prefix,
+    this._total,
+    this.url,
+  );
 
   final HttpServer _server;
   final List<File> _parts;
+  final List<int> _partOffsets;
   final List<int> _lengths;
+  final Uint8List _prefix;
   final int _total;
   final Uri url;
 
   static Future<_SplitVolumeServer> start(List<String> paths) async {
     final files = paths.map(File.new).toList(growable: false);
+    final offsets = List<int>.filled(files.length, 0);
     final lengths = <int>[];
     var total = 0;
     for (final f in files) {
@@ -559,9 +692,56 @@ class _SplitVolumeServer {
     final stem = firstName.substring(0, firstName.length - 4);
     final innerDot = stem.lastIndexOf('.');
     final suffix = innerDot > 0 ? stem.substring(innerDot) : '';
+    return _bind(files, offsets, lengths, Uint8List(0), total, suffix);
+  }
+
+  static Future<_SplitVolumeServer> startSlice(
+    String path, {
+    required int startOffset,
+    required String suffix,
+  }) async {
+    final file = File(path);
+    final len = await file.length();
+    final sliceLen = (len - startOffset).clamp(0, len);
+    return _bind(
+      [file],
+      [startOffset],
+      [sliceLen],
+      Uint8List(0),
+      sliceLen,
+      suffix,
+    );
+  }
+
+  static Future<_SplitVolumeServer> startPrefixed(
+    String path, {
+    required Uint8List prefix,
+    required String suffix,
+  }) async {
+    final file = File(path);
+    final len = await file.length();
+    return _bind([file], [0], [len], prefix, prefix.length + len, suffix);
+  }
+
+  static Future<_SplitVolumeServer> _bind(
+    List<File> files,
+    List<int> partOffsets,
+    List<int> lengths,
+    Uint8List prefix,
+    int total,
+    String suffix,
+  ) async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     final url = Uri.parse('http://127.0.0.1:${server.port}/stream$suffix');
-    final instance = _SplitVolumeServer._(server, files, lengths, total, url);
+    final instance = _SplitVolumeServer._(
+      server,
+      files,
+      partOffsets,
+      lengths,
+      prefix,
+      total,
+      url,
+    );
     unawaited(instance._serve());
     return instance;
   }
@@ -596,7 +776,10 @@ class _SplitVolumeServer {
         }
         end = end.clamp(start, _total - 1);
         res.statusCode = HttpStatus.partialContent;
-        res.headers.set(HttpHeaders.contentRangeHeader, 'bytes $start-$end/$_total');
+        res.headers.set(
+          HttpHeaders.contentRangeHeader,
+          'bytes $start-$end/$_total',
+        );
       } else {
         res.statusCode = HttpStatus.ok;
       }
@@ -610,15 +793,30 @@ class _SplitVolumeServer {
         var remaining = count;
         var pos = start;
         var offset = 0;
+        if (_prefix.isNotEmpty) {
+          if (pos < _prefix.length) {
+            final take = (_prefix.length - pos) < remaining
+                ? (_prefix.length - pos)
+                : remaining;
+            res.add(_prefix.sublist(pos, pos + take));
+            pos += take;
+            remaining -= take;
+          }
+          offset += _prefix.length;
+        }
         for (var i = 0; i < _parts.length && remaining > 0; i++) {
           final len = _lengths[i];
           if (pos >= offset + len) {
             offset += len;
             continue;
           }
-          final localStart = pos - offset;
-          final take = (len - localStart) < remaining ? (len - localStart) : remaining;
-          await res.addStream(_parts[i].openRead(localStart, localStart + take));
+          final localStart = _partOffsets[i] + (pos - offset);
+          final take = (len - (pos - offset)) < remaining
+              ? (len - (pos - offset))
+              : remaining;
+          await res.addStream(
+            _parts[i].openRead(localStart, localStart + take),
+          );
           pos += take;
           remaining -= take;
           offset += len;

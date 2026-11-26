@@ -5,13 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:openplayx_media/openplayx_media.dart';
 
 void main() {
-  final corpusDir = Directory('../openplayx-test/formats/public');
+  final corpusDir = Directory('../materials/playback/public');
   final manifestFile = File('${corpusDir.path}/manifest.json');
 
   group('Public media corpus (ALL-370)', () {
     test('manifest exists and records source metadata, timestamps, and hashes', () {
       if (!manifestFile.existsSync()) {
-        markTestSkipped('openplayx-test/formats/public/manifest.json not present');
+        markTestSkipped('materials/playback/public/manifest.json not present');
         return;
       }
       final manifest =
@@ -58,7 +58,7 @@ void main() {
 
     test('EngineRouter resolves an engine and fallback for every corpus file', () {
       if (!manifestFile.existsSync()) {
-        markTestSkipped('openplayx-test/formats/public/manifest.json not present');
+        markTestSkipped('materials/playback/public/manifest.json not present');
         return;
       }
       const router = EngineRouter(available: {MediaEngine.mpv, MediaEngine.vlc});
@@ -74,8 +74,13 @@ void main() {
           expect(ext, isNotEmpty, reason: 'expected extension for ${file['relpath']}');
           final primary = router.engineFor(uri);
           final fallback = router.fallbackFor(primary);
-          expect(primary, MediaEngine.mpv);
-          expect(fallback, MediaEngine.vlc);
+          final expectedPrimary =
+              EngineRouter.vlcExtensions[ext] ?? MediaEngine.mpv;
+          final expectedFallback = expectedPrimary == MediaEngine.mpv
+              ? MediaEngine.vlc
+              : MediaEngine.mpv;
+          expect(primary, expectedPrimary);
+          expect(fallback, expectedFallback);
           checked++;
         }
       }

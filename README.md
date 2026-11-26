@@ -78,8 +78,9 @@ fingerprint.
 
 ## File format playback tests
 
-Not run by default. Samples and the checks are those of package-libvlc
-(`formats/manifest.json`); the engine is selectable:
+Not run by default. This repository owns the [sample manifest](formats/manifest.json),
+`tool/prepare_samples.py`, shared integration runner and report generator for both
+engines. See [sample preparation and checks](formats/README.md). Select the engine:
 
 ```sh
 tool/test_formats.sh --engine auto --pack      # through the router, as the app plays
@@ -92,7 +93,7 @@ tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engin
 ```
 
 `--pack` adds the local files of the format material pack in
-[openplayx-test](https://github.com/openplayx/openplayx-test) `formats/`
+the shared `../materials/playback/` directory
 (ALL-370) as samples named `pack-<issue>-<ext>`, tagged with their Linear
 issues; expectations come from ffprobe and its 440 Hz tone. Its moving test
 pattern has no reference frame, so these samples get no snapshot comparison.
@@ -144,7 +145,7 @@ libass and the other dependencies keep their own licenses.
 ### Advanced playback regression
 
 Generate the original HDR10+/BDMV/DVD and browser fixtures with
-`python3 ../openplayx-test/formats/build_advanced.py --tsmuxer /path/to/tsMuxeR --download-dv`,
+`python3 ../materials/playback/build_advanced.py --tsmuxer /path/to/tsMuxeR --download-dv`,
 then run `bash tool/test_advanced.sh`. `--only 'advanced-bluray,advanced-dvd'`
 selects disc tests. Reports and snapshots go to `build/formats/advanced-*`.
 Dolby Vision colour checks use the matching official Jellyfin SDR pattern,
@@ -155,3 +156,19 @@ libdvdread and libdvdnav for unencrypted local main-title playback. BD-J menus
 and decryption libraries are not bundled. Linux runtime and other platforms
 need their own verification. Sources/checksums are in `tool/mpv-deps.tsv`;
 license texts are in `LICENSES/`.
+
+## Browser playback probe
+
+`tool/web_playback_probe.mjs` checks native MP4, native HLS availability, and
+MSE/fMP4 playback, decoded frames, and seeking in Chrome. It reads shared
+fixtures from `../materials/playback/fixtures/` and requires Playwright and Chrome.
+Run from package-media:
+
+```sh
+PLAYWRIGHT_MODULE=/path/to/playwright-core/index.mjs \
+  node tool/web_playback_probe.mjs /tmp/opx-web-playback.json
+```
+
+Set `CHROME_PATH` when Chrome is not at the default macOS installation path.
+The output argument is optional; it defaults to `/tmp/opx-web-playback.json`.
+Browser probe results are written to the requested output file.

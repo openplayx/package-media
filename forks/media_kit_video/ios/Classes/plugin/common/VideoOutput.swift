@@ -35,6 +35,31 @@ public class VideoOutput: NSObject {
   private var textureId: Int64 = -1
   private var currentSize: CGSize = CGSize.zero
   private var disposed: Bool = false
+  // Only accessed on the render worker. PiP uses CPU rendering because iOS
+  // forbids OpenGL ES work after the application enters the background.
+  private var pipFrames: ((CVPixelBuffer) -> Void)?
+  private var pipSoftware = false
+
+  public func setPictureInPictureFrames(_ callback: ((CVPixelBuffer) -> Void)?) {
+    let foreground = UIApplication.shared.applicationState == .active
+    worker.enqueue { [weak self] in
+      guard let self = self, !self.disposed else { return }
+      self.pipFrames = callback
+      let software = callback != nil || (!foreground && self.pipSoftware)
+      if self.pipSoftware != software, let safe = self.texture as? SafeResizableTexture {
+        self.pipSoftware = software
+        safe.replace {
+          let update: () -> Void = { [weak self] in self?.updateCallback() }
+          if software || VideoOutput.isSimulator || !self.enableHardwareAcceleration {
+            return TextureSW(handle: self.handle, updateCallback: update)
+          }
+          return TextureHW(handle: self.handle, updateCallback: update)
+        }
+        self.currentSize = .zero
+      }
+      self._updateCallback()
+    }
+  }
 
   init(
     handle: Int64,
@@ -148,7 +173,12 @@ public class VideoOutput: NSObject {
   }
 
   private func _updateCallback() {
-    let size = videoSize
+    var size = videoSize
+    if pipSoftware, size.width > 0, size.height > 0 {
+      let scale = min(1.0, min(960.0 / size.width, 540.0 / size.height))
+      size = CGSize(width: max(2, floor(size.width * scale)),
+                    height: max(2, floor(size.height * scale)))
+    }
 
     if size.width == 0 || size.height == 0 {
       return
@@ -174,6 +204,10 @@ public class VideoOutput: NSObject {
       guard let that = self else { return }
       // Textures must be marked as available from the main thread
       that.registry.textureFrameAvailable(that.textureId)
+      if let callback = that.pipFrames,
+         let buffer = that.texture.copyPixelBuffer()?.takeRetainedValue() {
+        callback(buffer)
+      }
     }
   }
 

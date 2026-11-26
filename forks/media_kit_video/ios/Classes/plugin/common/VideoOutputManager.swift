@@ -12,6 +12,10 @@ public class VideoOutputManager: NSObject {
     self.registry = registry
   }
 
+  public func output(for handle: Int64) -> VideoOutput? {
+    videoOutputs[handle]
+  }
+
   public func create(
     handle: Int64,
     configuration: VideoOutputConfiguration,

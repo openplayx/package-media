@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Playback integration tests for the public media corpus (ALL-370) in
-# ../openplayx-test/formats/public/ using package-media's RoutedPlayerBackend
+# ../materials/playback/public/ using package-media's RoutedPlayerBackend
 # (or a single engine: mpv / vlc).
 #
 # Usage: bash tool/test_public_corpus.sh [--engine auto|mpv|vlc] [--source ID[,ID...]] [--only GLOB[,GLOB...]]
@@ -17,7 +17,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-corpus="${OPX_PUBLIC_CORPUS:-$root/../openplayx-test/formats/public}"
+corpus="${OPX_PUBLIC_CORPUS:-$root/../materials/playback/public}"
 report="${OPX_REPORT_DIR:-$root/build/formats/public-$engine-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "$report"
 report="$(cd "$report" && pwd)"

@@ -56,7 +56,7 @@ def probe(path: pathlib.Path) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pack", type=pathlib.Path, default=ROOT.parent / "openplayx-test/formats")
+    ap.add_argument("--pack", type=pathlib.Path, default=ROOT.parent / "materials/playback")
     ap.add_argument("--out", type=pathlib.Path, required=True)
     args = ap.parse_args()
 

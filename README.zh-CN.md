@@ -55,7 +55,7 @@ player.engine;                              // MediaEngine.vlc
 
 ## 文件格式播放测试
 
-默认不运行。样本和检查项沿用 package-libvlc（`formats/manifest.json`），可以选择引擎：
+默认不运行。[样本清单](formats/manifest.json)、`tool/prepare_samples.py`、两个引擎共用的播放集成测试和报告生成均维护在本仓库。详见[素材准备和检查说明](formats/README.md)。可以选择引擎：
 
 ```sh
 tool/test_formats.sh --engine auto --pack      # 经过路由，与 App 的播放方式一致
@@ -67,7 +67,7 @@ tool/test_formats.sh --engine auto --device emulator-5554,emulator-5556   # 两�
 tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engine mpv --device linux
 ```
 
-`--pack` 把 [openplayx-test](https://github.com/openplayx/openplayx-test) `formats/` 素材包（ALL-370）中的本地文件加为样本，命名为 `pack-<编号>-<扩展名>`，并标注 Linear 编号；期望值来自 ffprobe 和素材包的 440 Hz 正弦音。素材包的视频是动态测试图案，没有参考画面，这些样本不做截图比对。
+`--pack` 把共享目录 `../materials/playback/` 素材包（ALL-370）中的本地文件加为样本，命名为 `pack-<编号>-<扩展名>`，并标注 Linear 编号；期望值来自 ffprobe 和素材包的 440 Hz 正弦音。素材包的视频是动态测试图案，没有参考画面，这些样本不做截图比对。
 
 `OPX_PARALLEL` 指定测试进程数（Mac Studio 上默认 2）。每个进程使用一份独立的宿主 App 目录（`example-w<N>/`）和一台设备：macOS 共用本机，模拟器需要每个进程一台，用 `--device` 逗号分隔传入（例如再开一台 Android 模拟器：`emulator -avd <avd> -read-only -port 5556`）。原生库在各进程启动前统一编译一次。
 
@@ -90,6 +90,17 @@ mpv 最新结果（74 个生成样本）：macOS 73、iOS 模拟器 73、Apple T
 
 ### 高级播放回归
 
-在 `../openplayx-test/formats` 运行 `python3 build_advanced.py --tsmuxer /path/to/tsMuxeR --download-dv` 准备已登记的素材，再在本仓库运行 `bash tool/test_advanced.sh`。覆盖 HDR10+、Dolby Vision P5/P8.1/P8.4、完整 Blu-ray/DVD 目录及 Web 基础 MP4。可用 `--only 'advanced-bluray,advanced-dvd'` 只执行目录测试；报告写入 `build/formats/advanced-*`，或由 `OPX_REPORT_DIR` 指定。
+在 `../materials/playback` 运行 `python3 build_advanced.py --tsmuxer /path/to/tsMuxeR --download-dv` 准备已登记的素材，再在本仓库运行 `bash tool/test_advanced.sh`。覆盖 HDR10+、Dolby Vision P5/P8.1/P8.4、完整 Blu-ray/DVD 目录及 Web 基础 MP4。可用 `--only 'advanced-bluray,advanced-dvd'` 只执行目录测试；报告写入 `build/formats/advanced-*`，或由 `OPX_REPORT_DIR` 指定。
 
 macOS/Linux 的 mpv 构建静态链接固定版本的 libbluray 1.5.0（附带 libudfread）、libdvdread 7.1.1 和 libdvdnav 7.0.0。仅验收未加密本地目录的主片与 Seek，不提供 BD-J 菜单或解密库。其他平台尚未启用这组依赖；Linux 构建与播放需要独立验证。依赖来源和 SHA-256 在 `tool/mpv-deps.tsv`，许可文本在 `LICENSES/`。
+
+## 浏览器播放验证
+
+`tool/web_playback_probe.mjs` 使用 Chrome 检查原生 MP4、原生 HLS 可用性和 MSE/fMP4 的播放进度、解码帧及 Seek。素材读取自 `../materials/playback/fixtures/`，需要 Playwright 和 Chrome。在 package-media 中运行：
+
+```sh
+PLAYWRIGHT_MODULE=/path/to/playwright-core/index.mjs \
+  node tool/web_playback_probe.mjs /tmp/opx-web-playback.json
+```
+
+Chrome 不在默认 macOS 安装路径时可用 `CHROME_PATH` 指定。输出路径参数可省略，默认 `/tmp/opx-web-playback.json`。浏览器验证结果写入指定的输出文件。

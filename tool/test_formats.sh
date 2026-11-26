@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 # File format playback tests for one engine (or auto: the engine router,
 # RoutedPlayerBackend, as the app uses it): prepares the samples of
-# package-libvlc's formats/manifest.json and plays each one through the
+# formats/manifest.json and plays each one through the
 # engine's PlayerBackend in the example host app (macOS). Not part of
 # `flutter test`; run them when this package changes (see README).
 #
 # Usage: tool/test_formats.sh [--engine mpv|vlc|auto] [--only ID[,ID|GLOB...]] [--pack]
 #                             [--device macos | DEVICE[,DEVICE...]]
-# Env:   OPX_LIBVLC_PACKAGE  package-libvlc checkout (default ../package-libvlc)
 # Env:   OPX_SAMPLE_CACHE  sample cache (default ~/.cache/openplayx-libvlc-samples)
 #        OPX_REPORT_DIR    report directory (default build/formats/<timestamp>)
 #        OPX_PARALLEL      test processes (default 2 on a Mac Studio, else 1). Each
 #                          has its own copy of the host app (example-w<N>/, own build
 #                          directory) and its own device: macOS/Linux share the host,
 #                          simulators and emulators need one --device each.
-#        OPX_FORMAT_PACK   material pack for --pack (default ../openplayx-test/formats;
+#        OPX_FORMAT_PACK   material pack for --pack (default ../materials/playback;
 #                          its samples are "pack-<issue>-<ext>", e.g. --only 'pack-*')
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -22,7 +21,7 @@ only="" pack="" device="macos" engine="mpv"
 while [ $# -gt 0 ]; do
   case "$1" in
     --only) only="$2"; shift 2 ;;
-    --pack) pack="${OPX_FORMAT_PACK:-$root/../openplayx-test/formats}"; shift ;;
+    --pack) pack="${OPX_FORMAT_PACK:-$root/../materials/playback}"; shift ;;
     --device) device="$2"; shift 2 ;;
     --engine) engine="$2"; shift 2 ;;
     *) echo "unknown argument $1" >&2; exit 2 ;;
@@ -31,7 +30,6 @@ done
 for tool in flutter ffmpeg ffprobe python3; do
   command -v "$tool" >/dev/null || { echo "$tool is required" >&2; exit 2; }
 done
-libvlc="$(cd "${OPX_LIBVLC_PACKAGE:-$root/../package-libvlc}" && pwd)"
 cache="${OPX_SAMPLE_CACHE:-$HOME/.cache/openplayx-libvlc-samples}"
 report="${OPX_REPORT_DIR:-$root/build/formats/$engine-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "$report"
@@ -41,7 +39,7 @@ report="$(cd "$report" && pwd)"
 native() { case "$(uname -s)" in MINGW*|MSYS*) cygpath -m "$1" ;; *) printf '%s' "$1" ;; esac; }
 
 echo "== samples ($cache)"
-python3 -I "$libvlc/tool/prepare_samples.py" --cache "$cache" --out "$report/samples.json" ${only:+--only "$only"} ${pack:+--pack "$pack"}
+python3 -I "$root/tool/prepare_samples.py" --cache "$cache" --out "$report/samples.json" ${only:+--only "$only"} ${pack:+--pack "$pack"}
 case "$(uname -s)" in MINGW*|MSYS*)
   python3 -I - "$report/samples.json" <<'PY'
 import json, subprocess, sys
@@ -57,10 +55,9 @@ json.dump(data, open(p, "w"))
 PY
 ;; esac
 
-# The host app is restarted every $batch samples, and every failed sample is
-# then run once more alone: a player can disturb later players in the same
-# process (see README, known issues), so the isolated run decides.
-batch="${OPX_BATCH:-6}"
+# The host app is restarted every $batch samples, and any failed sample is
+# retried once alone so an isolated failure can be distinguished from a crash.
+batch="${OPX_BATCH:-30}"
 python3 -I - "$report" "$batch" <<'PY'
 import json, pathlib, sys
 report, size = pathlib.Path(sys.argv[1]), int(sys.argv[2])

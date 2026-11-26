@@ -148,6 +148,10 @@ public class VideoOutput: NSObject {
   }
 
   private func _updateCallback() {
+    if !texture.update() {
+      return
+    }
+
     let size = videoSize
 
     if size.width == 0 || size.height == 0 {
@@ -158,8 +162,8 @@ public class VideoOutput: NSObject {
       currentSize = size
 
       texture.resize(size)
-      DispatchQueue.main.sync { [weak self] in
-        guard let that = self else { return }
+      DispatchQueue.main.async { [weak self] in
+        guard let that = self, !that.disposed else { return }
         // textureUpdateCallback must run on the main thread
         that.textureUpdateCallback(that.textureId, size)
       }
@@ -170,8 +174,8 @@ public class VideoOutput: NSObject {
     }
 
     texture.render(size)
-    DispatchQueue.main.sync { [weak self] in
-      guard let that = self else { return }
+    DispatchQueue.main.async { [weak self] in
+      guard let that = self, !that.disposed else { return }
       // Textures must be marked as available from the main thread
       that.registry.textureFrameAvailable(that.textureId)
     }

@@ -7,4 +7,11 @@
 public protocol ResizableTextureProtocol: NSObject, FlutterTexture {
   func resize(_ size: CGSize)
   func render(_ size: CGSize)
+  func update() -> Bool
+}
+
+public extension ResizableTextureProtocol {
+  func update() -> Bool {
+    return true
+  }
 }

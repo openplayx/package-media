@@ -23,7 +23,7 @@ def sha256_file(path: pathlib.Path) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--iso-dir", type=pathlib.Path, default=ROOT.parent / "openplayx-test/formats/public/iso-samples")
+    ap.add_argument("--iso-dir", type=pathlib.Path, default=ROOT.parent / "materials/playback/public/iso-samples")
     ap.add_argument("--out", type=pathlib.Path, required=True)
     args = ap.parse_args()
 

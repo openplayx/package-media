@@ -27,12 +27,17 @@ public class MediaKitVideoPlugin: NSObject, FlutterPlugin {
       channel: channel,
       utils: utils
     )
+    if #available(iOS 15.0, *) {
+      instance.pictureInPicture = PictureInPictureOutput(
+        messenger: binaryMessenger, manager: instance.videoOutputManager)
+    }
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
   private let channel: FlutterMethodChannel
   private let videoOutputManager: VideoOutputManager
   private let utils: UtilsProtocol?
+  private var pictureInPicture: AnyObject?
 
   init(
     registry: FlutterTextureRegistry,
@@ -135,6 +140,9 @@ public class MediaKitVideoPlugin: NSObject, FlutterPlugin {
 
     assert(handle != nil, "handle must be an Int64")
 
+    if #available(iOS 15.0, *) {
+      (pictureInPicture as? PictureInPictureOutput)?.invalidate(handle: handle!)
+    }
     videoOutputManager.destroy(
       handle: handle!
     )
