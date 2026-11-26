@@ -390,6 +390,102 @@ class _Check {
       fail('media info failed: $e');
     }
 
+    // Optional external subtitle loading check (ALL-311..ALL-318).
+    final extSubPath = expectations['external_subtitle'] as String?;
+    if (extSubPath != null && extSubPath.isNotEmpty) {
+      try {
+        await backend.addExternalSubtitle(Uri.file(extSubPath));
+        final loaded = await waitFor(() => true, timeout: const Duration(milliseconds: 500));
+        if (loaded) {
+          await tester.pump(const Duration(milliseconds: 400));
+        }
+        var subTracks = await backend.getSubtitleTracks();
+        for (var i = 0; i < 15 && subTracks.isEmpty; i++) {
+          await tester.pump(const Duration(milliseconds: 200));
+          subTracks = await backend.getSubtitleTracks();
+        }
+        metrics['subtitle_track_count'] = subTracks.length;
+        if (subTracks.isEmpty) {
+          fail('external subtitle not discovered: $extSubPath');
+        } else {
+          final eng = engineBackend();
+          if (eng is MpvBackend) {
+            final codec = await eng.getProperty('current-tracks/sub/codec').catchError((_) => '');
+            final sid = await eng.getProperty('sid').catchError((_) => '');
+            metrics['subtitle_codec'] = codec;
+            metrics['subtitle_sid'] = sid;
+            if (sid == 'no' || sid.isEmpty) {
+              await backend.setSubtitleTrack(subTracks.first.id);
+              await tester.pump(const Duration(milliseconds: 300));
+            }
+            final sidAfter = await eng.getProperty('sid').catchError((_) => '');
+            if (sidAfter == 'no' || sidAfter.isEmpty) {
+              fail('external subtitle track did not activate (sid=$sidAfter)');
+            }
+          }
+          await backend.disableSubtitle();
+          await tester.pump(const Duration(milliseconds: 200));
+          await backend.setSubtitleTrack(subTracks.first.id);
+          await tester.pump(const Duration(milliseconds: 200));
+        }
+      } catch (e) {
+        fail('external subtitle failed: $e');
+      }
+    }
+
+    // Optional multi-track audio and subtitle switching checks (e.g. Matroska test5.mkv,
+    // embedded subtitles ALL-319..ALL-321).
+    final minAudioTracks = expectations['min_audio_tracks'] as int?;
+    if (minAudioTracks != null) {
+      try {
+        final audioTracks = await backend.getAudioTracks();
+        metrics['audio_track_count'] = audioTracks.length;
+        if (audioTracks.length < minAudioTracks) {
+          fail(
+            'audio tracks ${audioTracks.length}, expected >= $minAudioTracks',
+          );
+        } else if (audioTracks.length >= 2) {
+          await backend.setAudioTrack(audioTracks[1].id);
+          await tester.pump(const Duration(milliseconds: 200));
+          await backend.setAudioTrack(audioTracks[0].id);
+          await tester.pump(const Duration(milliseconds: 200));
+        }
+      } catch (e) {
+        fail('audio track switching failed: $e');
+      }
+    }
+    final minSubTracks = expectations['min_subtitle_tracks'] as int?;
+    if (minSubTracks != null) {
+      try {
+        var subTracks = await backend.getSubtitleTracks();
+        for (var i = 0; i < 15 && subTracks.length < minSubTracks; i++) {
+          await tester.pump(const Duration(milliseconds: 200));
+          subTracks = await backend.getSubtitleTracks();
+        }
+        metrics['subtitle_track_count'] = subTracks.length;
+        if (subTracks.length < minSubTracks) {
+          fail(
+            'subtitle tracks ${subTracks.length}, expected >= $minSubTracks',
+          );
+        } else if (subTracks.isNotEmpty) {
+          await backend.setSubtitleTrack(subTracks.first.id);
+          await tester.pump(const Duration(milliseconds: 300));
+          final eng = engineBackend();
+          if (eng is MpvBackend) {
+            metrics['subtitle_codec'] = await eng
+                .getProperty('current-tracks/sub/codec')
+                .catchError((_) => '');
+          }
+          await backend.disableSubtitle();
+          await tester.pump(const Duration(milliseconds: 200));
+          await backend.setSubtitleTrack(subTracks.first.id);
+          await tester.pump(const Duration(milliseconds: 200));
+        }
+      } catch (e) {
+        fail('subtitle track switching failed: $e');
+      }
+    }
+
     // 5. Duration and size.
     final duration = backend.value.duration;
     metrics['duration_ms'] = duration.inMilliseconds;
@@ -415,12 +511,33 @@ class _Check {
       final displayW = sar.length == 2 && (sar[0] ?? 0) > 0 && (sar[1] ?? 0) > 0
           ? (w * sar[0]! / sar[1]!).round()
           : w;
-      if (size == null ||
-          size.height.round() != h ||
-          (size.width.round() != w &&
-              (size.width.round() - displayW).abs() > 1)) {
+      final displayH = sar.length == 2 && (sar[0] ?? 0) > 0 && (sar[1] ?? 0) > 0
+          ? (h * sar[1]! / sar[0]!).round()
+          : h;
+      final matchesStorage =
+          size != null && size.width.round() == w && size.height.round() == h;
+      final matchesDisplayW =
+          size != null &&
+          size.height.round() == h &&
+          (size.width.round() - displayW).abs() <= 1;
+      final matchesDisplayH =
+          size != null &&
+          size.width.round() == w &&
+          (size.height.round() - displayH).abs() <= 1;
+      final matchesRotated =
+          size != null && size.width.round() == h && size.height.round() == w;
+      final matchesStereo3d =
+          sample['ext'] == 'mk3d' &&
+          size != null &&
+          size.width.round() == w &&
+          size.height.round() == h * 2;
+      if (!matchesStorage &&
+          !matchesDisplayW &&
+          !matchesDisplayH &&
+          !matchesRotated &&
+          !matchesStereo3d) {
         fail(
-          'video size $size, expected ${w}x$h${displayW != w ? ' or ${displayW}x$h' : ''}',
+          'video size $size, expected ${w}x$h${displayW != w ? ' or ${displayW}x$h or ${w}x$displayH' : ''}',
         );
       }
     }

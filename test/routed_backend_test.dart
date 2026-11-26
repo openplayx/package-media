@@ -108,6 +108,83 @@ void main() {
       );
       expect(both.engineFor(Uri.parse('dvd:///movies/disc')), MediaEngine.mpv);
     });
+
+    test('MpvBackend.resolveStrmContent resolves URLs and relative paths', () {
+      expect(
+        MpvBackend.resolveStrmContent(
+          '# comment\n\nhttps://example.com/movie.mp4\n',
+        ),
+        Uri.parse('https://example.com/movie.mp4'),
+      );
+      expect(
+        MpvBackend.resolveStrmContent(
+          '../common/baseline.mp4\n',
+          strmFile: Uri.file('/tmp/ref/test.strm'),
+        ),
+        Uri.file('/tmp/common/baseline.mp4'),
+      );
+      expect(MpvBackend.resolveStrmContent('# only comments\n  '), isNull);
+    });
+
+    test('MpvBackend.resolveAsxContent resolves <ref href> URLs and relative paths', () {
+      expect(
+        MpvBackend.resolveAsxContent(
+          '<ASX version="3.0"><ENTRY><REF HREF="https://example.com/a.mp4?x=1&amp;y=2"/></ENTRY></ASX>',
+        ),
+        Uri.parse('https://example.com/a.mp4?x=1&y=2'),
+      );
+      expect(
+        MpvBackend.resolveAsxContent(
+          "<asx><entry><ref href='../common/baseline.mp4'/></entry></asx>",
+          asxFile: Uri.file('/tmp/ref/test.asx'),
+        ),
+        Uri.file('/tmp/common/baseline.mp4'),
+      );
+      expect(MpvBackend.resolveAsxContent('<asx></asx>'), isNull);
+    });
+
+    test('MpvBackend.detectIsoScheme identifies DVD, Blu-ray, and data ISOs', () {
+      expect(MpvBackend.detectIsoScheme('...BDMV...'.codeUnits), 'bluray');
+      expect(
+        MpvBackend.detectIsoScheme([0, 0x42, 0, 0x44, 0, 0x4d, 0, 0x56, 0]),
+        'bluray',
+      );
+      expect(MpvBackend.detectIsoScheme('...VIDEO_TS...'.codeUnits), 'dvd');
+      expect(MpvBackend.detectIsoScheme('plain data iso'.codeUnits), isNull);
+    });
+
+    test('MpvBackend.resolveIfoDirectory strips VIDEO_TS parent', () {
+      expect(
+        MpvBackend.resolveIfoDirectory('/movies/disc/VIDEO_TS/VIDEO_TS.IFO'),
+        '/movies/disc',
+      );
+      expect(
+        MpvBackend.resolveIfoDirectory('/movies/disc/VTS_01_0.IFO'),
+        '/movies/disc',
+      );
+    });
+
+    test('MpvBackend.discoverSplitParts finds consecutive .001/.002 volumes', () {
+      final existing = {
+        '/tmp/clip.mkv.001',
+        '/tmp/clip.mkv.002',
+        '/tmp/clip.mkv.003',
+      };
+      expect(
+        MpvBackend.discoverSplitParts(
+          '/tmp/clip.mkv.001',
+          exists: existing.contains,
+        ),
+        ['/tmp/clip.mkv.001', '/tmp/clip.mkv.002', '/tmp/clip.mkv.003'],
+      );
+      expect(
+        MpvBackend.discoverSplitParts(
+          '/tmp/solo.001',
+          exists: (p) => p == '/tmp/solo.001',
+        ),
+        isEmpty,
+      );
+    });
   });
 
   group('RoutedPlayerBackend', () {

@@ -1,6 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show File, Platform;
+import 'dart:io'
+    show
+        ContentType,
+        Directory,
+        File,
+        HttpHeaders,
+        HttpServer,
+        HttpStatus,
+        InternetAddress,
+        Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -91,6 +100,7 @@ class MpvBackend extends PlayerBackend {
   bool _error = false;
   bool _seekable = false;
   bool _disposed = false;
+  _SplitVolumeServer? _splitServer;
 
   void _sync() {
     if (_disposed) return;
@@ -140,6 +150,162 @@ class MpvBackend extends PlayerBackend {
     'nsf', 'nsfe', 'gym', 'spc', 'vgm', 'gbs', 'hes', 'kss', 'sap', 'ay', //
   };
 
+  /// Formats whose FFmpeg probe score sits at or below mpv's minimum of 26
+  /// (`demuxer-lavf-probescore`), requiring an explicit `demuxer-lavf-format`.
+  static const lavfFormatByExtension = {'adp': 'adp', 'dtk': 'adp'};
+
+  /// Formats whose FFmpeg demuxer lacks a seek table and overshoots to EOF on
+  /// fast/inaccurate seeks; exact (`hr-seek=yes`) seeking decodes to the target.
+  static const hrSeekExtensions = {'mpc', 'mpp', 'mp+'};
+
+  /// Optical disc image extensions that may wrap a DVD-Video (`VIDEO_TS`) or
+  /// Blu-ray (`BDMV`) filesystem and should be probed for `dvd://`/`bluray://`.
+  static const discImageExtensions = {'iso', 'img', 'nrg', 'bin'};
+
+  /// Resolves a `.strm` pointer file's first non-empty, non-comment line to a
+  /// target URI (supports absolute URIs and paths relative to [strmFile]).
+  static Uri? resolveStrmContent(String content, {Uri? strmFile}) {
+    for (final raw in content.split(RegExp(r'\r?\n'))) {
+      final line = raw.trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      final parsed = Uri.tryParse(line);
+      if (parsed != null &&
+          parsed.hasScheme &&
+          parsed.scheme.length > 1) {
+        return parsed;
+      }
+      if (strmFile != null && strmFile.isScheme('file')) {
+        return strmFile.resolveUri(Uri.file(line));
+      }
+      return Uri.file(line);
+    }
+    return null;
+  }
+
+  /// Resolves an `.asx` XML playlist's first `<ref href="..."/>` entry to a
+  /// target URI (supports absolute URIs and paths relative to [asxFile]).
+  static Uri? resolveAsxContent(String content, {Uri? asxFile}) {
+    final match = RegExp(
+      r'''<ref\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)')''',
+      caseSensitive: false,
+    ).firstMatch(content);
+    final href = (match?.group(1) ?? match?.group(2))?.trim();
+    if (href == null || href.isEmpty) return null;
+    final decoded = href
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&apos;', "'");
+    final parsed = Uri.tryParse(decoded);
+    if (parsed != null && parsed.hasScheme && parsed.scheme.length > 1) {
+      return parsed;
+    }
+    if (asxFile != null && asxFile.isScheme('file')) {
+      return asxFile.resolveUri(Uri.file(decoded));
+    }
+    return Uri.file(decoded);
+  }
+
+  /// Detects whether an `.iso` image header belongs to a Blu-ray (`bluray`) or
+  /// DVD-Video (`dvd`) disc by scanning for BDMV / VIDEO_TS directory or header
+  /// markers (ASCII and UTF-16LE/BE). Returns null for non-video data ISOs.
+  static String? detectIsoScheme(List<int> header) {
+    bool containsAscii(String needle) {
+      final bytes = needle.codeUnits;
+      if (bytes.isEmpty || header.length < bytes.length) return false;
+      outer:
+      for (var i = 0; i <= header.length - bytes.length; i++) {
+        for (var j = 0; j < bytes.length; j++) {
+          if (header[i + j] != bytes[j]) continue outer;
+        }
+        return true;
+      }
+      return false;
+    }
+
+    bool containsUtf16(String needle) {
+      // Matches both UTF-16LE (X 0) and UTF-16BE (0 X) for ASCII characters.
+      final units = needle.codeUnits;
+      final span = units.length * 2;
+      if (units.isEmpty || header.length < span) return false;
+      for (final offset in [0, 1]) {
+        outer:
+        for (var i = 0; i <= header.length - span; i++) {
+          for (var j = 0; j < units.length; j++) {
+            if (header[i + j * 2 + offset] != units[j] ||
+                header[i + j * 2 + (1 - offset)] != 0) {
+              continue outer;
+            }
+          }
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (containsAscii('BDMV') ||
+        containsUtf16('BDMV') ||
+        containsAscii('INDX0200') ||
+        containsAscii('INDX0100')) {
+      return 'bluray';
+    }
+    if (containsAscii('VIDEO_TS') ||
+        containsUtf16('VIDEO_TS') ||
+        containsAscii('DVDVIDEO-VMG')) {
+      return 'dvd';
+    }
+    return null;
+  }
+
+  static Future<String?> _detectLocalIsoScheme(Uri uri) async {
+    try {
+      final file = File.fromUri(uri);
+      final raf = await file.open();
+      try {
+        final len = await raf.length();
+        // UDF/ISO-9660 descriptors and root directory entries sit in the first
+        // ~2 MB of a disc image.
+        final bytes = await raf.read(len < 2 * 1024 * 1024 ? len : 2 * 1024 * 1024);
+        return detectIsoScheme(bytes);
+      } finally {
+        await raf.close();
+      }
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Resolves a DVD-Video `.ifo` file path (e.g. `.../disc/VIDEO_TS/VIDEO_TS.IFO`)
+  /// to the root directory expected by `libdvdread` (`.../disc`).
+  static String resolveIfoDirectory(String ifoPath) {
+    final parent = File(ifoPath).parent;
+    final segments = parent.uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    if (segments.isNotEmpty && segments.last.toLowerCase() == 'video_ts') {
+      return Directory(parent.parent.path).path;
+    }
+    return parent.path;
+  }
+
+  /// Discovers consecutive split volume parts (`.001`, `.002`, ...) alongside
+  /// [firstPartPath]. Returns an empty list if fewer than 2 parts exist.
+  static List<String> discoverSplitParts(
+    String firstPartPath, {
+    bool Function(String path)? exists,
+  }) {
+    if (!firstPartPath.toLowerCase().endsWith('.001')) return const [];
+    final check = exists ?? (p) => File(p).existsSync();
+    if (!check(firstPartPath)) return const [];
+    final prefix = firstPartPath.substring(0, firstPartPath.length - 4);
+    final parts = <String>[firstPartPath];
+    for (var i = 2; i <= 999; i++) {
+      final next = '$prefix.${i.toString().padLeft(3, '0')}';
+      if (!check(next)) break;
+      parts.add(next);
+    }
+    return parts.length >= 2 ? parts : const [];
+  }
+
   @override
   Future<void> open(Uri uri) async {
     await _ready;
@@ -147,17 +313,54 @@ class MpvBackend extends PlayerBackend {
     _ended = false;
     _error = false;
     _seekable = false;
-    final name = uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ?? '';
+    var target = uri;
+    final rawName = uri.pathSegments.where((s) => s.isNotEmpty).lastOrNull ?? '';
+    final rawDot = rawName.lastIndexOf('.');
+    final rawExt = rawDot <= 0 ? '' : rawName.substring(rawDot + 1).toLowerCase();
+    if ((rawExt == 'strm' || rawExt == 'asx') && uri.isScheme('file')) {
+      try {
+        final content = await File.fromUri(uri).readAsString();
+        final resolved = rawExt == 'strm'
+            ? resolveStrmContent(content, strmFile: uri)
+            : resolveAsxContent(content, asxFile: uri);
+        if (resolved != null) target = resolved;
+      } catch (_) {}
+    }
+    final name = target.pathSegments.where((s) => s.isNotEmpty).lastOrNull ?? '';
     final dot = name.lastIndexOf('.');
     final ext = dot <= 0 ? '' : name.substring(dot + 1).toLowerCase();
+    await _splitServer?.close();
+    _splitServer = null;
+    final lavfFormat = gmeExtensions.contains(ext)
+        ? 'libgme'
+        : (lavfFormatByExtension[ext] ?? '');
+    await _native.setProperty('demuxer-lavf-format', lavfFormat);
     await _native.setProperty(
-      'demuxer-lavf-format',
-      gmeExtensions.contains(ext) ? 'libgme' : '',
+      'hr-seek',
+      hrSeekExtensions.contains(ext) ? 'yes' : 'default',
     );
-    // Disc stream readers expect a local device path, not URL-escaped text.
-    final location = {'bluray', 'dvd'}.contains(uri.scheme)
-        ? '${uri.scheme}://longest/${uri.replace(scheme: 'file').toFilePath()}'
-        : uri.toString();
+    // Disc stream readers expect a local device/image path, not URL-escaped text.
+    String location;
+    if ({'bluray', 'dvd'}.contains(target.scheme)) {
+      location = '${target.scheme}://longest/${target.replace(scheme: 'file').toFilePath()}';
+    } else if (ext == 'ifo' && target.isScheme('file')) {
+      location = 'dvd://longest/${resolveIfoDirectory(target.toFilePath())}';
+    } else if (discImageExtensions.contains(ext) && target.isScheme('file')) {
+      final discScheme = await _detectLocalIsoScheme(target);
+      location = discScheme != null
+          ? '$discScheme://longest/${target.toFilePath()}'
+          : target.toString();
+    } else if (ext == '001' && target.isScheme('file')) {
+      final parts = discoverSplitParts(target.toFilePath());
+      if (parts.isNotEmpty) {
+        _splitServer = await _SplitVolumeServer.start(parts);
+        location = _splitServer!.url.toString();
+      } else {
+        location = target.toString();
+      }
+    } else {
+      location = target.toString();
+    }
     await _player.open(Media(location));
     _sync();
   }
@@ -321,10 +524,114 @@ class MpvBackend extends PlayerBackend {
   void dispose() {
     if (_disposed) return;
     _disposed = true;
+    unawaited(_splitServer?.close());
+    _splitServer = null;
     for (final s in _subscriptions) {
       unawaited(s.cancel());
     }
     unawaited(_player.dispose());
     super.dispose();
   }
+}
+
+/// Ephemeral loopback HTTP range server that concatenates split `.001/.002/...`
+/// volume files without copying them to disk.
+class _SplitVolumeServer {
+  _SplitVolumeServer._(this._server, this._parts, this._lengths, this._total, this.url);
+
+  final HttpServer _server;
+  final List<File> _parts;
+  final List<int> _lengths;
+  final int _total;
+  final Uri url;
+
+  static Future<_SplitVolumeServer> start(List<String> paths) async {
+    final files = paths.map(File.new).toList(growable: false);
+    final lengths = <int>[];
+    var total = 0;
+    for (final f in files) {
+      final len = await f.length();
+      lengths.add(len);
+      total += len;
+    }
+    // Preserve inner extension when present (e.g. movie.mkv.001 -> /stream.mkv).
+    final firstName = files.first.uri.pathSegments.last;
+    final stem = firstName.substring(0, firstName.length - 4);
+    final innerDot = stem.lastIndexOf('.');
+    final suffix = innerDot > 0 ? stem.substring(innerDot) : '';
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    final url = Uri.parse('http://127.0.0.1:${server.port}/stream$suffix');
+    final instance = _SplitVolumeServer._(server, files, lengths, total, url);
+    unawaited(instance._serve());
+    return instance;
+  }
+
+  Future<void> _serve() async {
+    await for (final req in _server) {
+      final res = req.response;
+      res.headers.set(HttpHeaders.acceptRangesHeader, 'bytes');
+      res.headers.contentType = ContentType.binary;
+      var start = 0;
+      var end = _total - 1;
+      final rangeHeader = req.headers.value(HttpHeaders.rangeHeader);
+      if (rangeHeader != null && rangeHeader.startsWith('bytes=')) {
+        final spec = rangeHeader.substring(6).split(',').first.trim();
+        final dash = spec.indexOf('-');
+        if (dash >= 0) {
+          final a = spec.substring(0, dash).trim();
+          final b = spec.substring(dash + 1).trim();
+          if (a.isNotEmpty) start = int.tryParse(a) ?? 0;
+          if (b.isNotEmpty) end = int.tryParse(b) ?? (_total - 1);
+          if (a.isEmpty && b.isNotEmpty) {
+            final suffixLen = int.tryParse(b) ?? 0;
+            start = (_total - suffixLen).clamp(0, _total - 1);
+            end = _total - 1;
+          }
+        }
+        if (start >= _total || start > end) {
+          res.statusCode = HttpStatus.requestedRangeNotSatisfiable;
+          res.headers.set(HttpHeaders.contentRangeHeader, 'bytes */$_total');
+          await res.close();
+          continue;
+        }
+        end = end.clamp(start, _total - 1);
+        res.statusCode = HttpStatus.partialContent;
+        res.headers.set(HttpHeaders.contentRangeHeader, 'bytes $start-$end/$_total');
+      } else {
+        res.statusCode = HttpStatus.ok;
+      }
+      final count = end - start + 1;
+      res.headers.contentLength = count;
+      if (req.method == 'HEAD') {
+        await res.close();
+        continue;
+      }
+      try {
+        var remaining = count;
+        var pos = start;
+        var offset = 0;
+        for (var i = 0; i < _parts.length && remaining > 0; i++) {
+          final len = _lengths[i];
+          if (pos >= offset + len) {
+            offset += len;
+            continue;
+          }
+          final localStart = pos - offset;
+          final take = (len - localStart) < remaining ? (len - localStart) : remaining;
+          await res.addStream(_parts[i].openRead(localStart, localStart + take));
+          pos += take;
+          remaining -= take;
+          offset += len;
+        }
+      } catch (_) {
+        // Client closed connection early (e.g. during seek or probe).
+      } finally {
+        try {
+          await res.close();
+        } catch (_) {}
+      }
+    }
+  }
+
+  Future<void> close() => _server.close(force: true);
 }
