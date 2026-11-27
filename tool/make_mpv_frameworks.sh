@@ -30,6 +30,14 @@ rm -rf "$work" "$out"
 mkdir -p "$work" "$out"
 [ "$platform" = macos ] && sub=Versions/A/ || sub=''
 version="$(sed -n 's/^mpv=v\{0,1\}//p' "$root/third_party/mpv/${targets[0]}/BUILDINFO")"
+if [[ ! "$version" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]] || [ "${#version}" -gt 18 ]; then
+  pc_version="$(sed -n 's/^Version:[[:space:]]*//p' "$root/third_party/mpv/${targets[0]}/lib/pkgconfig/mpv.pc" 2>/dev/null | head -n 1 || true)"
+  if [[ "$pc_version" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]] && [ "${#pc_version}" -le 18 ]; then
+    version="$pc_version"
+  else
+    version="2.0.0"
+  fi
+fi
 args=()
 for slice in "${slices[@]}"; do
   IFS=+ read -r -a ts <<< "${slice#*=}"
