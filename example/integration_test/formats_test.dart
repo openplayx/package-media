@@ -104,7 +104,12 @@ void main() {
       if (sample['status'] != 'ok') {
         check.fail('sample could not be prepared: ${sample['error']}');
       } else {
-        await check.run(tester, reportDir);
+        try {
+          await _stageDeviceFiles(sample);
+          await check.run(tester, reportDir);
+        } catch (error) {
+          check.fail('sample execution failed: $error');
+        }
       }
       check.result['result'] = check.failures.isEmpty ? 'passed' : 'failed';
       // ignore: avoid_print
@@ -112,6 +117,59 @@ void main() {
       expect(check.failures, isEmpty, reason: check.failures.join('\n'));
     }, timeout: const Timeout(Duration(minutes: 2)));
   }
+}
+
+/// Android cannot open host paths. Inputs needing native filesystem access
+/// (disc images/directories, split volumes, pointers and subtitles) are staged
+/// into the app's own temporary directory; other media stream over HTTP Range.
+Future<void> _stageDeviceFiles(Map<String, dynamic> sample) async {
+  final files = sample['device_files'] as List?;
+  if (files == null || files.isEmpty) return;
+  final directory = await Directory.systemTemp.createTemp('opx-materials-');
+  addTearDown(() async {
+    if (await directory.exists()) await directory.delete(recursive: true);
+  });
+  final client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
+  try {
+    for (final item in files.cast<Map<String, dynamic>>()) {
+      final name = item['name'] as String;
+      if (name.startsWith('/') || name.split('/').contains('..')) {
+        throw FormatException('Invalid staging name: $name');
+      }
+      final output = File('${directory.path}/$name');
+      await output.parent.create(recursive: true);
+      final request = await client.getUrl(Uri.parse(item['url'] as String));
+      final response = await request.close().timeout(
+        const Duration(seconds: 60),
+      );
+      if (response.statusCode != HttpStatus.ok) {
+        throw HttpException(
+          'HTTP ${response.statusCode}',
+          uri: Uri.parse(item['url'] as String),
+        );
+      }
+      await response
+          .pipe(output.openWrite())
+          .timeout(const Duration(minutes: 5));
+    }
+  } finally {
+    client.close(force: true);
+  }
+  dynamic relocate(dynamic value) {
+    if (value is String) {
+      return value.replaceAll('OPX_LOCAL/', '${directory.path}/');
+    }
+    if (value is List) return value.map(relocate).toList();
+    if (value is Map) {
+      return value.map((k, v) => MapEntry(k as String, relocate(v)));
+    }
+    return value;
+  }
+
+  final relocated = relocate(sample) as Map<String, dynamic>;
+  sample
+    ..clear()
+    ..addAll(relocated);
 }
 
 class _Check {
@@ -143,6 +201,22 @@ class _Check {
     final id = sample['id'] as String;
     final wantVideo = expectations['video'] == true;
     final wantAudio = expectations['audio'] == true;
+    final referenceRms = (expectations['reference_audio_rms'] as num?)
+        ?.toDouble();
+    final referenceSeconds = (expectations['reference_audio_seconds'] as num?)
+        ?.toDouble();
+    // FATE includes individual 20 ms audio packets. Repeat those original
+    // bytes during inspection so progress/statistics can actually be sampled.
+    final repeatShortAudio =
+        !wantVideo &&
+        referenceSeconds != null &&
+        referenceSeconds > 0 &&
+        referenceSeconds < 1;
+    if (repeatShortAudio) metrics['repeated_short_audio'] = true;
+    // Real corpus clips include very quiet codec test signals. Compare with
+    // their decoded source instead of treating everything below -60 dB as mute.
+    final minimumRms = referenceRms == null ? 0.001 : referenceRms * 0.1;
+    if (referenceRms != null) metrics['reference_audio_rms'] = referenceRms;
     final wav = File('${reportDir.path}/$id.wav');
     if (wav.existsSync()) wav.deleteSync();
     // Decoded audio is measured without reaching the speakers.
@@ -155,8 +229,9 @@ class _Check {
           'mute': _systemAudio ? 'no' : 'yes'
         else if (!_systemAudio)
           'ao': 'null',
-        if ({'bluray', 'dvd'}.contains(sample['ext']))
-          'log-file': '${reportDir.path}/$id-mpv.log',
+        'log-file': '${reportDir.path}/$id-mpv.log',
+        'msg-level': 'all=warn',
+        if (repeatShortAudio) 'loop-file': 'inf',
         // Statistics over 50 codec frames (TrueHD frames are only 40
         // samples) behind a low-pass: lossy codecs add noise around
         // zero that would count as crossings.
@@ -206,9 +281,10 @@ class _Check {
         : Timer.periodic(const Duration(milliseconds: 200), (_) async {
             if (!isMpv()) return;
             final st = await astats();
-            final db = double.tryParse(
-              '${st['lavfi.astats.Overall.RMS_level']}',
-            );
+            final rmsText = '${st['lavfi.astats.Overall.RMS_level']}';
+            final db = rmsText == '-inf'
+                ? double.negativeInfinity
+                : double.tryParse(rmsText);
             final zcr = double.tryParse(
               '${st['lavfi.astats.1.Zero_crossings_rate']}',
             );
@@ -282,7 +358,10 @@ class _Check {
       () =>
           backend.value.status == PlaybackStatus.error ||
           (backend.value.status == PlaybackStatus.playing &&
-              backend.value.position > const Duration(milliseconds: 300) &&
+              (repeatShortAudio
+                  ? sampledFrames > 0
+                  : backend.value.position >
+                        const Duration(milliseconds: 300)) &&
               (!wantVideo || backend.value.videoSize != null)),
       timeout: const Duration(seconds: 15),
     );
@@ -401,7 +480,10 @@ class _Check {
     if (extSubPath != null && extSubPath.isNotEmpty) {
       try {
         await backend.addExternalSubtitle(Uri.file(extSubPath));
-        final loaded = await waitFor(() => true, timeout: const Duration(milliseconds: 500));
+        final loaded = await waitFor(
+          () => true,
+          timeout: const Duration(milliseconds: 500),
+        );
         if (loaded) {
           await tester.pump(const Duration(milliseconds: 400));
         }
@@ -416,7 +498,9 @@ class _Check {
         } else {
           final eng = engineBackend();
           if (eng is MpvBackend) {
-            final codec = await eng.getProperty('current-tracks/sub/codec').catchError((_) => '');
+            final codec = await eng
+                .getProperty('current-tracks/sub/codec')
+                .catchError((_) => '');
             final sid = await eng.getProperty('sid').catchError((_) => '');
             metrics['subtitle_codec'] = codec;
             metrics['subtitle_sid'] = sid;
@@ -622,12 +706,22 @@ class _Check {
     // 4. Sound: mpv from astats before release; libVLC from the WAV file
     // once its audio output closed it.
     if (isMpv() && wantAudio) {
+      if (referenceRms != null && referenceRms > 0) {
+        // Some public clips start with silence. The reference covers their
+        // first five seconds, so allow that interval before declaring mute.
+        await waitFor(
+          () => frames.any(
+            (f) => f.$1.isFinite && math.pow(10, f.$1 / 20) > minimumRms,
+          ),
+          timeout: const Duration(seconds: 5),
+        );
+      }
       sampler?.cancel();
       // astats sees the decoder's rate (before any resampling for output).
       final rate = (probe['sample_rate'] as int?) ?? 48000;
       final audible = [
         for (final f in frames)
-          if (f.$1.isFinite && f.$1 > -60) f,
+          if (f.$1.isFinite && math.pow(10, f.$1 / 20) > minimumRms) f,
       ];
       double median(List<double> v) => (v..sort())[v.length ~/ 2];
       mpvLevel = audible.isEmpty
@@ -653,7 +747,7 @@ class _Check {
         );
       } else {
         final level = mpvLevel ?? _measure(wav.readAsBytesSync());
-        metrics['audio_rms'] = double.parse(level.rms.toStringAsFixed(4));
+        metrics['audio_rms'] = double.parse(level.rms.toStringAsPrecision(6));
         metrics['audio_hz'] = level.hz.round();
         metrics['audio_seconds'] = double.parse(
           level.seconds.toStringAsFixed(2),
@@ -667,8 +761,11 @@ class _Check {
               '(noise or wrong decoding)',
             );
           }
-        } else if (level.rms < 0.001) {
-          fail('silent: RMS ${level.rms.toStringAsFixed(4)}');
+        } else if (level.rms < minimumRms) {
+          fail(
+            'silent: RMS ${level.rms.toStringAsExponential(4)}'
+            ', minimum ${minimumRms.toStringAsExponential(4)}',
+          );
         }
       }
       if (wav.existsSync()) wav.deleteSync();

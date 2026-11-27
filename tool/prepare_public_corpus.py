@@ -11,8 +11,10 @@ import argparse
 import fnmatch
 import hashlib
 import json
+import math
 import pathlib
 import re
+import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -43,6 +45,34 @@ def sample_id(source_id: str, filename: str) -> str:
     stem = filename[4:] if filename.startswith(("OKT.", "SFX.")) else pathlib.Path(filename).stem
     safe_stem = re.sub(r"[^A-Za-z0-9_.-]+", "_", stem).strip("_")
     return f"public-{source_id}-{safe_stem}-{ext}"
+
+
+def reference_audio(path: pathlib.Path) -> dict | None:
+    """Measure the source, including quiet codec conformance samples.
+
+    Use the same low-pass as the playback runner. Failed/unsupported reference
+    decodes retain the runner's default check rather than hiding a failure.
+    """
+    try:
+        result = subprocess.run(
+            ["ffmpeg", "-nostdin", "-v", "info", "-i", str(path), "-t", "5",
+             "-map", "0:a:0", "-af", "lowpass=f=3000,astats=reset=0",
+             "-f", "null", "-"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    levels = re.findall(r"RMS level dB:\s*(-?\d+(?:\.\d+)?|-inf)", result.stderr)
+    if result.returncode != 0 or not levels:
+        return None
+    # astats prints channels first and Overall last.
+    db = float(levels[-1])
+    reference = {"reference_audio_rms": math.pow(10, db / 20) if math.isfinite(db) else 0.0}
+    samples = re.findall(r"Number of samples:\s*(\d+)", result.stderr)
+    rates = re.findall(r"Audio:.*?,\s*(\d+) Hz", result.stderr)
+    if samples and rates:
+        reference["reference_audio_seconds"] = int(samples[-1]) / int(rates[0])
+    return reference
 
 
 def main() -> int:
@@ -145,6 +175,10 @@ def main() -> int:
                 "frame": None,
                 "tone_hz": None,
             }
+            if want_audio:
+                reference = reference_audio(path)
+                if reference is not None:
+                    expect.update(reference)
             if sid == "matroska-test-files" and fname == "test5.mkv":
                 # Matroska conformance Wave 1 test5: 2 audio tracks + 7+ subtitle tracks.
                 expect["min_audio_tracks"] = 2

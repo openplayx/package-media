@@ -66,7 +66,7 @@ def main() -> int:
         audio = f"{m['audio_rms']} / {m['audio_hz']} Hz" if "audio_rms" in m else ""
         why = "; ".join(r.get("failures", [])) or (s.get("error") or "")
         if outcome == "passed" and r.get("batch_failures"):
-            why = "passed alone; failed after other players in the same process: " + "; ".join(r["batch_failures"])
+            why = "passed on isolated retry; previous failures: " + "; ".join(r["batch_failures"])
         used = f" ({r['engine'].removeprefix('auto:')})" if engine == "auto" and r.get("engine") else ""
         rows.append(f"| {s['id']}{used} | {', '.join(s.get('linear', []))} | .{s['ext']} | {codecs} | "
                     f"{'✅' if outcome == 'passed' else '❌' if outcome == 'failed' else '⚪'} {outcome} | "
@@ -78,7 +78,7 @@ def main() -> int:
         f"- Platform: {device}; engine: {engine_version(device, engine)}",
         f"- package-media: {commit}{' (dirty)' if dirty else ''}",
         f"- Passed {counts['passed']}, failed {counts['failed']}, not run {counts['not run']} of {len(samples)}"
-        f" ({disturbed} passed only when run alone)",
+        f" ({disturbed} passed on isolated retry)",
         "",
         "| Sample | Linear | Ext | Codecs | Result | Start ms | Frame diff | Audio RMS / Hz | Failures |",
         "|---|---|---|---|---|---|---|---|---|",

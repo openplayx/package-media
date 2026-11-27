@@ -12,3 +12,6 @@ libs/media_kit_libs_windows_video/windows/libmpv/
 # Python interpreter caches
 __pycache__/
 *.pyc
+
+# Generated plugin paths belong to each local checkout.
+.flutter-plugins

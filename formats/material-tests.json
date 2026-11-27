@@ -1,0 +1,5049 @@
+{
+  "schema": 1,
+  "platform": "macos",
+  "captured_at": "2026-11-27",
+  "policy": "Previously passing material cases must pass. Only explicit allow_failure cases may fail. Missing or invalid results always fail. Baseline is never updated by a run.",
+  "sources": [
+    {
+      "report": "build/formats/advanced-disc-debug-macos/report.md",
+      "date": "2026-11-26T07:42:38+11:00",
+      "engine": "auto",
+      "cases": 2
+    },
+    {
+      "report": "build/formats/advanced-disc-fixed-macos/report.md",
+      "date": "2026-11-26T07:43:30+11:00",
+      "engine": "auto",
+      "cases": 2
+    },
+    {
+      "report": "build/formats/advanced-disc-passed-macos/report.md",
+      "date": "2026-11-26T07:45:52+11:00",
+      "engine": "auto",
+      "cases": 2
+    },
+    {
+      "report": "build/formats/advanced-disc-trusted-macos/report.md",
+      "date": "2026-11-26T07:44:41+11:00",
+      "engine": "auto",
+      "cases": 2
+    },
+    {
+      "report": "build/formats/advanced-dv-vlc/report.md",
+      "date": "2026-11-26T07:46:33+11:00",
+      "engine": "vlc",
+      "cases": 1
+    },
+    {
+      "report": "build/formats/advanced-final-macos/report.md",
+      "date": "2026-11-26T07:41:58+11:00",
+      "engine": "auto",
+      "cases": 7
+    },
+    {
+      "report": "build/formats/advanced-macos-mpv-20261126/report.md",
+      "date": "2026-11-26T07:08:14+11:00",
+      "engine": "mpv",
+      "cases": 3
+    },
+    {
+      "report": "build/formats/advanced-original-final-macos/report.md",
+      "date": "2026-11-26T07:49:00+11:00",
+      "engine": "mpv",
+      "cases": 3
+    },
+    {
+      "report": "build/formats/advanced-remaining-macos/report.md",
+      "date": "2026-11-26T07:29:14+11:00",
+      "engine": "auto",
+      "cases": 6
+    },
+    {
+      "report": "build/formats/auto-macos/report.md",
+      "date": "2026-11-25T20:54:59+11:00",
+      "engine": "auto",
+      "cases": 137
+    },
+    {
+      "report": "build/formats/auto-rerun/report.md",
+      "date": "2026-11-25T20:57:44+11:00",
+      "engine": "auto",
+      "cases": 4
+    },
+    {
+      "report": "build/formats/auto-try/report.md",
+      "date": "2026-11-25T20:11:28+11:00",
+      "engine": "auto",
+      "cases": 3
+    },
+    {
+      "report": "build/formats/backlog-auto-20261126-125920/report.md",
+      "date": "2026-11-26T13:01:39+11:00",
+      "engine": "auto",
+      "cases": 15
+    },
+    {
+      "report": "build/formats/batch12-auto-20261126-161509/report.md",
+      "date": "2026-11-26T16:16:44+11:00",
+      "engine": "auto",
+      "cases": 11
+    },
+    {
+      "report": "build/formats/batch12-auto-20261126-161830/report.md",
+      "date": "2026-11-26T16:20:11+11:00",
+      "engine": "auto",
+      "cases": 11
+    },
+    {
+      "report": "build/formats/ext-macos/report.md",
+      "date": "2026-11-26T06:49:48+11:00",
+      "engine": "auto",
+      "cases": 38
+    },
+    {
+      "report": "build/formats/ext-macos-2/report.md",
+      "date": "2026-11-26T06:54:09+11:00",
+      "engine": "auto",
+      "cases": 8
+    },
+    {
+      "report": "build/formats/ext-macos-3/report.md",
+      "date": "2026-11-26T07:06:48+11:00",
+      "engine": "auto",
+      "cases": 4
+    },
+    {
+      "report": "build/formats/ext-macos-4/report.md",
+      "date": "2026-11-26T07:07:27+11:00",
+      "engine": "auto",
+      "cases": 1
+    },
+    {
+      "report": "build/formats/fixes-auto-20261126-155638/report.md",
+      "date": "2026-11-26T15:58:30+11:00",
+      "engine": "auto",
+      "cases": 10
+    },
+    {
+      "report": "build/formats/gme-macos/report.md",
+      "date": "2026-11-26T07:46:15+11:00",
+      "engine": "auto",
+      "cases": 21
+    },
+    {
+      "report": "build/formats/img-check/report.md",
+      "date": "2026-11-26T03:01:54+11:00",
+      "engine": "mpv",
+      "cases": 2
+    },
+    {
+      "report": "build/formats/iso-auto-20261126-160500/report.md",
+      "date": "2026-11-26T16:05:37+11:00",
+      "engine": "auto",
+      "cases": 3
+    },
+    {
+      "report": "build/formats/iso-auto-20261126-160610/report.md",
+      "date": "2026-11-26T16:06:48+11:00",
+      "engine": "auto",
+      "cases": 3
+    },
+    {
+      "report": "build/formats/mpv-gme/report.md",
+      "date": "2026-11-26T07:21:54+11:00",
+      "engine": "mpv",
+      "cases": 3
+    },
+    {
+      "report": "build/formats/mpv-openmpt/report.md",
+      "date": "2026-11-26T07:20:24+11:00",
+      "engine": "mpv",
+      "cases": 18
+    },
+    {
+      "report": "build/formats/pack-mpv/report.md",
+      "date": "2026-11-25T18:31:04+11:00",
+      "engine": "mpv",
+      "cases": 67
+    },
+    {
+      "report": "build/formats/pack-vlc/report.md",
+      "date": "2026-11-25T18:55:05+11:00",
+      "engine": "vlc",
+      "cases": 67
+    },
+    {
+      "report": "build/formats/par-try/report.md",
+      "date": "2026-11-25T21:03:24+11:00",
+      "engine": "auto",
+      "cases": 11
+    },
+    {
+      "report": "build/formats/public-auto-20261126-090531/report.md",
+      "date": "2026-11-26T09:12:21+11:00",
+      "engine": "auto",
+      "cases": 31
+    },
+    {
+      "report": "build/formats/public-auto-20261126-091400/report.md",
+      "date": "2026-11-26T09:14:25+11:00",
+      "engine": "auto",
+      "cases": 3
+    },
+    {
+      "report": "build/formats/public-auto-20261126-092755/report.md",
+      "date": "2026-11-26T09:39:37+11:00",
+      "engine": "auto",
+      "cases": 65
+    },
+    {
+      "report": "build/formats/public-auto-20261126-094033/report.md",
+      "date": "2026-11-26T09:40:52+11:00",
+      "engine": "auto",
+      "cases": 1
+    },
+    {
+      "report": "build/formats/public-auto-20261126-104338/report.md",
+      "date": "2026-11-26T11:03:00+11:00",
+      "engine": "auto",
+      "cases": 100
+    },
+    {
+      "report": "build/formats/public-auto-20261126-114531/report.md",
+      "date": "2026-11-26T11:59:32+11:00",
+      "engine": "auto",
+      "cases": 76
+    },
+    {
+      "report": "build/formats/public-auto-20261126-120029/report.md",
+      "date": "2026-11-26T12:01:02+11:00",
+      "engine": "auto",
+      "cases": 3
+    },
+    {
+      "report": "build/formats/repair-batch12/report.md",
+      "date": "2026-11-27T05:32:44+11:00",
+      "engine": "auto",
+      "cases": 11
+    },
+    {
+      "report": "build/formats/repair-fixes/report.md",
+      "date": "2026-11-27T05:33:51+11:00",
+      "engine": "auto",
+      "cases": 10
+    },
+    {
+      "report": "build/formats/repair-public/report.md",
+      "date": "2026-11-27T05:35:03+11:00",
+      "engine": "auto",
+      "cases": 18
+    },
+    {
+      "report": "build/formats/vlc-shared-ffmpeg/report.md",
+      "date": "2026-11-26T22:59:17+11:00",
+      "engine": "vlc",
+      "cases": 7
+    }
+  ],
+  "outside_material_scope": {
+    "reason": "These four reports require temporary Jellyfin/stream gateway services, not standalone material-file playback. Their localhost URLs are not reusable fixtures.",
+    "cases": [
+      "jellyfin-remux-directplay",
+      "jellyfin-remux-remux",
+      "jellyfin-transcode-directplay",
+      "jellyfin-transcode-transcode"
+    ]
+  },
+  "cases": [
+    {
+      "suite": "advanced",
+      "engine": "auto",
+      "id": "advanced-bluray",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-disc-passed-macos/report.md"
+    },
+    {
+      "suite": "advanced",
+      "engine": "auto",
+      "id": "advanced-dovi-p5",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-remaining-macos/report.md"
+    },
+    {
+      "suite": "advanced",
+      "engine": "auto",
+      "id": "advanced-dovi-p8.1",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-final-macos/report.md"
+    },
+    {
+      "suite": "advanced",
+      "engine": "auto",
+      "id": "advanced-dovi-p8.4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-final-macos/report.md"
+    },
+    {
+      "suite": "advanced",
+      "engine": "auto",
+      "id": "advanced-dvd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-disc-passed-macos/report.md"
+    },
+    {
+      "suite": "advanced",
+      "engine": "auto",
+      "id": "advanced-hdr10plus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-final-macos/report.md"
+    },
+    {
+      "suite": "advanced",
+      "engine": "auto",
+      "id": "advanced-web-baseline",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-final-macos/report.md"
+    },
+    {
+      "suite": "advanced",
+      "engine": "vlc",
+      "id": "advanced-dovi-p5",
+      "expected": "allow_failure",
+      "reason": "已知未通过：snapshot colour cast: normalized mean RGB [0.1986976734845518, 0.41611691819541924, 0.3851854083200289], expected ~[0.2967148836279448, 0.22621773085778038, 0.47706738551427486] (error 0.18989918733763886)",
+      "evidence": "build/formats/advanced-dv-vlc/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-246-strm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-296-vc1",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-311-srt",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-312-ass",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-313-ssa",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-314-vtt",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-315-vobsub",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-316-pgs",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-317-mks",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-318-sami",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-319-mov_text",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-320-eia608",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-321-eia708",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-362-cue",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "backlog",
+      "engine": "auto",
+      "id": "backlog-all-369-pls",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/backlog-auto-20261126-125920/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "audio-adp-gamecube",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "audio-afc-gamecube",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "audio-dolby-atmos-truehd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "audio-dtshd-ma",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "audio-dtsx-714",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "container-bivx-dual-audio",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "disc-bin-dvd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "disc-ifo-dvd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "disc-img-dvd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "disc-nrg-dvd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "batch12",
+      "engine": "auto",
+      "id": "split-001-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-batch12/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-227-dvr-ms",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-234-asx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-237-mk3d",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-249-wv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-251-shn",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-252-mac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-267-mpc",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-268-mpp",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-269-mp+",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "fixes",
+      "engine": "auto",
+      "id": "fix-all-273-aa",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-fixes/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "3g2-h263-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "3gp-aac-audio",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "3gp-h263-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "aac-adts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "adx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "aif-pcm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "aifc-pcm-le",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "amv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "asf-wmv2-wmav2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ast",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "asx-mp4",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video null)",
+      "evidence": "build/formats/auto-rerun/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "au-pcm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "avi-mpeg4sp-mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "cue-wav",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "divx-mpeg4asp-mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "dts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "dv-pal",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "eac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ec3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-224-rec",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos-4/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-225-pva",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-226-ty",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos-3/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-227-dvr-ms",
+      "expected": "allow_failure",
+      "reason": "已知未通过：duration 6506 ms, expected ~344 ms; video size Size(720.0, 540.0), expected 720x480 or 640x480",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-236-fli",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-239-nsv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-240-nuv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.ended, position 0:00:00.380226, video Size(640.0, 480.0)",
+      "evidence": "build/formats/ext-macos-2/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-241-ogm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos-2/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-243-svq3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-244-viv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video Size(160.0, 120.0)",
+      "evidence": "build/formats/ext-macos-2/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-245-vp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-251-shn",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 4000 ms from 1542 ms: PlaybackStatus.error at 0:00:04.000000",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-252-mac",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 30240 ms from 1565 ms: PlaybackStatus.error at 0:00:30.240000",
+      "evidence": "build/formats/ext-macos-2/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-264-amr",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-265-awb",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-266-ra",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-267-mpc",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 5955 ms from 1542 ms: PlaybackStatus.ended at 0:00:11.766433",
+      "evidence": "build/formats/ext-macos-2/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-268-mpp",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 5955 ms from 1505 ms: PlaybackStatus.ended at 0:00:11.717364",
+      "evidence": "build/formats/ext-macos-2/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-269-mp+",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-271-vox",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/ext-macos-3/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-273-aa",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 2684581 ms from 1516 ms: PlaybackStatus.ended at 0:44:44.581000",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-332-xm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-333-it",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-334-s3m",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-335-nsf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-337-669",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-340-amf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-341-dmf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-344-far",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-345-gdm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-346-gym",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-347-imf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-348-m15",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-349-med",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-350-okt",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-351-sfx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-352-stm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-353-ult",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-357-act",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-358-adp",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/ext-macos-2/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-363-dvf",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-366-mogg",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/ext-macos-3/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ext-all-367-msv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "f4v-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "flac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "flv-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "m2t-mpeg2-mp2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "m2ts-h264-ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "m2v-mpeg2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "m3u-mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "m4a-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "m4a-alac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "m4b-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "m4v-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mk3d-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mka-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mka-truehd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mkv-av1-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mkv-hevc-10bit",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mkv-hevc-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mmf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mov-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mov-prores-pcm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mp2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mp3-vbr",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mp4-h264-10bit",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mp4-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mp4-hevc-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mpa",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mpe-mpeg2-mp2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mpg-mpeg2-mp2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "mxf-mpeg2-pcm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "oga-flac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ogg-flac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ogg-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ogg-vorbis",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/par-try/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ogv-vp8-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-215-asf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-216-rm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-217-divx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-218-xvid",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-220-qt",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-221-m2t",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-222-m2v",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-223-tp",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-228-wtv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-229-mxf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-230-dv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-232-3g2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-233-amv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-234-asx",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video null)",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-235-f4v",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-237-mk3d",
+      "expected": "allow_failure",
+      "reason": "已知未通过：video size Size(640.0, 480.0), expected 640x240",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-238-mpe",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-242-ogv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-246-strm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-247-alac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-248-dsf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/ext-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-249-wv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-250-mka",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-253-rf64",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-254-ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-255-eac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-256-ec3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-257-dts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-258-mp2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-259-mpa",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-260-oga",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-261-aif",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-262-aifc",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-263-au",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-266-ra",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.ended, position 0:00:00.020000, video null",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-270-gsm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-272-3gp",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-275-m4b",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-276-mod",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-286-mpg",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-287-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-288-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-289-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-290-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-291-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-292-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-293-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-294-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-295-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-297-rm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-298-mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-299-m4a",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-300-flac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-301-m4a",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-302-ogg",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-303-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-307-thd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/gme-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-319-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-322-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-323-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-324-mp4",
+      "expected": "pass",
+      "reason": "暂无实测结果，默认必须通过，未自动豁免"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-326-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-331-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-338-adx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-360-ast",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-362-cue",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-365-mmf",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1536 ms from 1992 ms: PlaybackStatus.ended at 0:00:03.072000; wrong sound: 104 Hz, expected 440 Hz (noise or wrong decoding)",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pack-all-369-pls",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "pls-mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "qt-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-rerun/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "rf64-pcm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "rm-rv20-ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "tp-h264-ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-rerun/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "truehd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "ts-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "tta",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "vob-mpeg2-ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "wav-pcm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "webm-av1-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "webm-vp8-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "webm-vp9-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "wma-wmav2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "wmv-wmv2-wmav2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "wtv-mpeg2-mp2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "wv-wavpack",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "auto",
+      "id": "xvid-mpeg4asp-mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/auto-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-332-xm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-333-it",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-334-s3m",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-335-nsf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-gme/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-337-669",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-340-amf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-341-dmf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-344-far",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-345-gdm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-346-gym",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-gme/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-347-imf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-348-m15",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-349-med",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-350-okt",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-351-sfx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-352-stm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "ext-all-353-ult",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "mkv-hevc-10bit",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/img-check/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "mp4-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/img-check/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-215-asf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-216-rm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-217-divx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-218-xvid",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-220-qt",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-221-m2t",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-222-m2v",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-223-tp",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-228-wtv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-229-mxf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-230-dv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-232-3g2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-233-amv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-234-asx",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-235-f4v",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-237-mk3d",
+      "expected": "allow_failure",
+      "reason": "已知未通过：video size Size(640.0, 480.0), expected 640x240",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-238-mpe",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-242-ogv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-246-strm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-247-alac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-248-dsf",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 505 ms from 1000 ms: PlaybackStatus.paused at 0:00:00.504997",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-249-wv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1500 ms from 1896 ms: PlaybackStatus.ended at 0:00:03.000000",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-250-mka",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-253-rf64",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-254-ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-255-eac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-256-ec3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-257-dts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-258-mp2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-259-mpa",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-260-oga",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-261-aif",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-262-aifc",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-263-au",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-266-ra",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.ended, position 0:00:00.020000, video null",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-270-gsm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-272-3gp",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-275-m4b",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-276-mod",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-openmpt/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-286-mpg",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-287-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-288-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-289-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-290-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-291-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-292-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-293-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-294-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-295-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-297-rm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-298-mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/mpv-gme/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-299-m4a",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-300-flac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-301-m4a",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-302-ogg",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-303-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-307-thd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-319-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-322-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-original-final-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-323-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-original-final-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-326-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/advanced-original-final-macos/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-331-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-338-adx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-360-ast",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-362-cue",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-365-mmf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "mpv",
+      "id": "pack-all-369-pls",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-mpv/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "mkv-av1-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/vlc-shared-ffmpeg/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "mkv-hevc-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/vlc-shared-ffmpeg/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/vlc-shared-ffmpeg/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "mp4-h264-aac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/vlc-shared-ffmpeg/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "oga-flac",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/vlc-shared-ffmpeg/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "ogg-vorbis",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/vlc-shared-ffmpeg/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-215-asf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-216-rm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-217-divx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-218-xvid",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-220-qt",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-221-m2t",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-222-m2v",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video Size(320.0, 240.0))",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-223-tp",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-228-wtv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-229-mxf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-230-dv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-232-3g2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-233-amv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 4000 ms from 1665 ms: PlaybackStatus.ended at 0:00:01.665000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-234-asx",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video null)",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-235-f4v",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-237-mk3d",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-238-mpe",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-242-ogv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-246-strm",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video null)",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-247-alac",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1500 ms from 1406 ms: PlaybackStatus.ended at 0:00:01.500000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-248-dsf",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video null)",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-249-wv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.ended, position 0:00:00.910000, video null",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-250-mka",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-253-rf64",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-254-ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-255-eac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-256-ec3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-257-dts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-258-mp2",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-259-mpa",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-260-oga",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-261-aif",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-262-aifc",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-263-au",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-266-ra",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video null)",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-270-gsm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-272-3gp",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1500 ms from 1410 ms: PlaybackStatus.ended at 0:00:01.500000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-275-m4b",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1500 ms from 1157 ms: PlaybackStatus.ended at 0:00:01.500000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-276-mod",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-286-mpg",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-287-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-288-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-289-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-290-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-291-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-292-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-293-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-294-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-295-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-297-rm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-298-mp3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-299-m4a",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1500 ms from 1402 ms: PlaybackStatus.ended at 0:00:01.500000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-300-flac",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1500 ms from 1688 ms: PlaybackStatus.ended at 0:00:01.500000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-301-m4a",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1500 ms from 1407 ms: PlaybackStatus.ended at 0:00:01.500000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-302-ogg",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-303-opus",
+      "expected": "allow_failure",
+      "reason": "已知未通过：seek to 1463 ms from 1830 ms: PlaybackStatus.ended at 0:00:01.830000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-307-thd",
+      "expected": "allow_failure",
+      "reason": "已知未通过：audio stalled: decoded 0, played 0 in 1 s; seek to 1499 ms from 1784 ms: PlaybackStatus.ended at 0:00:01.784000; no decoded audio written (afile output)",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-319-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-322-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-323-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-326-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-331-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-338-adx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-360-ast",
+      "expected": "allow_failure",
+      "reason": "已知未通过：audio stalled: decoded 0, played 0 in 1 s; seek to 1500 ms from 1809 ms: PlaybackStatus.ended at 0:00:01.809000; no decoded audio written (afile output)",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-362-cue",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video null)",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-365-mmf",
+      "expected": "allow_failure",
+      "reason": "已知未通过：audio stalled: decoded 0, played 0 in 1 s; seek to 1536 ms from 957 ms: PlaybackStatus.ended at 0:00:00.957000",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "pack-all-369-pls",
+      "expected": "allow_failure",
+      "reason": "已知未通过：ended without reporting playback time (video null)",
+      "evidence": "build/formats/pack-vlc/report.md"
+    },
+    {
+      "suite": "formats",
+      "engine": "vlc",
+      "id": "webm-vp9-opus",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/vlc-shared-ffmpeg/report.md"
+    },
+    {
+      "suite": "iso",
+      "engine": "auto",
+      "id": "iso-bluray-bdmv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/iso-auto-20261126-160610/report.md"
+    },
+    {
+      "suite": "iso",
+      "engine": "auto",
+      "id": "iso-dvd-video",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/iso-auto-20261126-160610/report.md"
+    },
+    {
+      "suite": "iso",
+      "engine": "auto",
+      "id": "iso-kodi-3dlr-patterns",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/iso-auto-20261126-160610/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-01-Untitled-partial-oma",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-102400samples_qt-lc-aac-m4a",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-2.0_32-bit_float-wv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-4.75k-amr",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-Beethovens_9th-1_small-wma",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-C0023S01-mxf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-Closedcaption_rollup-m2v",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-Enigma_Principles_of_Lust-part-flv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-FLCL_Ending_My-short-wav",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-PVA_test-partial-pva",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-RA5.0_16kbps_voice_wideband-ra",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-RRSF49-short-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-SA00040-vc1",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-Today-nuv",
+      "expected": "allow_failure",
+      "reason": "当前修复复测仍未通过：video stalled: decoded 0, displayed 0 in 1 s",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-Vertical400kbit.sorenson3-mov",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-achterba-vqf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-al_sbr_ps_04_new-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-atmos-thd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-audio_id_ims_25fps-ts",
+      "expected": "allow_failure",
+      "reason": "当前修复复测仍未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-banjo_48_2_303-qoa",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-binkaudio_rdft-bik",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-bug821-2-asf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-bush-aa",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-caf-pcm16-caf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-cavs-mpg",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-csi_miami_5.1_256_spx_small-eac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-ct_ending_cut-mov",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-demo11_02_partial-ast",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-dtsx_7.1.4_24bit-dts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-empty_theora_packets-ogv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-ergon-xwma",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-evrc-qcp",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-fli-engines-fli",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-fragmented-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-frames_refs_short_signaling-ivf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-h264small-ts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-ilbc-lost-mov",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-inside-mp7-mpc",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-interlaced32x32-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-law-and-order-partial-wtv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-loz-mm-mikau-bcstm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-lozswd_partial-brstm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-luckynight-mac394b1-c2000-ape",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-luckynight-partial-shn",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-master_audio_2.0_24bit-wma",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-master_audio_7.1_24bit-dts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-mc_sich_at3_105_small-wav",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-millers_crossing_4.0-ac3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-mpeg2_field_encoding-ts",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-mpegh_config_change_cicp_2_14_6_lc_baseline_compatible_32kbps-mp4",
+      "expected": "allow_failure",
+      "reason": "当前修复复测仍未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-packed_maindata.mp3-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-potter512-400-partial-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-ra_cook-rm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-seed-6k60-awb",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-shakespr_partial-adp",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-sonateno14op27-2-cut-aa3",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-spherical-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-streaming_CBR-7K-wma",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-test72x72-rmhd",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-test_000096-iamf",
+      "expected": "allow_failure",
+      "reason": "当前修复复测仍未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-test_tones_small-aea",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-testvector12-mka",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-tos-ogg",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-vp31-avi",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-w64-pcm16-w64",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-wetlogo-smk",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-witchblade-51kbps-nsv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-fate-wmv_drm-wmv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-samples-07011600-msv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-samples-REC01-act",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-samples-SS2-dvr-ms",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-samples-md_ogg-ogm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-samples-s2short1-viv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video Size(160.0, 120.0)",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-ffmpeg-samples-taxis-dvf",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.error, position 0:00:00.000000, video null",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_10bit_10M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_10bit_15M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_10bit_20M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_10bit_25M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_10bit_30M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_10bit_3M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_10bit_5M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_HDR10_10M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_HDR10_15M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_HDR10_20M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_HDR10_25M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_HDR10_30M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_HDR10_3M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AV1_HDR10_5M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AVC_10M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AVC_15M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AVC_20M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AVC_30M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AVC_3M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_AVC_5M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_DV_P5-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_DV_P8.1-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_DV_P8.4-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_10bit_10M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_10bit_15M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_10bit_20M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_10bit_30M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_10bit_3M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_10bit_5M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_8bit_10M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_8bit_15M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_8bit_20M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_8bit_25M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_8bit_30M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_8bit_3M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_8bit_5M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_HDR10_10M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_HDR10_15M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_HDR10_20M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_HDR10_30M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_HDR10_3M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_1080p_HEVC_HDR10_5M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_10bit_100M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_10bit_40M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_10bit_50M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_10bit_60M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_10bit_70M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_10bit_80M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_10bit_90M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_HDR10_100M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_HDR10_40M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_HDR10_50M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_HDR10_60M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_HDR10_70M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_HDR10_80M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AV1_HDR10_90M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AVC_100M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AVC_150M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AVC_40M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AVC_50M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AVC_60M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AVC_70M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AVC_80M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_AVC_90M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_DV_P5-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_DV_P8.1-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_DV_P8.4-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_10bit_100M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_10bit_150M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_10bit_40M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_10bit_50M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_10bit_60M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_10bit_70M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_10bit_80M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_10bit_90M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_8bit_100M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_8bit_150M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_8bit_40M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_8bit_50M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_8bit_60M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_8bit_70M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_8bit_80M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_8bit_90M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_HDR10_100M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_HDR10_150M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_HDR10_40M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_HDR10_50M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_HDR10_60M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_HDR10_70M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_HDR10_80M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_4K_HEVC_HDR10_90M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_AV1_10bit_100M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_AV1_HDR10_100M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_AVC_150M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_DV_P5-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_DV_P8.1-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_DV_P8.4-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_HEVC_10bit_150M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_HEVC_8bit_150M-mp4",
+      "expected": "allow_failure",
+      "reason": "已知未通过：pictures dropped: 41 lost, 62 displayed in 1 s",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-jellyfin-test-videos-Test_Jellyfin_8K_HEVC_HDR10_150M-mp4",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-104338/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-kodi-samples-305_24p-mp4",
+      "expected": "allow_failure",
+      "reason": "已知未通过：audio stalled: decoded 0, played 0 in 1 s; no audio statistics (astats)",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-kodi-samples-3D_LR_Pattern-mkv",
+      "expected": "allow_failure",
+      "reason": "已知未通过：audio stalled: decoded 0, played 0 in 1 s; no audio statistics (astats)",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-kodi-samples-HDR10__Sample_Video-webm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-3d_foot-gdm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-4th_Symmetriad-it",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-Crockett_s_theme-sfx",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-FROZEN-dmf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-Gaffeltruck-mod",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-Inertiaload-1-med",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-Jarre-Like-med",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-Yes-PartII-okt",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-astaris-imf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-cybocult-ult",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-fracture-stm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-ft2_delay_envelope_on-xm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-inside_out-s3m",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-it_high_offset_memory-it",
+      "expected": "allow_failure",
+      "reason": "已知未通过：did not start: PlaybackStatus.ended, position 0:00:00.709583, video null",
+      "evidence": "build/formats/public-auto-20261126-090531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-musicind-amf",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-oxygene2-mod",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-reverse_it-it",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-s3m_sample_porta-s3m",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-sonic_boom-669",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-stereo-xm",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-libxmp-thunddrm-far",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-092755/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-matroska-test-files-test1-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-matroska-test-files-test2-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-matroska-test-files-test3-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-matroska-test-files-test4-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/repair-public/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-matroska-test-files-test5-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-matroska-test-files-test6-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-matroska-test-files-test7-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-matroska-test-files-test8-mkv",
+      "expected": "pass",
+      "reason": "已有通过记录，必须保持通过",
+      "evidence": "build/formats/public-auto-20261126-114531/report.md"
+    },
+    {
+      "suite": "public",
+      "engine": "auto",
+      "id": "public-pixeltools-cea708_dtv-mpg",
+      "expected": "pass",
+      "reason": "暂无实测结果，默认必须通过，未自动豁免"
+    }
+  ]
+}

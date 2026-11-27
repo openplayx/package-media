@@ -27,7 +27,7 @@ for tool in meson ninja pkg-config python3; do
   command -v "$tool" >/dev/null || { echo "$tool is required" >&2; exit 1; }
 done
 
-fingerprint="$( { echo "$target"; cat "$0" "$root/tool/mpv-deps.tsv"; cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null || true; } |
+fingerprint="$( { echo "$target"; cat "$0" "$root/tool/mpv-deps.tsv" "$root"/tool/patches/mpv-*.patch; cat "$ffmpeg/BUILD_FINGERPRINT" 2>/dev/null || true; } |
   { if command -v sha256sum >/dev/null; then sha256sum; else shasum -a 256; fi; } | cut -d ' ' -f 1)"
 # Windows: libmpv staged inside libs/media_kit_libs_windows_video (its CMake
 # looks there; see below).

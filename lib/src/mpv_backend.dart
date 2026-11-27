@@ -152,7 +152,17 @@ class MpvBackend extends PlayerBackend {
 
   /// Formats whose FFmpeg probe score sits at or below mpv's minimum of 26
   /// (`demuxer-lavf-probescore`), requiring an explicit `demuxer-lavf-format`.
-  static const lavfFormatByExtension = {'adp': 'adp', 'dtk': 'adp'};
+  static const lavfFormatByExtension = {
+    'adp': 'adp',
+    'dtk': 'adp',
+    // Short elementary HD audio streams can score only 1 during probing.
+    // They still decode correctly when the demuxer is selected explicitly.
+    'thd': 'truehd',
+    'truehd': 'truehd',
+    'dts': 'dts',
+    'dtshd': 'dts',
+    'iamf': 'iamf',
+  };
 
   /// Formats whose FFmpeg demuxer lacks a seek table and overshoots to EOF on
   /// fast/inaccurate seeks; exact (`hr-seek=yes`) seeking decodes to the target.

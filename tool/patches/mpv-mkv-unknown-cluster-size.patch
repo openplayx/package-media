@@ -1,0 +1,21 @@
+--- a/demux/demux_mkv.c
++++ b/demux/demux_mkv.c
+@@ -3418,9 +3418,16 @@
+                 ebml_resync_cluster(demuxer->log, s);
+             }
+         }
+-    next_cluster:
++    next_cluster:;
++        int64_t length_pos = stream_tell(s);
+         mkv_d->cluster_end = ebml_read_length(s);
+-        // mkv files for "streaming" can have this legally
++        // An all-ones VINT denotes an unknown Cluster size, e.g. 0xff in
++        // live Matroska streams. ebml_read_length also reads numeric VINTs
++        // and returns that value verbatim, so recognize the sentinel here.
++        int length_bytes = stream_tell(s) - length_pos;
++        if (length_bytes >= 1 && length_bytes <= 8 &&
++            mkv_d->cluster_end == (UINT64_C(1) << (7 * length_bytes)) - 1)
++            mkv_d->cluster_end = EBML_UINT_INVALID;
+         if (mkv_d->cluster_end != EBML_UINT_INVALID)
+             mkv_d->cluster_end += stream_tell(s);
+     }

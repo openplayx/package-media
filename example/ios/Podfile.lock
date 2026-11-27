@@ -6,12 +6,14 @@ PODS:
     - Flutter
   - media_kit_video (0.0.1):
     - Flutter
-  - MobileVLCKit (3.7.3)
   - openplayx_ffmpeg (0.1.0):
     - Flutter
+  - openplayx_playback (0.1.0):
+    - Flutter
+    - openplayx_ffmpeg
   - vlc_player (2.1.2):
     - Flutter
-    - MobileVLCKit (= 3.7.3)
+    - openplayx_playback
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -19,11 +21,8 @@ DEPENDENCIES:
   - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - openplayx_ffmpeg (from `.symlinks/plugins/openplayx_ffmpeg/ios`)
+  - openplayx_playback (from `.symlinks/plugins/openplayx_playback/ios`)
   - vlc_player (from `.symlinks/plugins/vlc_player/ios`)
-
-SPEC REPOS:
-  trunk:
-    - MobileVLCKit
 
 EXTERNAL SOURCES:
   Flutter:
@@ -36,6 +35,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/media_kit_video/ios"
   openplayx_ffmpeg:
     :path: ".symlinks/plugins/openplayx_ffmpeg/ios"
+  openplayx_playback:
+    :path: ".symlinks/plugins/openplayx_playback/ios"
   vlc_player:
     :path: ".symlinks/plugins/vlc_player/ios"
 
@@ -44,9 +45,9 @@ SPEC CHECKSUMS:
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   media_kit_libs_ios_video: b9ffef6b96c496b6ffb9948dde13bfbf67ff5523
   media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
-  MobileVLCKit: 73d7ddb52238b6885b70b0f281cae75a0a6e3ac0
   openplayx_ffmpeg: 31433f453628f6ca20ea0061f7114dce37ddb922
-  vlc_player: 54e1b3c297a42efdeaa13e912d2ed27f6a7d4e0f
+  openplayx_playback: 220ae46cfb85151687cbe7bfdc75b344cc584b43
+  vlc_player: 699dea653e88ef41ce54d59f6da3caa7048ba507
 
 PODFILE CHECKSUM: 53a6aebc29ccee84c41f92f409fc20cd4ca011f1
 

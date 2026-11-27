@@ -6,21 +6,20 @@ PODS:
     - FlutterMacOS
   - openplayx_ffmpeg (0.1.0):
     - FlutterMacOS
+  - openplayx_playback (0.1.0):
+    - FlutterMacOS
+    - openplayx_ffmpeg
   - vlc_player (2.1.2):
     - FlutterMacOS
-    - VLCKit (= 3.7.3)
-  - VLCKit (3.7.3)
+    - openplayx_playback
 
 DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - openplayx_ffmpeg (from `Flutter/ephemeral/.symlinks/plugins/openplayx_ffmpeg/macos`)
+  - openplayx_playback (from `Flutter/ephemeral/.symlinks/plugins/openplayx_playback/macos`)
   - vlc_player (from `Flutter/ephemeral/.symlinks/plugins/vlc_player/macos`)
-
-SPEC REPOS:
-  trunk:
-    - VLCKit
 
 EXTERNAL SOURCES:
   FlutterMacOS:
@@ -31,6 +30,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos
   openplayx_ffmpeg:
     :path: Flutter/ephemeral/.symlinks/plugins/openplayx_ffmpeg/macos
+  openplayx_playback:
+    :path: Flutter/ephemeral/.symlinks/plugins/openplayx_playback/macos
   vlc_player:
     :path: Flutter/ephemeral/.symlinks/plugins/vlc_player/macos
 
@@ -39,8 +40,8 @@ SPEC CHECKSUMS:
   media_kit_libs_macos_video: d39f823284d4e7c5244dad104442a7ca0268cbcd
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
   openplayx_ffmpeg: d1ac7f97900d58239573962ae8b46c13d182a01a
-  vlc_player: df3d40f7ce152bd88c2d156e656ae9ef8359e2ad
-  VLCKit: 4f2c462daaab6de88b93ab7609bdefbada557a4d
+  openplayx_playback: 19d0bebce4d2b713d983bc815876f4a3311c207d
+  vlc_player: 0393bba7491861fd54a3c6013b3d108bdca23af9
 
 PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
 

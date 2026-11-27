@@ -2,25 +2,31 @@ PODS:
   - media_kit_libs_tvos_video (1.0.0)
   - media_kit_video (0.0.1)
   - openplayx_ffmpeg (0.1.0)
+  - openplayx_playback (0.1.0):
+    - openplayx_ffmpeg
 
 DEPENDENCIES:
-  - media_kit_libs_tvos_video (from `/Users/zyl/codes/mygithub/openplayx/package-media/libs/media_kit_libs_tvos_video/tvos`)
-  - media_kit_video (from `/Users/zyl/codes/mygithub/openplayx/package-media/forks/media_kit_video/tvos`)
-  - openplayx_ffmpeg (from `/Users/zyl/codes/mygithub/openplayx/ffmpeg-package/tvos`)
+  - media_kit_libs_tvos_video (from `../../libs/media_kit_libs_tvos_video/tvos`)
+  - media_kit_video (from `../../forks/media_kit_video/tvos`)
+  - openplayx_ffmpeg (from `../../../ffmpeg-package/tvos`)
+  - openplayx_playback (from `../../../package-libvlc/tvos`)
 
 EXTERNAL SOURCES:
   media_kit_libs_tvos_video:
-    :path: "/Users/zyl/codes/mygithub/openplayx/package-media/libs/media_kit_libs_tvos_video/tvos"
+    :path: "../../libs/media_kit_libs_tvos_video/tvos"
   media_kit_video:
-    :path: "/Users/zyl/codes/mygithub/openplayx/package-media/forks/media_kit_video/tvos"
+    :path: "../../forks/media_kit_video/tvos"
   openplayx_ffmpeg:
-    :path: "/Users/zyl/codes/mygithub/openplayx/ffmpeg-package/tvos"
+    :path: "../../../ffmpeg-package/tvos"
+  openplayx_playback:
+    :path: "../../../package-libvlc/tvos"
 
 SPEC CHECKSUMS:
   media_kit_libs_tvos_video: db9d2cc118d20322c4d62da9f55d05543132b1aa
   media_kit_video: 83eb2e8b3a212e7c3361dc0abb989e3d05fe895c
   openplayx_ffmpeg: 0a76931801f2210f9127e1dbd12dd0bfb02c4c39
+  openplayx_playback: 5e66e106f730d18e6967e88ef35b4264160ef70b
 
-PODFILE CHECKSUM: 6fa85034ea021a14485d8d5582494ad6d457cdf4
+PODFILE CHECKSUM: 85f30df2171dcb75fb8e9bbb9da36f64912dfba9
 
 COCOAPODS: 1.16.2
