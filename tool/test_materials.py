@@ -324,7 +324,7 @@ def execute(baseline: dict, cases: list[dict], args: argparse.Namespace, report:
                     command = [tvos_bin, "run", "-d", args.device, "-t", "lib/tvos_smoke.dart",
                                sample_define]
                 else:
-                    command = ["flutter", "test", "integration_test/formats_test.dart", "-d", args.device,
+                    command = [shutil.which("flutter") or "flutter", "test", "integration_test/formats_test.dart", "-d", args.device,
                                sample_define,
                                f"--dart-define=OPX_REPORT={folder}", f"--dart-define=OPX_ENGINE={engine}"]
                     if getattr(args, "check_mode", "full") != "full":
@@ -402,7 +402,7 @@ def resolve_device(platform: str, selected: str | None, allow_physical: bool = F
         tv = tv_devices[0]
         return {"id": tv["udid"], "name": tv.get("name", "Apple TV"),
                 "targetPlatform": "tvos", "emulator": True}
-    run = subprocess.run(["flutter", "devices", "--machine"], check=True, capture_output=True,
+    run = subprocess.run([shutil.which("flutter") or "flutter", "devices", "--machine"], check=True, capture_output=True,
                          text=True, timeout=120)
     devices = json.loads(run.stdout[run.stdout.index("["):])
     matches = [d for d in devices if d.get("targetPlatform", "").startswith(platform)

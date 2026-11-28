@@ -223,11 +223,13 @@ class GateTest(unittest.TestCase):
             b = dict(self.baseline, cases=cases)
             args = SimpleNamespace(cache=report / 'cache', prepare_only=False, batch_size=1,
                                    timeout=1, device='macos', project_dir=report)
-            with patch('test_materials.prepare') as prepare, patch('test_materials.subprocess.run') as run:
+            with patch('test_materials.prepare') as prepare, patch('test_materials.subprocess.run') as run, \
+                    patch('test_materials.shutil.which', return_value=r'C:\flutter\bin\flutter.BAT'):
                 prepare.return_value = {'good': {'id': 'good', 'path': '/fake.mp4', 'status': 'ok'}}
                 run.return_value.returncode = 1
                 execute(b, cases, args, report)
                 self.assertEqual(run.call_count, 1)
+                self.assertEqual(run.call_args.args[0][0], r'C:\flutter\bin\flutter.BAT')
             records, errors = collect(b, report)
             self.assertTrue(errors)
             self.assertEqual(evaluate(b, records, errors)['overall'], 'failed')
