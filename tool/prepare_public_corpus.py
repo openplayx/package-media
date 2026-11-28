@@ -12,6 +12,7 @@ import fnmatch
 import hashlib
 import json
 import math
+import os
 import pathlib
 import re
 import subprocess
@@ -55,7 +56,8 @@ def reference_audio(path: pathlib.Path) -> dict | None:
     """
     try:
         result = subprocess.run(
-            ["ffmpeg", "-nostdin", "-v", "info", "-i", str(path), "-t", "5",
+            [os.environ.get("OPX_REFERENCE_FFMPEG", "ffmpeg"),
+             "-nostdin", "-v", "info", "-i", str(path), "-t", "5",
              "-map", "0:a:0", "-af", "lowpass=f=3000,astats=reset=0",
              "-f", "null", "-"],
             capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,

@@ -106,9 +106,9 @@ The gate runs all seven material suites (core formats/pack/external, public
 corpus, HDR/Dolby Vision/disc, subtitles & playlists, historical fixes,
 split/HD audio, ISO) through the `auto` router and compares against per-platform
 versioned baselines:
-- macOS: [438 cases](formats/MATERIAL_TESTS.md) (409 required pass, 29 allowed failure)
-- Android arm64 emulator: [438 cases](formats/MATERIAL_TESTS.android.md) (152 required pass, 6 allowed failure, 280 unverified)
-- iOS arm64 simulator: [438 cases](formats/MATERIAL_TESTS.ios.md) (150 required pass, 8 allowed failure, 280 unverified)
+- macOS: [405 cases](formats/MATERIAL_TESTS.md) (394 required pass, 11 allowed failure)
+- Android arm64 emulator: [405 cases](formats/MATERIAL_TESTS.android.md) (395 required pass, 10 allowed failure)
+- iOS arm64 simulator: [405 cases](formats/MATERIAL_TESTS.ios.md) (394 required pass, 11 allowed failure)
 
 ### Targeted format & suite runs
 
@@ -122,6 +122,11 @@ tool/test_formats.sh --engine auto --device emulator-5554,emulator-5556   # two 
 tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engine mpv --device linux
 tool/test_public_corpus.sh --engine auto --source ffmpeg-fate,matroska-test-files
 ```
+
+`OPX_REFERENCE_FFMPEG=/absolute/path/to/ffmpeg` selects the decoder used to
+measure public corpus audio. Use a compatible version when the system FFmpeg
+cannot decode a source (for example, FFmpeg 6.1 with AVI/Speex). This changes
+reference measurement only; playback still uses the selected media engine.
 
 `--pack` adds the local files of the format material pack in
 the shared `../materials/playback/` directory

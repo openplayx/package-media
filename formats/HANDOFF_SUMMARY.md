@@ -1,6 +1,7 @@
 # `package-media` 全平台素材播放测试与修复交接文档
 
 > **生成时间**：2026-11-28 15:43（AEDT）  
+> **跟进时间**：2026-11-28 17:53（AEDT）
 > **工作区**：`/Users/zyl/codes/mygithub/openplayx/package-media`（联动 `package-libvlc`、`build`）  
 > **统一去重基线**：[material-tests.json](file:///Users/zyl/codes/mygithub/openplayx/package-media/formats/material-tests.json)（**405 项**唯一 `auto` 用例；当前各平台预期数量见第 0 节）
 
@@ -36,14 +37,27 @@
   - 按用户要求，修复提交 `147a9dd` 已直接推入 `package-libvlc/main`；不走 PR，GitHub 自动把原草稿 PR #1 标记为已合入并关闭（未执行 PR 合并）。**#27** 使用固定 `BUILD_REF=db1cb16fe309d66a735241cca6c9afd67ee6b0f5`、`SOURCE_SHA=e8900c59bd3d4c66a89ce7456ef627e0a24b58c7`、`COMPANION_SHAS=package-libvlc=147a9dd0ff6054427642a83eef87d531d9538d5d`。#27 已通过 FluidLite，但在 live555 的测试 MP3 绝对符号链接处失败。
   - live555 修复 `f4b6c32` 已直接推 `package-libvlc/main`：只排除 `live/testProgs/whiteroom.mp3`，本地幂等/归档及 Windows 真实归档解包通过。
   - VLC 工具缓存 `050fc2f` 已推 `build/main`：按 `vlc-sources.env` SHA-256 前 16 位 + GCC 版本隔离，复用已安装的旧 protoc；Windows 原生 PowerShell 语法检查通过，已按 Windows CRLF 文件实际哈希补齐该节点缓存，缓存 protoc 运行验证通过；#29 日志确认 `using cached VLC tools` 命中。
-  - **#29 运行中**（#28 因首次缓存预填使用本机 LF 键而未命中 Windows CRLF 键，核实并补齐实际键后主动停止，以相同提交启动 #29）：`BUILD_REF=050fc2f36bc7461fb2472bb69eb3d7cc79630622`、`SOURCE_SHA=f50839c8d607f7f46a6e90847cb7da33df0d6508`、`package-libvlc=f4b6c32e080f8053bb3657aa9bc2002e1e3c6c1c`；FFmpeg 固定先前已验证的 `ba56ef1fd6de387892d38f550d45fe9170fe9e55`（后续本地 `a71ce3e` 仅改 C bridge stub，未混入本轮 native 构建验证）。
+  - **#29 已失败，后续已运行至 #33**（#28 因首次缓存预填使用本机 LF 键而未命中 Windows CRLF 键，核实并补齐实际键后主动停止，以相同提交启动 #29）：`BUILD_REF=050fc2f36bc7461fb2472bb69eb3d7cc79630622`、`SOURCE_SHA=f50839c8d607f7f46a6e90847cb7da33df0d6508`、`package-libvlc=f4b6c32e080f8053bb3657aa9bc2002e1e3c6c1c`；FFmpeg 固定先前已验证的 `ba56ef1fd6de387892d38f550d45fe9170fe9e55`（后续本地 `a71ce3e` 仅改 C bridge stub，未混入本轮 native 构建验证）。
+  - #29 已通过 CrystalHD / FluidLite / live555，随后 AS-DCP 因 Nettle 4 移除 SHA-1 digest 长度参数而编译失败。兼容修复 `c587c44` 已推 `package-libvlc/main`，保留 Nettle 3 分支并使用完整摘要长度；干净应用/幂等检查、Linux Nettle 3 和 Windows Nettle 4 的已知摘要向量均通过。
+  - **#30 固定提交**：`SOURCE_SHA=bb282527324fc212b1e0e9f2059e95d52873a482`、`package-libvlc=c587c4433f9e21e23798214288c7b2a5b4345080`；build / FFmpeg 固定提交同前。#30 确认 AS-DCP 构建并安装成功，但旧 GNU regex 在 GCC 16 默认 C23 模式下编译失败。
+  - GNU C17 构建模式修复 `94f5c72` 已推 `package-libvlc/main`：保留默认优化选项，仅 Windows 固定旧 VLC/contrib 的 C 语言版本。Windows 真实 regex 对象已成功复编，链接后的匹配 / 拒绝运行测试通过。
+  - **#31 固定提交**：`package-libvlc=94f5c72d23afffcbc65d472129369b5f2faf132a`，其余固定提交同 #30。#31 的 regex 旧 Makefile 硬编码 `CFLAGS=-g`，覆盖了全局 C17；其余已处理目标正常。
+  - 显式传递 CFLAGS 的 recipe 修复 `44559ce` 已推 `package-libvlc/main`。在失败工作区独立执行修复后的完整 `.regex` 目标，配置 / 编译 / 归档 / 安装均通过（`touch .regex`），没有将该独立验证算作 #31 通过。
+  - Windows 文件 / 光盘 URI 修复 `fe4dbeb` 已推 `package-media/main`：盘符路径使用 `Uri.file`；光盘目录从 `Path.as_uri()` 保留 `/C:/`。Windows 独立原生素材准备及 Dart 文件系统还原检查通过。
+  - **#32 固定提交**：`SOURCE_SHA=fe4dbeb06415287614f07211d95f446f4a7dc9bd`、`package-libvlc=44559ce33bff1f565e78d8b1ca70a2d94e4e6a29`，build / FFmpeg 提交同前。该轮已通过 regex，随后 FluidSynth 的 gentables 嵌套 CMake 编译器探测路径达到 263 字符，归档工具因 Windows MAX_PATH 失败。
+  - 短物理源码路径修复已推 main：`package-libvlc=c7ca4da2e690bb336d4a95ec6cc4cdc5e4cc422d`、`build=9e2337bb94a4deaeb6500a6de4d98ad30054ccfd`。源码放在按 recipe / 编译器 / 包版本 / 工作区 / 编译选项隔离的 `C:/ci/cache/native/vlc-src/<16位哈希>`；未关闭 FluidSynth 或编译器检查。Windows 独立 gentables 配置 / 编译 / 两份表头生成通过，PowerShell 语法检查通过。
+  - **当前 #33 正在运行**：SOURCE_SHA / FFmpeg 同 #32，BUILD_REF / package-libvlc 使用上述短路径修复提交。实际源码目录 `C:/ci/cache/native/vlc-src/8bc964eb9f39d1de`。尚未进入 Windows 播放测试。
+- Windows 全量素材同步：节点剩余约 111GB；约 19GB 本地素材尚未同步。临时 LAN HTTP 镜像被自动审批拦截（未获具体 external 内容网络共享授权），已询问用户是否批准限制为仅 Windows 节点可访问的同步；构建与现有 7 项冒烟不受影响。
 - Pixel 9：旧 PID 75641 已退出，但新的字幕全量任务仍占用该真机，不能清理 `example-wandroid/build` 或同时安装格式测试。
 - Android 模拟器：使用独立 `example-wandroid-materials/` 与空闲 `emulator-5554` 补测光盘及功能回归，首轮报告 `android-20261128-155154-945747` 因 guest shell 无响应主动中止，记录为基础设施错误。冷启动同一 AVD（不清数据、不重启共享 ADB）后，第二轮 `android-20261128-155650-778161` 共 17 项，15 通过、BIN/DVD 掉帧失败、ASX 路由覆盖失败；修复后第三轮 `android-20261128-160156-848263` **5/5 通过**，包含同批 ASX/STRM、生成 ASX、MMF 和单独 BIN/DVD（保留前次掉帧记录）。本轮 Android 17 个唯一用例均已有通过记录，但不拼接成一次全量通过声明；不替代 Pixel 9 的 4K 硬解复验。
 - Linux：首轮 `linux-20261128-050813-612397` 的 TrueHD、截断 APE 通过，MMF / NUV / Potter 失败。
   - **MMF 真实播放修复**：原 seek 到中间后 ADPCM predictor 状态丢失（直接 libmpv 对照：seek 前过零率 0.25，seek 后 0.027466；从头解码后 0.244425）。`mpv_backend.dart` 现对 MMF 从头解码至 seek 目标，其他素材恢复原 hr-seek-demuxer-offset。
   - `linux-20261128-051652-780828`：MMF、素材包 MMF、MP3 **3/3 通过**，MMF **1000 Hz / RMS 0.0891**；`macos-20261128-161834-809205` 的相同三项也全过，`android-20261128-161908-064434` 的相同三项也全过。
   - **NUV 共享测试修复**：有视频的超短截断片也循环采样，统计窗口跨循环累计帧进度；`linux-20261128-051832-881445` 的 Today.nuv 通过。
-  - **Potter 保留失败**：Linux Docker 的系统 FFmpeg 6.1 无法解码 AVI/Speex，参考测量返回 None；宿主 FFmpeg 可测得首 5 秒 RMS 0.00049975，原绝对静音阈值造成误报。未添加豁免，需修复 Linux 参考测量工具后再测。
+  - **Potter 参考测量修复并补测通过**：Linux Docker 的系统 FFmpeg 6.1 无法解码 AVI/Speex，参考测量返回 None；原绝对静音阈值造成误报。新增 `OPX_REFERENCE_FFMPEG` 选择参考解码器，仅影响源音频测量，不更换播放器或降低断言。
+    - 在 `build/reference-ffmpeg/linux-arm64` 用 package-ffmpeg 固定的 FFmpeg 9.1 源码独立构建 CLI：`--disable-autodetect --disable-doc --disable-debug --disable-network --disable-avdevice --disable-ffplay --disable-ffprobe --disable-encoders --enable-encoder=pcm_s16le --disable-muxers --enable-muxer=null --disable-filters --enable-filter=lowpass,astats,aresample,anull --enable-protocol=file,pipe`；配置 / 构建 / 原始测量日志保留于该目录。
+    - [Linux 实际补测](../build/material-tests/linux-20261128-064852-855280/report.md)：**1/1 通过**；参考 RMS **0.0004997537**、播放器 RMS **0.0001375**，512×304，27 帧显示 / 0 丢帧。运行命令：`tool/linux/run.sh -- env OPX_REFERENCE_FFMPEG=/Users/zyl/codes/mygithub/openplayx/package-media/build/reference-ffmpeg/linux-arm64/ffmpeg xvfb-run -a bash package-media/tool/test_materials.sh --platform linux --device linux --only public-ffmpeg-fate-potter512-400-partial-avi --timeout 900`。
+    - 无豁免；系统默认 FFmpeg 6.1 仍不兼容，后续该环境跑公共素材需保留上述参考工具配置。Python 单测重新验证 **25/25**。
 - 提交 / 推送：`build` unzip 修复已推 main；`package-libvlc` FluidLite 修复已按用户要求直接推 main。共享工作区的 `package-media/main` 已包含 `32bc732`（播放 / 测试修复）及 `f50839c`（短视频循环统计），`package-libvlc/main` 已包含 `0ec2ef8`（attach/dispose），且本地 / origin/main 一致；本轮未操作其他会话字幕文件的提交。Pixel 9 和 Windows 的验证仍待完成。
 
 ---
@@ -67,7 +81,7 @@
 
 ---
 
-## 2. 已落盘的改动清单
+## 2. 原交接改动清单（当前提交见第 0 节）
 
 ### A. `package-media`（本地工作区，**尚未 commit / push**）
 
