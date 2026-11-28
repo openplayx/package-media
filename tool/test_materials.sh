@@ -7,7 +7,7 @@ case "$(uname -s)" in
     # Native Python keeps manifest/report paths usable by Windows Dart.
     python_bin="${MINGW_PREFIX:-/mingw64}/bin/python.exe"
     [ -x "$python_bin" ] || { echo "MSYS2 native Python is required ($python_bin)" >&2; exit 2; }
-    exec "$python_bin" -I "$(cygpath -m "$root/tool/test_materials.py")" "$@"
+    exec "$python_bin" -X utf8 -I "$(cygpath -m "$root/tool/test_materials.py")" "$@"
     ;;
 esac
 exec python3 -I "$root/tool/test_materials.py" "$@"

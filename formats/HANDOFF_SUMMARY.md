@@ -23,6 +23,8 @@
 - **播放列表传输修复**：`material_transport.py` 注册后续同目录 pointer 的 sibling 时，曾把已改写 ASX 的 URL 路由覆盖回主机原文件，导致设备读取 `file://` 主机路径。改用 `setdefault` 保留已改写路由；新增 ASX/STRM 两种准备顺序的回归测试。
 - [tvOS 音频补测](../build/material-tests/tvos-20261128-155630-620745/report.md)：两项 MMF、Enigma、RRSF49、两项 master_audio 共 **6/6 通过**。
 - [iOS 模拟器补测](../build/material-tests/ios-20261128-162234-031056/report.md)：生成 / 素材包 MMF、PLS、截断 APE、NUV **5/5 通过**，使用独立 `example-wios-materials/`。
+- **完整 Windows 门禁启动修复**（`79e546d` 已推 main）：`test_materials.sh` 在 MSYS2 使用原生 MinGW Python，`test_materials.py` 解析 Flutter BAT 的完整路径，避免 WinError 2 与 Unix 路径传给 Windows Dart。主进程及素材准备子进程均显式启用 UTF-8。
+  - Windows 节点独立诊断目录已通过实际 MP3 准备、原生 `C:/...` 路径校验、中文 JSON 与中文缓存目录校验；只代表准备流程通过，不是播放通过。
 - 验证：Python 单测 **25/25**（含新增播放列表路由回归）；Flutter 单测 **23/23**；`dart analyze example/lib/tvos_smoke.dart` **0 issues**。
 
 **报告解释**：上述已逐项全过的定点补测使用 `--only`，报告仍按完整 405 项门禁判定，因此其中的 `overall=failed` 表示剩余项未跑。第二轮 Android 报告则确实另有两项失败，已保留原始记录。没有拼接历史报告宣称一次完整门禁通过。
@@ -33,8 +35,8 @@
   - `package-libvlc/tool/patch_vlc_contrib.py` 已排除这一条未参与库构建的示例链接，保留库源码与原压缩包校验；本地幂等/归档验证和 Windows 节点真实归档解包均通过。
   - 按用户要求，修复提交 `147a9dd` 已直接推入 `package-libvlc/main`；不走 PR，GitHub 自动把原草稿 PR #1 标记为已合入并关闭（未执行 PR 合并）。**#27** 使用固定 `BUILD_REF=db1cb16fe309d66a735241cca6c9afd67ee6b0f5`、`SOURCE_SHA=e8900c59bd3d4c66a89ce7456ef627e0a24b58c7`、`COMPANION_SHAS=package-libvlc=147a9dd0ff6054427642a83eef87d531d9538d5d`。#27 已通过 FluidLite，但在 live555 的测试 MP3 绝对符号链接处失败。
   - live555 修复 `f4b6c32` 已直接推 `package-libvlc/main`：只排除 `live/testProgs/whiteroom.mp3`，本地幂等/归档及 Windows 真实归档解包通过。
-  - VLC 工具缓存 `050fc2f` 已推 `build/main`：按 `vlc-sources.env` SHA-256 前 16 位 + GCC 版本隔离，复用已安装的旧 protoc；Windows 原生 PowerShell 语法检查通过，已填充该节点缓存。
-  - **#28 运行中**：`BUILD_REF=050fc2f36bc7461fb2472bb69eb3d7cc79630622`、`SOURCE_SHA=f50839c8d607f7f46a6e90847cb7da33df0d6508`、`package-libvlc=f4b6c32e080f8053bb3657aa9bc2002e1e3c6c1c`；FFmpeg 固定先前已验证的 `ba56ef1fd6de387892d38f550d45fe9170fe9e55`（后续本地 `a71ce3e` 仅改 C bridge stub，未混入本轮 native 构建验证）。
+  - VLC 工具缓存 `050fc2f` 已推 `build/main`：按 `vlc-sources.env` SHA-256 前 16 位 + GCC 版本隔离，复用已安装的旧 protoc；Windows 原生 PowerShell 语法检查通过，已按 Windows CRLF 文件实际哈希补齐该节点缓存，缓存 protoc 运行验证通过；#29 日志确认 `using cached VLC tools` 命中。
+  - **#29 运行中**（#28 因首次缓存预填使用本机 LF 键而未命中 Windows CRLF 键，核实并补齐实际键后主动停止，以相同提交启动 #29）：`BUILD_REF=050fc2f36bc7461fb2472bb69eb3d7cc79630622`、`SOURCE_SHA=f50839c8d607f7f46a6e90847cb7da33df0d6508`、`package-libvlc=f4b6c32e080f8053bb3657aa9bc2002e1e3c6c1c`；FFmpeg 固定先前已验证的 `ba56ef1fd6de387892d38f550d45fe9170fe9e55`（后续本地 `a71ce3e` 仅改 C bridge stub，未混入本轮 native 构建验证）。
 - Pixel 9：旧 PID 75641 已退出，但新的字幕全量任务仍占用该真机，不能清理 `example-wandroid/build` 或同时安装格式测试。
 - Android 模拟器：使用独立 `example-wandroid-materials/` 与空闲 `emulator-5554` 补测光盘及功能回归，首轮报告 `android-20261128-155154-945747` 因 guest shell 无响应主动中止，记录为基础设施错误。冷启动同一 AVD（不清数据、不重启共享 ADB）后，第二轮 `android-20261128-155650-778161` 共 17 项，15 通过、BIN/DVD 掉帧失败、ASX 路由覆盖失败；修复后第三轮 `android-20261128-160156-848263` **5/5 通过**，包含同批 ASX/STRM、生成 ASX、MMF 和单独 BIN/DVD（保留前次掉帧记录）。本轮 Android 17 个唯一用例均已有通过记录，但不拼接成一次全量通过声明；不替代 Pixel 9 的 4K 硬解复验。
 - Linux：首轮 `linux-20261128-050813-612397` 的 TrueHD、截断 APE 通过，MMF / NUV / Potter 失败。

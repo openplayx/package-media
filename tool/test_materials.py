@@ -249,7 +249,7 @@ def prepare(suite: str, report: pathlib.Path, cache: pathlib.Path) -> dict[str, 
     folder = report / "prepared" / suite
     folder.mkdir(parents=True)
     out = folder / "samples.json"
-    command = [sys.executable, "-I", str(ROOT / "tool" / PREPARERS[suite]), "--out", str(out)]
+    command = [sys.executable, "-X", "utf8", "-I", str(ROOT / "tool" / PREPARERS[suite]), "--out", str(out)]
     if suite == "formats":
         command += ["--cache", str(cache), "--pack", str(ROOT.parent / "materials/playback")]
     with (folder / "prepare.log").open("w") as log:
