@@ -59,7 +59,11 @@ const _maxEndTailAudioOnly = Duration(milliseconds: 2300);
 const _maxLossRatio = 0.1;
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  // Playback assertions observe native state and snapshots. Keep real frames
+  // running, but do not make timed polling wait for an extra vsync: macOS may
+  // withhold it from a test window while the host changes foreground apps.
+  binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.benchmarkLive;
   if (_samplesPath.isEmpty && _samplesBase64.isEmpty) {
     test('format samples are configured', () {
       fail('OPX_SAMPLES is not set; run tool/test_formats.sh');
