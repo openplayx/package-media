@@ -1,7 +1,9 @@
+// @preconcurrency: Flutter's globals (FlutterMethodNotImplemented) and
+// protocols (FlutterTextureRegistry) predate Swift concurrency annotations.
 #if canImport(Flutter)
-  import Flutter
+  @preconcurrency import Flutter
 #elseif canImport(FlutterMacOS)
-  import FlutterMacOS
+  @preconcurrency import FlutterMacOS
 #endif
 
 // This class creates and manipulates the different types of FlutterTexture,
@@ -10,7 +12,14 @@
 //
 // To improve the user experience, a worker is used to execute heavy tasks on a
 // dedicated thread.
-public class VideoOutput: NSObject {
+//
+// @unchecked Sendable: the instance is shared between the worker thread and
+// the main thread by design. Its mutable state is confined to the worker's
+// serial thread (`Worker` is lock-protected); the texture is wrapped in the
+// lock-protected `SafeResizableTexture`; the main-thread blocks only touch the
+// texture registry (main-thread-only, per Flutter) and `textureId`, which is
+// assigned on the main thread.
+public class VideoOutput: NSObject, @unchecked Sendable {
   // Will be called on the main thread
   public typealias TextureUpdateCallback = (Int64, CGSize) -> Void
 
@@ -31,21 +40,24 @@ public class VideoOutput: NSObject {
   private let worker: Worker = .init()
   private var width: Int64?
   private var height: Int64?
-  private var texture: ResizableTextureProtocol!
+  private var texture: ResizableTextureProtocol?
   private var textureId: Int64 = -1
   private var currentSize: CGSize = CGSize.zero
   private var disposed: Bool = false
 
-  init(
+  /// Fails when `handle` is not a valid mpv handle (zero).
+  init?(
     handle: Int64,
     configuration: VideoOutputConfiguration,
     registry: FlutterTextureRegistry,
     textureUpdateCallback: @escaping TextureUpdateCallback
   ) {
-    let handle = OpaquePointer(bitPattern: Int(handle))
-    assert(handle != nil, "handle casting")
+    guard let handle = OpaquePointer(bitPattern: Int(handle)) else {
+      assertionFailure("handle casting")
+      return nil
+    }
 
-    self.handle = handle!
+    self.handle = handle
     width = configuration.width
     height = configuration.height
     enableHardwareAcceleration = configuration.enableHardwareAcceleration
@@ -87,20 +99,26 @@ public class VideoOutput: NSObject {
       )
     }
 
-    if enableHardwareAcceleration {
-      texture = SafeResizableTexture(
-        TextureHW(
-          handle: handle,
-          // Use `weak self` to prevent memory leaks
-          updateCallback: { [weak self]() in
-            guard let that = self else {
-              return
-            }
-            that.updateCallback()
+    let textureHW: TextureHW? =
+      enableHardwareAcceleration
+      ? TextureHW(
+        handle: handle,
+        // Use `weak self` to prevent memory leaks
+        updateCallback: { [weak self]() in
+          guard let that = self else {
+            return
           }
-        )
+          that.updateCallback()
+        }
       )
+      : nil
+
+    if let textureHW = textureHW {
+      texture = SafeResizableTexture(textureHW)
     } else {
+      if enableHardwareAcceleration {
+        NSLog("VideoOutput: hardware rendering unavailable, using software")
+      }
       texture = SafeResizableTexture(
         TextureSW(
           handle: handle,
@@ -125,6 +143,9 @@ public class VideoOutput: NSObject {
 
   // Must be run on the main thread
   private func registerTextureId() {
+    guard let texture = texture else {
+      return
+    }
     // Textures must be registered on the platform thread.
     textureId = registry.register(texture)
     // textureUpdateCallback must run on the main thread
@@ -148,7 +169,7 @@ public class VideoOutput: NSObject {
   }
 
   private func _updateCallback() {
-    if !texture.update() {
+    if texture?.update() != true {
       return
     }
 
@@ -161,7 +182,7 @@ public class VideoOutput: NSObject {
     if currentSize != size {
       currentSize = size
 
-      texture.resize(size)
+      texture?.resize(size)
       DispatchQueue.main.async { [weak self] in
         guard let that = self, !that.disposed else { return }
         // textureUpdateCallback must run on the main thread
@@ -173,7 +194,7 @@ public class VideoOutput: NSObject {
       return
     }
 
-    texture.render(size)
+    texture?.render(size)
     DispatchQueue.main.async { [weak self] in
       guard let that = self, !that.disposed else { return }
       // Textures must be marked as available from the main thread
@@ -183,10 +204,10 @@ public class VideoOutput: NSObject {
 
     private var videoSize: CGSize {
         // fixed size
-        if width != nil && height != nil {
+        if let width = width, let height = height {
             return CGSize(
-                width: Double(width!),
-                height: Double(height!)
+                width: Double(width),
+                height: Double(height)
             )
         }
         

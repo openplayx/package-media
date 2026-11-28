@@ -20,7 +20,10 @@ public enum MPVHelpers {
       return MPVVideoOutParams.empty
     }
 
-    let map: mpv_node_list = node.u.list!.pointee
+    guard let list = node.u.list else {
+      return MPVVideoOutParams.empty
+    }
+    let map: mpv_node_list = list.pointee
     if map.num == 0 {
       return MPVVideoOutParams.empty
     }

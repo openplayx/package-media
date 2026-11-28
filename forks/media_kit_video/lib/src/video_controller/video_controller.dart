@@ -76,8 +76,8 @@ class VideoController {
   }) {
     player.platform?.isVideoControllerAttached = true;
 
-    () async {
-      final completer = Completer();
+    unawaited(() async {
+      final completer = Completer<void>();
       WidgetsBinding.instance.addPostFrameCallback((_) => completer.complete());
       await completer.future;
 
@@ -136,7 +136,7 @@ class VideoController {
       if (!(player.platform?.videoControllerCompleter.isCompleted ?? true)) {
         player.platform?.videoControllerCompleter.complete();
       }
-    }();
+    }());
   }
 
   /// Sets the required size of the video output.

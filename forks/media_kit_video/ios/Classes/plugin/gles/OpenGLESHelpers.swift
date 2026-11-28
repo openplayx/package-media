@@ -2,14 +2,17 @@ import OpenGLES
 import UIKit
 
 public class OpenGLESHelpers {
-  static public func createContext() -> EAGLContext {
+  static public func createContext() -> EAGLContext? {
     let context = EAGLContext(api: .openGLES3)
-    return context!
+    if context == nil {
+      NSLog("OpenGLESHelpers: EAGLContext(api: .openGLES3) failed")
+    }
+    return context
   }
 
   static public func createTextureCache(
     _ context: EAGLContext
-  ) -> CVOpenGLESTextureCache {
+  ) -> CVOpenGLESTextureCache? {
     var textureCache: CVOpenGLESTextureCache?
 
     let cvret: CVReturn = CVOpenGLESTextureCacheCreate(
@@ -21,10 +24,10 @@ public class OpenGLESHelpers {
     )
     assert(cvret == kCVReturnSuccess, "CVOpenGLESTextureCacheCreate")
 
-    return textureCache!
+    return textureCache
   }
 
-  static public func createPixelBuffer(_ size: CGSize) -> CVPixelBuffer {
+  static public func createPixelBuffer(_ size: CGSize) -> CVPixelBuffer? {
     var pixelBuffer: CVPixelBuffer?
 
     let attrs =
@@ -42,14 +45,14 @@ public class OpenGLESHelpers {
     )
     assert(cvret == kCVReturnSuccess, "CVPixelBufferCreate")
 
-    return pixelBuffer!
+    return pixelBuffer
   }
 
   static public func createTexture(
     _ textureCache: CVOpenGLESTextureCache,
     _ pixelBuffer: CVPixelBuffer,
     _ size: CGSize
-  ) -> CVOpenGLESTexture {
+  ) -> CVOpenGLESTexture? {
     var texture: CVOpenGLESTexture?
 
     let cvret: CVReturn = CVOpenGLESTextureCacheCreateTextureFromImage(
@@ -71,7 +74,7 @@ public class OpenGLESHelpers {
       "CVOpenGLESTextureCacheCreateTextureFromImage"
     )
 
-    return texture!
+    return texture
   }
 
   public enum FrameBufferError: Error {

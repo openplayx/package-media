@@ -56,11 +56,11 @@ class Playlist extends Playable {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is Playlist &&
-          ListEquality().equals(medias, other.medias) &&
+          ListEquality<Object?>().equals(medias, other.medias) &&
           index == other.index;
 
   @override
-  int get hashCode => ListEquality().hash(medias) ^ index.hashCode;
+  int get hashCode => ListEquality<Object?>().hash(medias) ^ index.hashCode;
 
   @override
   String toString() => 'Playlist(medias: $medias, index: $index)';

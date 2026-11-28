@@ -2,7 +2,8 @@ import Flutter
 import OpenGLES
 
 public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
-  public typealias UpdateCallback = () -> Void
+  // Called on the main thread, after a hop from mpv's render thread.
+  public typealias UpdateCallback = @Sendable () -> Void
 
   private let handle: OpaquePointer
   private let updateCallback: UpdateCallback
@@ -15,14 +16,21 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
     skipCheckArgs: true
   )
 
-  init(
+  /// Fails when the OpenGL ES context or texture cache cannot be created;
+  /// `VideoOutput` then falls back to software rendering.
+  init?(
     handle: OpaquePointer,
     updateCallback: @escaping UpdateCallback
   ) {
+    guard let context = OpenGLESHelpers.createContext(),
+          let textureCache = OpenGLESHelpers.createTextureCache(context)
+    else {
+      return nil
+    }
     self.handle = handle
     self.updateCallback = updateCallback
-    self.context = OpenGLESHelpers.createContext()
-    self.textureCache = OpenGLESHelpers.createTextureCache(context)
+    self.context = context
+    self.textureCache = textureCache
 
     super.init()
 
@@ -48,12 +56,11 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
   }
 
   public func copyPixelBuffer() -> Unmanaged<CVPixelBuffer>? {
-    let textureContext = textureContexts.current
-    if textureContext == nil {
+    guard let textureContext = textureContexts.current else {
       return nil
     }
 
-    return Unmanaged.passRetained(textureContext!.pixelBuffer)
+    return Unmanaged.passRetained(textureContext.pixelBuffer)
   }
 
   private func initMPV() {
@@ -96,8 +103,10 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
       renderContext,
       { (ctx) in
         let that = unsafeBitCast(ctx, to: TextureHW.self)
+        // Hop with the immutable callback only, not with the texture itself.
+        let updateCallback = that.updateCallback
         DispatchQueue.main.async {
-          that.updateCallback()
+          updateCallback()
         }
       },
       UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
@@ -130,23 +139,13 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
     disposePixelBuffer()
 
     textureContexts.reinit(
-      objects: [
+      objects: (0 ..< 3).compactMap { _ in
         TextureGLESContext(
           context: context,
           textureCache: textureCache,
           size: size
-        ),
-        TextureGLESContext(
-          context: context,
-          textureCache: textureCache,
-          size: size
-        ),
-        TextureGLESContext(
-          context: context,
-          textureCache: textureCache,
-          size: size
-        ),
-      ],
+        )
+      },
       skipCheckArgs: true
     )
   }
@@ -157,8 +156,7 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
 
   public func render(_ size: CGSize) {
     guard renderContext != nil else { return }
-    let textureContext = textureContexts.nextAvailable()
-    if textureContext == nil {
+    guard let textureContext = textureContexts.nextAvailable() else {
       return
     }
 
@@ -168,13 +166,13 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
       EAGLContext.setCurrent(nil)
     }
 
-    glBindFramebuffer(GLenum(GL_FRAMEBUFFER), textureContext!.frameBuffer)
+    glBindFramebuffer(GLenum(GL_FRAMEBUFFER), textureContext.frameBuffer)
     defer {
       glBindFramebuffer(GLenum(GL_FRAMEBUFFER), 0)
     }
 
     var fbo = mpv_opengl_fbo(
-      fbo: Int32(textureContext!.frameBuffer),
+      fbo: Int32(textureContext.frameBuffer),
       w: Int32(size.width),
       h: Int32(size.height),
       internal_format: 0
@@ -190,7 +188,7 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
 
     glFlush()
 
-    textureContexts.pushAsReady(textureContext!)
+    textureContexts.pushAsReady(textureContext)
   }
 
   static private func getProcAddress(

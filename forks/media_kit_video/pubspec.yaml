@@ -3,6 +3,8 @@ description: Native implementation for video playback in package:media_kit.
 homepage: https://github.com/media-kit/media-kit
 repository: https://github.com/media-kit/media-kit
 version: 2.0.1
+# OpenPlayX fork: depends on the sibling media_kit fork by path, never published.
+publish_to: none
 topics:
   - video
   - video-player

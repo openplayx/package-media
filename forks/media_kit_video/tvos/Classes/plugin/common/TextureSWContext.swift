@@ -1,15 +1,20 @@
 public class TextureSWContext {
   public let pixelBuffer: CVPixelBuffer
 
-  init(size: CGSize) {
-    self.pixelBuffer = TextureSWContext.createPixelBuffer(size)
+  /// Fails when the pixel buffer cannot be allocated; the caller then renders
+  /// with fewer (or no) buffers instead of crashing.
+  init?(size: CGSize) {
+    guard let pixelBuffer = TextureSWContext.createPixelBuffer(size) else {
+      return nil
+    }
+    self.pixelBuffer = pixelBuffer
   }
 
   deinit {
     TextureSWContext.disposePixelBuffer(pixelBuffer)
   }
 
-  private static func createPixelBuffer(_ size: CGSize) -> CVPixelBuffer {
+  private static func createPixelBuffer(_ size: CGSize) -> CVPixelBuffer? {
     let attrs =
       [
         kCVPixelBufferMetalCompatibilityKey: true
@@ -25,8 +30,11 @@ public class TextureSWContext {
       &pixelBuffer
     )
     assert(cvret == kCVReturnSuccess, "CVPixelBufferCreate")
+    if cvret != kCVReturnSuccess {
+      NSLog("TextureSWContext: CVPixelBufferCreate failed: \(cvret)")
+    }
 
-    return pixelBuffer!
+    return pixelBuffer
   }
 
   private static func disposePixelBuffer(_ pixelBuffer: CVPixelBuffer) {

@@ -22,6 +22,7 @@ Widget AdaptiveVideoControls(VideoState state) {
     case TargetPlatform.linux:
       return MaterialDesktopVideoControls(state);
     default:
-      return NoVideoControls(state);
+      // [NoVideoControls] is `null`: render nothing instead of invoking it.
+      return const SizedBox.shrink();
   }
 }

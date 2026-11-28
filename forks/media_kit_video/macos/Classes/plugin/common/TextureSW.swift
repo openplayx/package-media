@@ -4,8 +4,16 @@
   import FlutterMacOS
 #endif
 
-public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
-  public typealias UpdateCallback = () -> Void
+// @unchecked Sendable: a FlutterTexture is used from several threads (worker,
+// main, Flutter's raster thread). The frame buffers are guarded by
+// SwappableObjectManager's lock, resize/render/copy go through the
+// lock-protected SafeResizableTexture, `updateCallback` is immutable, and
+// `renderContext` is set in initMPV before mpv can request the first render.
+public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol,
+  @unchecked Sendable
+{
+  // Called from mpv's render thread or the main thread.
+  public typealias UpdateCallback = @Sendable () -> Void
 
   private let handle: OpaquePointer
   private let updateCallback: UpdateCallback
@@ -35,12 +43,11 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
   }
 
   public func copyPixelBuffer() -> Unmanaged<CVPixelBuffer>? {
-    let textureContext = textureContexts.current
-    if textureContext == nil {
+    guard let textureContext = textureContexts.current else {
       return nil
     }
 
-    return Unmanaged.passRetained(textureContext!.pixelBuffer)
+    return Unmanaged.passRetained(textureContext.pixelBuffer)
   }
 
   private func initMPV() {
@@ -86,11 +93,7 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
     disposePixelBuffer()
 
     textureContexts.reinit(
-      objects: [
-        TextureSWContext(size: size),
-        TextureSWContext(size: size),
-        TextureSWContext(size: size),
-      ],
+      objects: (0 ..< 3).compactMap { _ in TextureSWContext(size: size) },
       skipCheckArgs: true
     )
   }
@@ -100,26 +103,30 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
   }
 
   public func render(_ size: CGSize) {
-    let textureContext = textureContexts.nextAvailable()
-    if textureContext == nil {
+    guard let textureContext = textureContexts.nextAvailable() else {
       return
     }
 
     CVPixelBufferLockBaseAddress(
-      textureContext!.pixelBuffer,
+      textureContext.pixelBuffer,
       CVPixelBufferLockFlags(rawValue: 0)
     )
     defer {
       CVPixelBufferUnlockBaseAddress(
-        textureContext!.pixelBuffer,
+        textureContext.pixelBuffer,
         CVPixelBufferLockFlags(rawValue: 0)
       )
     }
 
     var ssize: [Int32] = [Int32(size.width), Int32(size.height)]
     let format: String = "bgr0"
-    var pitch: Int = CVPixelBufferGetBytesPerRow(textureContext!.pixelBuffer)
-    let buffer = CVPixelBufferGetBaseAddress(textureContext!.pixelBuffer)
+    var pitch: Int = CVPixelBufferGetBytesPerRow(textureContext.pixelBuffer)
+    guard let buffer = CVPixelBufferGetBaseAddress(textureContext.pixelBuffer)
+    else {
+      // Return the buffer to the pool so it is not lost for later frames.
+      textureContexts.pushAsAvailable(textureContext)
+      return
+    }
 
     // pointers
     let ssizePtr = ssize.withUnsafeMutableBytes {
@@ -129,7 +136,7 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
       mutating: (format as NSString).utf8String
     )
     let pitchPtr = withUnsafeMutablePointer(to: &pitch) { $0 }
-    let bufferPtr = buffer!.assumingMemoryBound(to: UInt8.self)
+    let bufferPtr = buffer.assumingMemoryBound(to: UInt8.self)
 
     var params: [mpv_render_param] = [
       mpv_render_param(type: MPV_RENDER_PARAM_SW_SIZE, data: ssizePtr),
@@ -141,6 +148,6 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
 
     mpv_render_context_render(renderContext, &params)
 
-    textureContexts.pushAsReady(textureContext!)
+    textureContexts.pushAsReady(textureContext)
   }
 }

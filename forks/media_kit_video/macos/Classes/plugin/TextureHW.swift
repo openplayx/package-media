@@ -3,7 +3,8 @@ import OpenGL.GL
 import OpenGL.GL3
 
 public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
-  public typealias UpdateCallback = () -> Void
+  // Called directly from mpv's render thread (see initMPV).
+  public typealias UpdateCallback = @Sendable () -> Void
 
   private let handle: OpaquePointer
   private let updateCallback: UpdateCallback
@@ -16,15 +17,32 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
     skipCheckArgs: true
   )
 
-  init(
+  /// Fails when the OpenGL pixel format, context or texture cache cannot be
+  /// created; `VideoOutput` then falls back to software rendering.
+  init?(
     handle: OpaquePointer,
     updateCallback: @escaping UpdateCallback
   ) {
+    guard let pixelFormat = OpenGLHelpers.createPixelFormat() else {
+      return nil
+    }
+    guard let context = OpenGLHelpers.createContext(pixelFormat) else {
+      OpenGLHelpers.deletePixelFormat(pixelFormat)
+      return nil
+    }
+    guard let textureCache = OpenGLHelpers.createTextureCache(
+      context,
+      pixelFormat
+    ) else {
+      OpenGLHelpers.deleteContext(context)
+      OpenGLHelpers.deletePixelFormat(pixelFormat)
+      return nil
+    }
     self.handle = handle
     self.updateCallback = updateCallback
-    self.pixelFormat = OpenGLHelpers.createPixelFormat()
-    self.context = OpenGLHelpers.createContext(pixelFormat)
-    self.textureCache = OpenGLHelpers.createTextureCache(context, pixelFormat)
+    self.pixelFormat = pixelFormat
+    self.context = context
+    self.textureCache = textureCache
 
     super.init()
 
@@ -45,12 +63,11 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
   }
 
   public func copyPixelBuffer() -> Unmanaged<CVPixelBuffer>? {
-    let textureContext = textureContexts.current
-    if textureContext == nil {
+    guard let textureContext = textureContexts.current else {
       return nil
     }
 
-    return Unmanaged.passRetained(textureContext!.pixelBuffer)
+    return Unmanaged.passRetained(textureContext.pixelBuffer)
   }
 
   private func initMPV() {
@@ -132,23 +149,13 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
     disposePixelBuffer()
 
     textureContexts.reinit(
-      objects: [
+      objects: (0 ..< 3).compactMap { _ in
         TextureGLContext(
           context: context,
           textureCache: textureCache,
           size: size
-        ),
-        TextureGLContext(
-          context: context,
-          textureCache: textureCache,
-          size: size
-        ),
-        TextureGLContext(
-          context: context,
-          textureCache: textureCache,
-          size: size
-        ),
-      ],
+        )
+      },
       skipCheckArgs: true
     )
   }
@@ -173,8 +180,7 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
   }
 
   public func render(_ size: CGSize) {
-    let textureContext = textureContexts.nextAvailable()
-    if textureContext == nil {
+    guard let textureContext = textureContexts.nextAvailable() else {
       return
     }
 
@@ -184,13 +190,13 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
       CGLSetCurrentContext(nil)
     }
 
-    glBindFramebuffer(GLenum(GL_FRAMEBUFFER), textureContext!.frameBuffer)
+    glBindFramebuffer(GLenum(GL_FRAMEBUFFER), textureContext.frameBuffer)
     defer {
       glBindFramebuffer(GLenum(GL_FRAMEBUFFER), 0)
     }
 
     var fbo = mpv_opengl_fbo(
-      fbo: Int32(textureContext!.frameBuffer),
+      fbo: Int32(textureContext.frameBuffer),
       w: Int32(size.width),
       h: Int32(size.height),
       internal_format: 0
@@ -205,7 +211,7 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
 
     glFlush()
 
-    textureContexts.pushAsReady(textureContext!)
+    textureContexts.pushAsReady(textureContext)
   }
 
   static private func getProcAddress(

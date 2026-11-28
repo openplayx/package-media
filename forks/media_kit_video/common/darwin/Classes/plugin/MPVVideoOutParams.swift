@@ -1,4 +1,5 @@
-public class MPVVideoOutParams {
+// Immutable value holder (only `let` properties), hence Sendable.
+public final class MPVVideoOutParams: Sendable {
   public let dw: Int64
   public let dh: Int64
   public let rotate: Int64
@@ -26,10 +27,11 @@ public class MPVVideoOutParams {
     var dh: Int64 = 0
     var rotate: Int64 = 0
 
-    var kptr = map.keys!
-    var vptr = map.values!
+    guard var kptr = map.keys, var vptr = map.values else {
+      return MPVVideoOutParams.empty
+    }
     for _ in 0 ..< map.num {
-      let key = String(cString: kptr.pointee!)
+      let key = kptr.pointee.map { String(cString: $0) } ?? ""
       let value: mpv_node = vptr.pointee
 
       kptr = kptr.successor()

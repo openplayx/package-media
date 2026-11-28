@@ -54,12 +54,22 @@ void nativeEnsureInitialized({String? libmpv}) {
     // I can only get quit to work; [mpv_terminate_destroy] causes direct crash.
     final mpv = generated.MPV(DynamicLibrary.open(NativeLibrary.path));
     final cmd = 'quit'.toNativeUtf8();
+    final no = 'no'.toNativeUtf8();
     try {
       for (final reference in references) {
-        mpv.mpv_command_string(reference.cast(), cmd.cast());
+        final ctx = reference.cast<generated.mpv_handle>();
+        // The wakeup callback is a NativeCallable owned by the previous
+        // isolate, which a hot restart has already freed. Unregister it (and
+        // the log buffer whose writes trigger it from any thread, e.g. our
+        // shared-FFmpeg av_log callback) before anything else can wake this
+        // handle, otherwise libmpv jumps into a dead trampoline.
+        mpv.mpv_set_wakeup_callback(ctx, nullptr, nullptr);
+        mpv.mpv_request_log_messages(ctx, no.cast());
+        mpv.mpv_command_string(ctx, cmd.cast());
       }
     } finally {
       calloc.free(cmd);
+      calloc.free(no);
     }
   });
 }
@@ -76,12 +86,13 @@ class NativePlayer extends PlatformPlayer {
   /// {@macro native_player}
   NativePlayer({required super.configuration})
       : mpv = generated.MPV(DynamicLibrary.open(NativeLibrary.path)) {
-    future = _create()
-      ..then((_) {
-        try {
-          configuration.ready?.call();
-        } catch (_) {}
-      });
+    final created = _create();
+    future = created;
+    unawaited(created.then((_) {
+      try {
+        configuration.ready?.call();
+      } catch (_) {}
+    }));
   }
 
   /// Disposes the [Player] instance & releases the resources.
@@ -215,7 +226,7 @@ class NativePlayer extends PlatformPlayer {
         );
 
         Future.delayed(const Duration(seconds: 5), () {
-          file.delete_();
+          unawaited(file.delete_());
         });
       }
 
@@ -1526,7 +1537,7 @@ class NativePlayer extends PlatformPlayer {
       final prop = event.ref.data.cast<generated.mpv_event_property>();
       if (prop.ref.name.cast<Utf8>().toDartString() == 'pause' &&
           prop.ref.format == generated.mpv_format.MPV_FORMAT_FLAG) {
-        final playing = prop.ref.data.cast<Int8>().value == 0;
+        final playing = prop.ref.data.cast<Int32>().value == 0;
         if (isPlayingStateChangeAllowed) {
           state = state.copyWith(playing: playing);
           if (!playingController.isClosed) {
@@ -1537,7 +1548,7 @@ class NativePlayer extends PlatformPlayer {
       if (prop.ref.name.cast<Utf8>().toDartString() == 'core-idle' &&
           prop.ref.format == generated.mpv_format.MPV_FORMAT_FLAG) {
         // Check for [isBufferingStateChangeAllowed] because `pause` causes `core-idle` to be fired.
-        final buffering = prop.ref.data.cast<Int8>().value == 1;
+        final buffering = prop.ref.data.cast<Int32>().value == 1;
         if (buffering) {
           if (isBufferingStateChangeAllowed) {
             state = state.copyWith(buffering: true);
@@ -1555,7 +1566,7 @@ class NativePlayer extends PlatformPlayer {
       }
       if (prop.ref.name.cast<Utf8>().toDartString() == 'paused-for-cache' &&
           prop.ref.format == generated.mpv_format.MPV_FORMAT_FLAG) {
-        final buffering = prop.ref.data.cast<Int8>().value == 1;
+        final buffering = prop.ref.data.cast<Int32>().value == 1;
         state = state.copyWith(buffering: buffering);
         if (!bufferingController.isClosed) {
           bufferingController.add(buffering);
@@ -1689,11 +1700,11 @@ class NativePlayer extends PlatformPlayer {
         }
         state = state.copyWith(
           audioParams: AudioParams(
-            format: params['format'],
-            sampleRate: params['samplerate'],
-            channels: params['channels'],
-            channelCount: params['channel-count'],
-            hrChannels: params['hr-channels'],
+            format: params['format'] as String?,
+            sampleRate: params['samplerate'] as int?,
+            channels: params['channels'] as String?,
+            channelCount: params['channel-count'] as int?,
+            hrChannels: params['hr-channels'] as String?,
           ),
         );
         if (!audioParamsController.isClosed) {
@@ -1962,7 +1973,7 @@ class NativePlayer extends PlatformPlayer {
       }
       if (prop.ref.name.cast<Utf8>().toDartString() == 'eof-reached' &&
           prop.ref.format == generated.mpv_format.MPV_FORMAT_FLAG) {
-        final value = prop.ref.data.cast<Bool>().value;
+        final value = prop.ref.data.cast<Int32>().value != 0; // MPV_FORMAT_FLAG is a C int
         if (value) {
           if (isPlayingStateChangeAllowed) {
             state = state.copyWith(
@@ -2014,25 +2025,25 @@ class NativePlayer extends PlatformPlayer {
         }
 
         final params = VideoParams(
-          pixelformat: data['pixelformat'],
-          hwPixelformat: data['hw-pixelformat'],
-          w: data['w'],
-          h: data['h'],
-          dw: data['dw'],
-          dh: data['dh'],
-          aspect: data['aspect'],
-          par: data['par'],
-          colormatrix: data['colormatrix'],
-          colorlevels: data['colorlevels'],
-          primaries: data['primaries'],
-          gamma: data['gamma'],
-          sigPeak: data['sig-peak'],
-          light: data['light'],
-          chromaLocation: data['chroma-location'],
-          rotate: data['rotate'],
-          stereoIn: data['stereo-in'],
-          averageBpp: data['average-bpp'],
-          alpha: data['alpha'],
+          pixelformat: data['pixelformat'] as String?,
+          hwPixelformat: data['hw-pixelformat'] as String?,
+          w: data['w'] as int?,
+          h: data['h'] as int?,
+          dw: data['dw'] as int?,
+          dh: data['dh'] as int?,
+          aspect: data['aspect'] as double?,
+          par: data['par'] as double?,
+          colormatrix: data['colormatrix'] as String?,
+          colorlevels: data['colorlevels'] as String?,
+          primaries: data['primaries'] as String?,
+          gamma: data['gamma'] as String?,
+          sigPeak: data['sig-peak'] as double?,
+          light: data['light'] as String?,
+          chromaLocation: data['chroma-location'] as String?,
+          rotate: data['rotate'] as int?,
+          stereoIn: data['stereo-in'] as String?,
+          averageBpp: data['average-bpp'] as int?,
+          alpha: data['alpha'] as String?,
         );
 
         state = state.copyWith(
@@ -2587,7 +2598,10 @@ class NativePlayer extends PlatformPlayer {
   }
 
   Future<void> _setPropertyFlag(String name, bool value) async {
-    final ptr = calloc<Bool>(1)..value = value;
+    // MPV_FORMAT_FLAG is a C int (4 bytes); a 1-byte Bool made libmpv read past
+    // the allocation (AddressSanitizer: heap-buffer-overflow) and could turn
+    // `false` into `true` when the stray bytes were not zero.
+    final ptr = calloc<Int32>(1)..value = value ? 1 : 0;
     await _setProperty(
       name,
       generated.mpv_format.MPV_FORMAT_FLAG,
@@ -2770,7 +2784,10 @@ Uint8List? _screenshot(_ScreenshotData data) {
   final pointers = args.map<Pointer<Utf8>>((e) {
     return e.toNativeUtf8();
   }).toList();
-  final Pointer<Pointer<Utf8>> arr = calloc.allocate(args.join().length);
+  // A NULL-terminated array of pointers: args.length + 1 zeroed slots. (This
+  // used to allocate args.join().length *bytes*, so libmpv read the terminator
+  // past the allocation: AddressSanitizer SEGV in mpv_command_ret.)
+  final arr = calloc<Pointer<Utf8>>(args.length + 1);
   for (int i = 0; i < args.length; i++) {
     arr[i] = pointers[i];
   }

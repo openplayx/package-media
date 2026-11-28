@@ -3,7 +3,7 @@ import OpenGL.GL
 import OpenGL.GL3
 
 public class OpenGLHelpers {
-  static public func createPixelFormat() -> CGLPixelFormatObj {
+  static public func createPixelFormat() -> CGLPixelFormatObj? {
     // from mpv
     let attributes: [CGLPixelFormatAttribute] = [
       kCGLPFAOpenGLProfile,
@@ -21,13 +21,16 @@ public class OpenGLHelpers {
     var npix: GLint = 0
     var pixelFormat: CGLPixelFormatObj?
     CGLChoosePixelFormat(attributes, &pixelFormat, &npix)
+    if pixelFormat == nil {
+      NSLog("OpenGLHelpers: CGLChoosePixelFormat failed")
+    }
 
-    return pixelFormat!
+    return pixelFormat
   }
 
   static public func createContext(
     _ pixelFormat: CGLPixelFormatObj
-  ) -> CGLContextObj {
+  ) -> CGLContextObj? {
     var context: CGLContextObj?
     let error = CGLCreateContext(pixelFormat, nil, &context)
     if error != kCGLNoError {
@@ -36,13 +39,13 @@ public class OpenGLHelpers {
       exit(1)
     }
 
-    return context!
+    return context
   }
 
   static public func createTextureCache(
     _ context: CGLContextObj,
     _ pixelFormat: CGLPixelFormatObj
-  ) -> CVOpenGLTextureCache {
+  ) -> CVOpenGLTextureCache? {
     var textureCache: CVOpenGLTextureCache?
 
     let cvret: CVReturn = CVOpenGLTextureCacheCreate(
@@ -55,10 +58,10 @@ public class OpenGLHelpers {
     )
     assert(cvret == kCVReturnSuccess, "CVOpenGLTextureCacheCreate")
 
-    return textureCache!
+    return textureCache
   }
 
-  static public func createPixelBuffer(_ size: CGSize) -> CVPixelBuffer {
+  static public func createPixelBuffer(_ size: CGSize) -> CVPixelBuffer? {
     var pixelBuffer: CVPixelBuffer?
 
     let attrs =
@@ -76,13 +79,13 @@ public class OpenGLHelpers {
     )
     assert(cvret == kCVReturnSuccess, "CVPixelBufferCreate")
 
-    return pixelBuffer!
+    return pixelBuffer
   }
 
   static public func createTexture(
     _ textureCache: CVOpenGLTextureCache,
     _ pixelBuffer: CVPixelBuffer
-  ) -> CVOpenGLTexture {
+  ) -> CVOpenGLTexture? {
     var texture: CVOpenGLTexture?
 
     let cvret: CVReturn = CVOpenGLTextureCacheCreateTextureFromImage(
@@ -97,7 +100,7 @@ public class OpenGLHelpers {
       "CVOpenGLTextureCacheCreateTextureFromImage"
     )
 
-    return texture!
+    return texture
   }
 
   static public func createRenderBuffer(

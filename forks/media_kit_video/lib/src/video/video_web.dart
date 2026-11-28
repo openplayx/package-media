@@ -145,13 +145,13 @@ class VideoState extends State<Video> with WidgetsBindingObserver {
   late bool _disposeNotifiers;
   final _subtitleViewKey = GlobalKey<SubtitleViewState>();
   final _wakelock = Wakelock();
-  final _subscriptions = <StreamSubscription>[];
+  final _subscriptions = <StreamSubscription<Object?>>[];
   late int? _width = widget.controller.player.state.width;
   late int? _height = widget.controller.player.state.height;
   late bool _visible = (_width ?? 0) > 0 && (_height ?? 0) > 0;
   bool _pauseDueToPauseUponEnteringBackgroundMode = false;
 
-  ValueKey _key = const ValueKey(true);
+  ValueKey<bool> _key = const ValueKey(true);
 
   // Public API:
 
@@ -287,13 +287,13 @@ class VideoState extends State<Video> with WidgetsBindingObserver {
       ].contains(state)) {
         if (widget.controller.player.state.playing) {
           _pauseDueToPauseUponEnteringBackgroundMode = true;
-          widget.controller.player.pause();
+          unawaited(widget.controller.player.pause());
         }
       } else {
         if (widget.resumeUponEnteringForegroundMode &&
             _pauseDueToPauseUponEnteringBackgroundMode) {
           _pauseDueToPauseUponEnteringBackgroundMode = false;
-          widget.controller.player.play();
+          unawaited(widget.controller.player.play());
         }
       }
     }
@@ -357,7 +357,7 @@ class VideoState extends State<Video> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _wakelock.disable();
     for (final subscription in _subscriptions) {
-      subscription.cancel();
+      unawaited(subscription.cancel());
     }
     if (_disposeNotifiers) {
       videoViewParametersNotifier.dispose();
@@ -378,6 +378,9 @@ class VideoState extends State<Video> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return media_kit_video_controls.VideoStateInheritedWidget(
+      // On web the conditional export resolves the controls' VideoState to
+      // this class; the analyzer only sees the native (video_texture.dart) one.
+      // ignore: argument_type_not_assignable — see above, verified false positive.
       state: this as dynamic,
       contextNotifier: _contextNotifier,
       videoViewParametersNotifier: videoViewParametersNotifier,
@@ -447,7 +450,8 @@ class VideoState extends State<Video> with WidgetsBindingObserver {
                   ),
                 if (videoViewParameters.controls != null)
                   Positioned.fill(
-                    child: videoViewParameters.controls!.call(this as dynamic),
+                    child: videoViewParameters.controls!.call(this as dynamic)
+                        as Widget,
                   ),
               ],
             ),
@@ -457,6 +461,10 @@ class VideoState extends State<Video> with WidgetsBindingObserver {
     );
   }
 }
+
+/// Mirrors the native [VideoControlsBuilder] so shared controls code can name
+/// the type on web too.
+typedef VideoControlsBuilder = Widget Function(VideoState state);
 
 // --------------------------------------------------
 

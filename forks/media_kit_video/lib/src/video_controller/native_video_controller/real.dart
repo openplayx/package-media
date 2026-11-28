@@ -117,9 +117,13 @@ class NativeVideoController extends PlatformVideoController {
     VideoControllerConfiguration configuration,
   ) async {
     // Update [configuration] to have default values.
+    // On iOS physical devices, zero-copy `videotoolbox` OpenGL ES 3.0 interop
+    // corrupts NV12 chroma/luma sampling (rendering solid purple/magenta with
+    // G=0). `videotoolbox-copy` keeps full VideoToolbox hardware decoding while
+    // uploading frames through the standard GLES3 path with accurate colors.
     configuration = configuration.copyWith(
       vo: configuration.vo ?? 'libmpv',
-      hwdec: configuration.hwdec ?? 'auto',
+      hwdec: configuration.hwdec ?? (Platform.isIOS ? 'videotoolbox-copy' : 'auto'),
     );
 
     // Retrieve the native handle of the [Player].
@@ -266,14 +270,14 @@ class NativeVideoController extends PlatformVideoController {
                 case 'VideoOutput.Resize':
                   {
                     // Notify about updated texture ID & [Rect].
-                    final int handle = call.arguments['handle'];
+                    final int handle = call.arguments['handle'] as int;
                     final Rect rect = Rect.fromLTWH(
-                      call.arguments['rect']['left'] * 1.0,
-                      call.arguments['rect']['top'] * 1.0,
-                      call.arguments['rect']['width'] * 1.0,
-                      call.arguments['rect']['height'] * 1.0,
+                      (call.arguments['rect']['left'] as num).toDouble(),
+                      (call.arguments['rect']['top'] as num).toDouble(),
+                      (call.arguments['rect']['width'] as num).toDouble(),
+                      (call.arguments['rect']['height'] as num).toDouble(),
                     );
-                    final int id = call.arguments['id'];
+                    final int id = call.arguments['id'] as int;
                     _controllers[handle]?.rect.value = rect;
                     _controllers[handle]?.id.value = id;
                     // Notify about the first frame being rendered.

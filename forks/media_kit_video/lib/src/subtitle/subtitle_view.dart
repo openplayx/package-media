@@ -60,7 +60,7 @@ class SubtitleViewState extends State<SubtitleView> {
 
   @override
   void dispose() {
-    subscription?.cancel();
+    unawaited(subscription?.cancel());
     super.dispose();
   }
 

@@ -41,7 +41,7 @@ class InitializerIsolate {
     Future<void> Function(Pointer<generated.mpv_event>) callback, {
     Map<String, String> options = const {},
   }) async {
-    final completer = Completer();
+    final completer = Completer<void>();
     final receiver = ReceivePort();
     late SendPort port;
     late Pointer<generated.mpv_handle> handle;
@@ -62,7 +62,8 @@ class InitializerIsolate {
         }
         // Forward events to the supplied callback.
         else if (message != null) {
-          Pointer<generated.mpv_event> event = Pointer.fromAddress(message);
+          Pointer<generated.mpv_event> event =
+              Pointer.fromAddress(message as int);
           try {
             await callback(event);
           } catch (exception, stacktrace) {
@@ -104,7 +105,7 @@ class InitializerIsolate {
   }
 
   static void _mainloop(SendPort port) async {
-    Completer completer = Completer();
+    Completer<void> completer = Completer<void>();
 
     final receiver = ReceivePort();
     port.send(receiver.sendPort);
@@ -150,7 +151,7 @@ class InitializerIsolate {
     port.send(handle.address);
 
     while (!disposed) {
-      completer = Completer();
+      completer = Completer<void>();
       final event = mpv.mpv_wait_event(handle, kReleaseMode ? -1 : 0.1);
       if (disposed) {
         break;
@@ -159,7 +160,7 @@ class InitializerIsolate {
         port.send(event.address);
         await completer.future;
       } else {
-        await Future.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
       }
     }
 

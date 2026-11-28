@@ -96,11 +96,11 @@ void main() {
         equals(AudioDevice.auto()),
       );
       expect(
-        ListEquality().equals(state.audioDevices, [AudioDevice.auto()]),
+        ListEquality<Object?>().equals(state.audioDevices, [AudioDevice.auto()]),
         isTrue,
       );
       expect(
-        ListEquality().equals(state.audioDevices, [AudioDevice.auto()]),
+        ListEquality<Object?>().equals(state.audioDevices, [AudioDevice.auto()]),
         isTrue,
       );
       expect(
@@ -124,21 +124,21 @@ void main() {
         equals(SubtitleTrack.auto()),
       );
       expect(
-        ListEquality().equals(state.tracks.video, [
+        ListEquality<Object?>().equals(state.tracks.video, [
           VideoTrack.auto(),
           VideoTrack.no(),
         ]),
         isTrue,
       );
       expect(
-        ListEquality().equals(state.tracks.audio, [
+        ListEquality<Object?>().equals(state.tracks.audio, [
           AudioTrack.auto(),
           AudioTrack.no(),
         ]),
         isTrue,
       );
       expect(
-        ListEquality().equals(state.tracks.subtitle, [
+        ListEquality<Object?>().equals(state.tracks.subtitle, [
           SubtitleTrack.auto(),
           SubtitleTrack.no(),
         ]),
@@ -153,7 +153,7 @@ void main() {
         isNull,
       );
       expect(
-        ListEquality().equals(state.subtitle, ['', '']),
+        ListEquality<Object?>().equals(state.subtitle, ['', '']),
         isTrue,
       );
     },

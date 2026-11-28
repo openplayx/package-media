@@ -26,7 +26,7 @@ Future<void> enterFullscreen(BuildContext context) {
             videoViewParametersNotifier(context);
         final controllerValue = controller(context);
         Navigator.of(context, rootNavigator: true).push(
-          PageRouteBuilder(
+          PageRouteBuilder<void>(
             pageBuilder: (_, __, ___) => Material(
               child: VideoControlsThemeDataInjector(
                 // NOTE: Make various *VideoControlsThemeData from the parent context available in the fullscreen context.
@@ -58,8 +58,8 @@ Future<void> enterFullscreen(BuildContext context) {
                             videoViewParametersNotifierValue.value.aspectRatio,
                         filterQuality: videoViewParametersNotifierValue
                             .value.filterQuality,
-                        controls:
-                            videoViewParametersNotifierValue.value.controls,
+                        controls: videoViewParametersNotifierValue.value.controls
+                            as VideoControlsBuilder?,
                         // Do not acquire or modify existing wakelock in fullscreen mode:
                         wakelock: false,
                         pauseUponEnteringBackgroundMode:

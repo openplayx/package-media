@@ -56,7 +56,7 @@ void main() {
   test(
     'initializer-callback',
     () async {
-      final shutdown = Completer();
+      final shutdown = Completer<void>();
 
       final expectPauseTrue = expectAsync1((value) {
         print(value);
@@ -83,7 +83,7 @@ void main() {
           }
         },
       );
-      await Future.delayed(Duration(seconds: 5));
+      await Future<void>.delayed(Duration(seconds: 5));
       {
         final name = 'pause'.toNativeUtf8();
         mpv.mpv_observe_property(
@@ -112,7 +112,7 @@ void main() {
         calloc.free(command);
       }
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       Initializer(mpv).dispose(handle);
     },
@@ -152,7 +152,7 @@ void main() {
         );
       }
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       Initializer(mpv).dispose(handle);
     },

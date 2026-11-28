@@ -384,7 +384,7 @@ class _MaterialDesktopVideoControlsState
 
   DateTime last = DateTime.now();
 
-  final List<StreamSubscription> subscriptions = [];
+  final List<StreamSubscription<Object?>> subscriptions = [];
 
   double get subtitleVerticalShiftOffset =>
       (_theme(context).padding?.bottom ?? 0.0) +
@@ -445,7 +445,7 @@ class _MaterialDesktopVideoControlsState
   @override
   void dispose() {
     for (final subscription in subscriptions) {
-      subscription.cancel();
+      unawaited(subscription.cancel());
     }
     super.dispose();
   }
@@ -543,30 +543,30 @@ class _MaterialDesktopVideoControlsState
               const SingleActivator(LogicalKeyboardKey.keyJ): () {
                 final rate = controller(context).player.state.position -
                     const Duration(seconds: 10);
-                controller(context).player.seek(rate);
+                unawaited(controller(context).player.seek(rate));
               },
               const SingleActivator(LogicalKeyboardKey.keyI): () {
                 final rate = controller(context).player.state.position +
                     const Duration(seconds: 10);
-                controller(context).player.seek(rate);
+                unawaited(controller(context).player.seek(rate));
               },
               const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
                 final rate = controller(context).player.state.position -
                     const Duration(seconds: 2);
-                controller(context).player.seek(rate);
+                unawaited(controller(context).player.seek(rate));
               },
               const SingleActivator(LogicalKeyboardKey.arrowRight): () {
                 final rate = controller(context).player.state.position +
                     const Duration(seconds: 2);
-                controller(context).player.seek(rate);
+                unawaited(controller(context).player.seek(rate));
               },
               const SingleActivator(LogicalKeyboardKey.arrowUp): () {
                 final volume = controller(context).player.state.volume + 5.0;
-                controller(context).player.setVolume(volume.clamp(0.0, 100.0));
+                unawaited(controller(context).player.setVolume(volume.clamp(0.0, 100.0)));
               },
               const SingleActivator(LogicalKeyboardKey.arrowDown): () {
                 final volume = controller(context).player.state.volume - 5.0;
-                controller(context).player.setVolume(volume.clamp(0.0, 100.0));
+                unawaited(controller(context).player.setVolume(volume.clamp(0.0, 100.0)));
               },
               const SingleActivator(LogicalKeyboardKey.keyF): () =>
                   toggleFullscreen(context),
@@ -594,16 +594,16 @@ class _MaterialDesktopVideoControlsState
                           if (e.delta.dy > 0) {
                             final volume =
                                 controller(context).player.state.volume - 5.0;
-                            controller(context)
+                            unawaited(controller(context)
                                 .player
-                                .setVolume(volume.clamp(0.0, 100.0));
+                                .setVolume(volume.clamp(0.0, 100.0)));
                           }
                           if (e.delta.dy < 0) {
                             final volume =
                                 controller(context).player.state.volume + 5.0;
-                            controller(context)
+                            unawaited(controller(context)
                                 .player
-                                .setVolume(volume.clamp(0.0, 100.0));
+                                .setVolume(volume.clamp(0.0, 100.0)));
                           }
                         }
                       }
@@ -624,7 +624,7 @@ class _MaterialDesktopVideoControlsState
                                       tapPadding) {
                             // Only play and pause when the bottom seek bar is visible
                             // and when clicking outside of the bottom seek bar region
-                            controller(context).player.playOrPause();
+                            unawaited(controller(context).player.playOrPause());
                           }
                         },
                   onTapUp: !_theme(context).toggleFullscreenOnDoublePress
@@ -634,7 +634,7 @@ class _MaterialDesktopVideoControlsState
                           final difference = now.difference(last);
                           last = now;
                           if (difference < const Duration(milliseconds: 400)) {
-                            toggleFullscreen(context);
+                            unawaited(toggleFullscreen(context));
                           }
                         },
                   onPanUpdate: _theme(context).modifyVolumeOnScroll
@@ -642,16 +642,16 @@ class _MaterialDesktopVideoControlsState
                           if (e.delta.dy > 0) {
                             final volume =
                                 controller(context).player.state.volume - 5.0;
-                            controller(context)
+                            unawaited(controller(context)
                                 .player
-                                .setVolume(volume.clamp(0.0, 100.0));
+                                .setVolume(volume.clamp(0.0, 100.0)));
                           }
                           if (e.delta.dy < 0) {
                             final volume =
                                 controller(context).player.state.volume + 5.0;
-                            controller(context)
+                            unawaited(controller(context)
                                 .player
-                                .setVolume(volume.clamp(0.0, 100.0));
+                                .setVolume(volume.clamp(0.0, 100.0)));
                           }
                         }
                       : null,
@@ -908,7 +908,7 @@ class MaterialDesktopSeekBarState extends State<MaterialDesktopSeekBar> {
   late Duration duration = controller(context).player.state.duration;
   late Duration buffer = controller(context).player.state.buffer;
 
-  final List<StreamSubscription> subscriptions = [];
+  final List<StreamSubscription<Object?>> subscriptions = [];
 
   @override
   void setState(VoidCallback fn) {
@@ -956,7 +956,7 @@ class MaterialDesktopSeekBarState extends State<MaterialDesktopSeekBar> {
   @override
   void dispose() {
     for (final subscription in subscriptions) {
-      subscription.cancel();
+      unawaited(subscription.cancel());
     }
     super.dispose();
   }
@@ -967,7 +967,7 @@ class MaterialDesktopSeekBarState extends State<MaterialDesktopSeekBar> {
       hover = true;
       slider = percent.clamp(0.0, 1.0);
     });
-    controller(context).player.seek(duration * slider);
+    unawaited(controller(context).player.seek(duration * slider));
   }
 
   void onPointerDown() {
@@ -984,7 +984,7 @@ class MaterialDesktopSeekBarState extends State<MaterialDesktopSeekBar> {
       click = false;
       position = duration * slider;
     });
-    controller(context).player.seek(duration * slider);
+    unawaited(controller(context).player.seek(duration * slider));
   }
 
   void onHover(PointerHoverEvent e, BoxConstraints constraints) {
@@ -1170,7 +1170,7 @@ class MaterialDesktopPlayOrPauseButtonState
   @override
   void dispose() {
     animation.dispose();
-    subscription?.cancel();
+    unawaited(subscription?.cancel());
     super.dispose();
   }
 
@@ -1399,7 +1399,7 @@ class MaterialDesktopVolumeButtonState
 
   @override
   void dispose() {
-    subscription?.cancel();
+    unawaited(subscription?.cancel());
     super.dispose();
   }
 
@@ -1420,14 +1420,14 @@ class MaterialDesktopVolumeButtonState
         onPointerSignal: (event) {
           if (event is PointerScrollEvent) {
             if (event.scrollDelta.dy < 0) {
-              controller(context).player.setVolume(
+              unawaited(controller(context).player.setVolume(
                     (volume + 5.0).clamp(0.0, 100.0),
-                  );
+                  ));
             }
             if (event.scrollDelta.dy > 0) {
-              controller(context).player.setVolume(
+              unawaited(controller(context).player.setVolume(
                     (volume - 5.0).clamp(0.0, 100.0),
-                  );
+                  ));
             }
           }
         },
@@ -1550,7 +1550,7 @@ class MaterialDesktopPositionIndicatorState
   late Duration position = controller(context).player.state.position;
   late Duration duration = controller(context).player.state.duration;
 
-  final List<StreamSubscription> subscriptions = [];
+  final List<StreamSubscription<Object?>> subscriptions = [];
 
   @override
   void setState(VoidCallback fn) {
@@ -1583,7 +1583,7 @@ class MaterialDesktopPositionIndicatorState
   @override
   void dispose() {
     for (final subscription in subscriptions) {
-      subscription.cancel();
+      unawaited(subscription.cancel());
     }
     super.dispose();
   }

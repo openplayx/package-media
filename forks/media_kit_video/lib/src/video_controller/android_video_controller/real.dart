@@ -137,13 +137,17 @@ class AndroidVideoController extends PlatformVideoController {
     Future<String> getDefaultHwdec() async {
       // Enforce software rendering in emulators.
       bool hw = configuration.enableHardwareAcceleration;
-      final bool isEmulator = await _channel.invokeMethod('Utils.IsEmulator');
+      final bool isEmulator =
+          await _channel.invokeMethod<bool>('Utils.IsEmulator') ?? false;
       if (isEmulator) {
         hw = false;
         debugPrint('media_kit: Emulator detected.');
         debugPrint('media_kit: Enforcing S/W rendering.');
       }
-      return hw ? 'auto-safe' : 'no';
+      // Prefer zero-copy mediacodec (EGL SurfaceTexture interop) on physical
+      // Android devices to avoid 4K copy-back frame drops, falling back to
+      // mediacodec-copy when zero-copy is unavailable.
+      return hw ? 'mediacodec,mediacodec-copy' : 'no';
     }
 
     // Update [configuration] to have default values.
@@ -203,7 +207,11 @@ class AndroidVideoController extends PlatformVideoController {
         'sub-use-margins': 'no',
         'sub-font-provider': 'none',
         'sub-scale-with-window': 'yes',
-        'hwdec-codecs': 'h264,hevc,mpeg4,mpeg2video,vp8,vp9,av1',
+        // AV1 MediaCodec copy-back on Android (e.g. Pixel Tensor) leaks a
+        // bottom green padding bar on 1080p 10-bit streams; MPEG-4 ASP
+        // (DivX/Xvid) MediaCodec stalls on Android 17. Decode both via FFmpeg
+        // software decoders (dav1d NEON / mpeg4) instead.
+        'hwdec-codecs': 'h264,hevc,mpeg2video,vp8,vp9',
       },
     );
 
@@ -258,15 +266,15 @@ class AndroidVideoController extends PlatformVideoController {
                 case 'VideoOutput.Resize':
                   {
                     // Notify about updated texture ID & [Rect].
-                    final int handle = call.arguments['handle'];
+                    final int handle = call.arguments['handle'] as int;
                     final Rect rect = Rect.fromLTWH(
-                      call.arguments['rect']['left'] * 1.0,
-                      call.arguments['rect']['top'] * 1.0,
-                      call.arguments['rect']['width'] * 1.0,
-                      call.arguments['rect']['height'] * 1.0,
+                      (call.arguments['rect']['left'] as num).toDouble(),
+                      (call.arguments['rect']['top'] as num).toDouble(),
+                      (call.arguments['rect']['width'] as num).toDouble(),
+                      (call.arguments['rect']['height'] as num).toDouble(),
                     );
-                    final int id = call.arguments['id'];
-                    final int wid = call.arguments['wid'];
+                    final int id = call.arguments['id'] as int;
+                    final int wid = call.arguments['wid'] as int;
                     _controllers[handle]?.rect.value = rect;
                     _controllers[handle]?.id.value = id;
                     _controllers[handle]?.wid.value = wid;
@@ -275,7 +283,7 @@ class AndroidVideoController extends PlatformVideoController {
                 case 'VideoOutput.WaitUntilFirstFrameRenderedNotify':
                   {
                     // Notify about updated texture ID & [Rect].
-                    final int handle = call.arguments['handle'];
+                    final int handle = call.arguments['handle'] as int;
                     debugPrint(handle.toString());
                     // Notify about the first frame being rendered.
                     final completer = _controllers[handle]

@@ -387,18 +387,18 @@ class Tracks {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is Tracks) {
-      return ListEquality().equals(video, other.video) &&
-          ListEquality().equals(audio, other.audio) &&
-          ListEquality().equals(subtitle, other.subtitle);
+      return ListEquality<Object?>().equals(video, other.video) &&
+          ListEquality<Object?>().equals(audio, other.audio) &&
+          ListEquality<Object?>().equals(subtitle, other.subtitle);
     }
     return false;
   }
 
   @override
   int get hashCode =>
-      ListEquality().hash(video) ^
-      ListEquality().hash(audio) ^
-      ListEquality().hash(subtitle);
+      ListEquality<Object?>().hash(video) ^
+      ListEquality<Object?>().hash(audio) ^
+      ListEquality<Object?>().hash(subtitle);
 
   @override
   String toString() =>

@@ -1,21 +1,26 @@
 // https://stackoverflow.com/questions/49043257/how-to-ensure-to-run-some-code-on-same-background-thread/49075382#49075382
-class Worker {
+//
+// @unchecked Sendable: all mutable state (`queue`, `canceled`) is guarded by
+// `lock`, and the dedicated thread is woken through `semaphore`, so the worker
+// can be shared with the thread it starts and with any caller of `enqueue`.
+final class Worker: @unchecked Sendable {
   public typealias Job = () -> Void
 
   private let semaphore = DispatchSemaphore(value: 0)
   private let lock = NSRecursiveLock()
-  private var thread: Thread!
+  private var thread: Thread?
   private var queue = [Job]()
   private var canceled: Bool = false
 
   init() {
-    thread = Thread(block: loop)
+    let thread = Thread { [self] in self.loop() }
+    self.thread = thread
     thread.start()
   }
 
   public func cancel() {
     signalCancel()
-    thread.cancel()
+    thread?.cancel()
   }
 
   public func enqueue(_ job: @escaping Job) {

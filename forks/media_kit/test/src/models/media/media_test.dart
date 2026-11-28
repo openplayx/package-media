@@ -149,14 +149,14 @@ void main() {
       print(c.extras);
 
       expect(
-        MapEquality().equals(
+        MapEquality<Object?, Object?>().equals(
           a.extras,
           b.extras,
         ),
         equals(true),
       );
       expect(
-        MapEquality().equals(
+        MapEquality<Object?, Object?>().equals(
           c.extras,
           {
             'x': 'y',
@@ -192,14 +192,14 @@ void main() {
       print(c.httpHeaders);
 
       expect(
-        MapEquality().equals(
+        MapEquality<Object?, Object?>().equals(
           a.httpHeaders,
           b.httpHeaders,
         ),
         equals(true),
       );
       expect(
-        MapEquality().equals(
+        MapEquality<Object?, Object?>().equals(
           c.httpHeaders,
           {
             'x': 'y',
@@ -227,7 +227,7 @@ void main() {
               'key_1': 'value_1',
             },
           );
-          await Future.delayed(Duration(seconds: 5));
+          await Future<void>.delayed(Duration(seconds: 5));
         }
         if (i == 1) {
           final playable = Media(sources.platform.first);

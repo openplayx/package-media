@@ -93,7 +93,7 @@ abstract class PlatformPlayer {
       (previous, current) => previous == current,
     ),
     audioDevicesController.stream.distinct(
-      (previous, current) => ListEquality().equals(previous, current),
+      (previous, current) => ListEquality<Object?>().equals(previous, current),
     ),
     trackController.stream.distinct(
       (previous, current) => previous == current,
@@ -108,7 +108,7 @@ abstract class PlatformPlayer {
       (previous, current) => previous == current,
     ),
     subtitleController.stream.distinct(
-      (previous, current) => ListEquality().equals(previous, current),
+      (previous, current) => ListEquality<Object?>().equals(previous, current),
     ),
     logController.stream.distinct(
       (previous, current) => previous == current,

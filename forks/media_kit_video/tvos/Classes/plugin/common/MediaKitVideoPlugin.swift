@@ -1,13 +1,27 @@
+// @preconcurrency: Flutter's globals (FlutterMethodNotImplemented) and
+// protocols (FlutterTextureRegistry) predate Swift concurrency annotations.
 #if canImport(Flutter)
-  import Flutter
+  @preconcurrency import Flutter
 #elseif canImport(FlutterMacOS)
-  import FlutterMacOS
+  @preconcurrency import FlutterMacOS
 #endif
 
-public class MediaKitVideoPlugin: NSObject, FlutterPlugin {
+// Main-actor isolated: Flutter registers plugins and delivers method calls on
+// the platform (main) thread. FlutterPlugin is not annotated, hence the
+// @preconcurrency conformance.
+@MainActor
+public class MediaKitVideoPlugin: NSObject, @preconcurrency FlutterPlugin {
   private static let CHANNEL_NAME = "com.alexmercerind/media_kit_video"
 
-  public static func register(with registrar: FlutterPluginRegistrar) {
+  // Nonisolated because generated Swift registrants (macOS) call it from
+  // nonisolated code; Flutter registers plugins on the platform (main) thread.
+  nonisolated public static func register(with registrar: FlutterPluginRegistrar) {
+    MainActor.assumeIsolated {
+      registerOnMainActor(registrar)
+    }
+  }
+
+  private static func registerOnMainActor(_ registrar: FlutterPluginRegistrar) {
     #if canImport(Flutter)
       let binaryMessenger = registrar.messenger()
       let registry = registrar.textures()
@@ -71,21 +85,20 @@ public class MediaKitVideoPlugin: NSObject, FlutterPlugin {
     _ result: FlutterResult
   ) {
     let args = arguments as? [String: Any]
-    let handleStr = args?["handle"] as! String
-    let handle: Int64? = Int64(handleStr)
-    let configDict = args?["configuration"] as! [String: Any]
+    guard let handle = MediaKitVideoPlugin.parseHandle(args, result) else {
+      return
+    }
+    let configDict = args?["configuration"] as? [String: Any] ?? [:]
     let configuration = VideoOutputConfiguration.fromDict(configDict)
 
-    assert(handle != nil, "handle must be an Int64")
-
     videoOutputManager.create(
-      handle: handle!,
+      handle: handle,
       configuration: configuration,
       textureUpdateCallback: { (_ textureId: Int64, _ size: CGSize) in
         self.channel.invokeMethod(
           "VideoOutput.Resize",
           arguments: [
-            "handle": handle!,
+            "handle": handle,
             "id": textureId,
             "rect": [
               "top": 0,
@@ -106,18 +119,14 @@ public class MediaKitVideoPlugin: NSObject, FlutterPlugin {
     _ result: FlutterResult
   ) {
     let args = arguments as? [String: Any]
-    let handleStr = args?["handle"] as! String
-    let widthStr = args?["width"] as! String
-    let heightStr = args?["height"] as! String
-
-    let handle: Int64? = Int64(handleStr)
-    let width: Int64? = Int64(widthStr)
-    let height: Int64? = Int64(heightStr)
-
-    assert(handle != nil, "handle must be an Int64")
+    guard let handle = MediaKitVideoPlugin.parseHandle(args, result) else {
+      return
+    }
+    let width: Int64? = (args?["width"] as? String).flatMap { Int64($0) }
+    let height: Int64? = (args?["height"] as? String).flatMap { Int64($0) }
 
     self.videoOutputManager.setSize(
-      handle: handle!,
+      handle: handle,
       width: width,
       height: height
     )
@@ -130,16 +139,34 @@ public class MediaKitVideoPlugin: NSObject, FlutterPlugin {
     _ result: FlutterResult
   ) {
     let args = arguments as? [String: Any]
-    let handleStr = args?["handle"] as! String
-    let handle: Int64? = Int64(handleStr)
-
-    assert(handle != nil, "handle must be an Int64")
+    guard let handle = MediaKitVideoPlugin.parseHandle(args, result) else {
+      return
+    }
 
     videoOutputManager.destroy(
-      handle: handle!
+      handle: handle
     )
 
     result(nil)
+  }
+
+  /// Parses the `handle` argument (an Int64 sent as a String). Reports a
+  /// FlutterError and returns nil when it is missing or malformed.
+  private static func parseHandle(
+    _ args: [String: Any]?,
+    _ result: FlutterResult
+  ) -> Int64? {
+    guard let handleStr = args?["handle"] as? String,
+          let handle = Int64(handleStr)
+    else {
+      result(FlutterError(
+        code: "invalid-argument",
+        message: "handle must be an Int64 string",
+        details: nil
+      ))
+      return nil
+    }
+    return handle
   }
 
   private func handleEnterNativeFullscreenMethodCall(

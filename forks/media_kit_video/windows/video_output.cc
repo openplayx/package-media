@@ -9,6 +9,8 @@
 #include "video_output.h"
 
 #include <algorithm>
+#include <exception>
+#include <iostream>
 
 // Limit the frame size to 1080p in software rendering.
 // This is for performance reasons & to avoid allocating too much memory.
@@ -108,43 +110,55 @@ VideoOutput::VideoOutput(int64_t handle,
 }
 
 VideoOutput::~VideoOutput() {
-  destroyed_ = true;
-  auto promise = std::promise<void>();
-  if (texture_id_) {
-    registrar_->texture_registrar()->UnregisterTexture(
-        texture_id_, [&, texture_id = texture_id_]() {
-          // Add one more task into the thread pool queue & exit the destructor
-          // only when it gets executed. This will ensure that all the tasks
-          // posted to the thread pool i.e. render or resize before this are
-          // executed (and won't reference the dead object anymore), most
-          // notably |CheckAndResize| & |Render|.
-          auto future = thread_pool_ref_->Post([&, id = texture_id]() {
-            std::cout << "media_kit: VideoOutput: Free Texture: " << id
-                      << std::endl;
-            std::cout << "VideoOutput::~VideoOutput: "
-                      << reinterpret_cast<int64_t>(handle_) << std::endl;
-            std::lock_guard<std::mutex> lock(textures_mutex_);
-            texture_variants_.clear();
-            // H/W
-            textures_.clear();
-            // S/W
-            pixel_buffer_textures_.clear();
-            // Free (call destructor) |ANGLESurfaceManager| through the thread
-            // pool. This will ensure synchronized EGL or ANGLE usage & won't
-            // conflict with |Render| or |CheckAndResize| of other
-            // |VideoOutput|s.
-            surface_manager_.reset(nullptr);
-            promise.set_value();
+  // Destructors are implicitly noexcept: an exception escaping here (from
+  // std::promise/std::future, the thread pool or the texture registrar)
+  // would call std::terminate. Log it instead; the synchronization below is
+  // unchanged.
+  try {
+    destroyed_ = true;
+    auto promise = std::promise<void>();
+    if (texture_id_) {
+      registrar_->texture_registrar()->UnregisterTexture(
+          texture_id_, [&, texture_id = texture_id_]() {
+            // Add one more task into the thread pool queue & exit the destructor
+            // only when it gets executed. This will ensure that all the tasks
+            // posted to the thread pool i.e. render or resize before this are
+            // executed (and won't reference the dead object anymore), most
+            // notably |CheckAndResize| & |Render|.
+            auto future = thread_pool_ref_->Post([&, id = texture_id]() {
+              std::cout << "media_kit: VideoOutput: Free Texture: " << id
+                        << std::endl;
+              std::cout << "VideoOutput::~VideoOutput: "
+                        << reinterpret_cast<int64_t>(handle_) << std::endl;
+              std::lock_guard<std::mutex> lock(textures_mutex_);
+              texture_variants_.clear();
+              // H/W
+              textures_.clear();
+              // S/W
+              pixel_buffer_textures_.clear();
+              // Free (call destructor) |ANGLESurfaceManager| through the thread
+              // pool. This will ensure synchronized EGL or ANGLE usage & won't
+              // conflict with |Render| or |CheckAndResize| of other
+              // |VideoOutput|s.
+              surface_manager_.reset(nullptr);
+              promise.set_value();
+            });
           });
-        });
+    }
+
+    promise.get_future().wait();
+    texture_id_ = 0;
+
+    thread_pool_ref_->Post([render_context = render_context_]() {
+      mpv_render_context_free(render_context);
+    });
+  } catch (const std::exception& e) {
+    std::cerr << "media_kit: VideoOutput::~VideoOutput: " << e.what()
+              << std::endl;
+  } catch (...) {
+    std::cerr << "media_kit: VideoOutput::~VideoOutput: unknown exception"
+              << std::endl;
   }
-
-  promise.get_future().wait();
-  texture_id_ = 0;
-
-  thread_pool_ref_->Post([render_context = render_context_]() {
-    mpv_render_context_free(render_context);
-  });
 }
 
 void VideoOutput::NotifyRender() {

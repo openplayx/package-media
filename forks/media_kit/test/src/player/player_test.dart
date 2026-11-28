@@ -68,7 +68,7 @@ void main() {
       expect(future, isNotNull);
       expect(future, completes);
 
-      await Future.delayed(const Duration(seconds: 10));
+      await Future<void>.delayed(const Duration(seconds: 10));
 
       await player.dispose();
     },
@@ -151,7 +151,7 @@ void main() {
 
       await player.open(Media(sources.platform[0]));
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -230,7 +230,7 @@ void main() {
 
       await player.open(playable);
 
-      await Future.delayed(const Duration(minutes: 1, seconds: 30));
+      await Future<void>.delayed(const Duration(minutes: 1, seconds: 30));
 
       await player.dispose();
     },
@@ -274,7 +274,7 @@ void main() {
         play: false,
       );
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -316,7 +316,7 @@ void main() {
 
       await player.open(playable, play: false);
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -378,7 +378,7 @@ void main() {
       );
       await player.play();
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -458,7 +458,7 @@ void main() {
       await player.open(playable, play: false);
       await player.play();
 
-      await Future.delayed(const Duration(minutes: 1, seconds: 30));
+      await Future<void>.delayed(const Duration(minutes: 1, seconds: 30));
 
       await player.dispose();
     },
@@ -497,7 +497,7 @@ void main() {
       await player.open(playable);
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 10));
+      await Future<void>.delayed(const Duration(seconds: 10));
 
       await player.dispose();
     },
@@ -515,7 +515,7 @@ void main() {
           expect(value, isA<Map<String, dynamic>>());
           final extras = value as Map<String, dynamic>;
           expect(
-            MapEquality().equals(
+            MapEquality<Object?, Object?>().equals(
               extras,
               {
                 'foo': 'bar',
@@ -543,7 +543,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -560,7 +560,7 @@ void main() {
           expect(value, isA<Map<String, dynamic>>());
           final extras = value as Map<String, dynamic>;
           expect(
-            MapEquality().equals(
+            MapEquality<Object?, Object?>().equals(
               extras,
               {
                 'i': i.toString(),
@@ -597,7 +597,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -663,7 +663,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -740,7 +740,7 @@ void main() {
 
       player.stream.completed.listen((e) {
         if (e) {
-          subscription?.cancel();
+          unawaited(subscription?.cancel());
         }
       });
 
@@ -757,7 +757,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -788,7 +788,7 @@ void main() {
           expect(value, isA<Playlist>());
           final playable = value as Playlist;
           expect(
-            ListEquality().equals(
+            ListEquality<Object?>().equals(
               playable.medias,
               [
                 Media(
@@ -819,7 +819,7 @@ void main() {
           final path = sources.platform[i];
           e.response.headers.add('Content-Type', 'video/mp4');
           e.response.headers.add('Accept-Ranges', 'bytes');
-          File(path).openRead().pipe(e.response);
+          await File(path).openRead().pipe(e.response);
         },
       );
 
@@ -839,7 +839,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
       await server.close();
@@ -871,7 +871,7 @@ void main() {
           final playable = value as Playlist;
           expect(playable.index, i);
           expect(
-            ListEquality().equals(
+            ListEquality<Object?>().equals(
               playable.medias,
               [
                 for (int i = 0; i < sources.platform.length; i++)
@@ -929,7 +929,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
       await server.close();
@@ -942,7 +942,7 @@ void main() {
     () async {
       // Only applicable for PlaylistMode.none.
 
-      final completer = Completer();
+      final completer = Completer<void>();
 
       final player = Player();
 
@@ -1003,7 +1003,7 @@ void main() {
         }
       });
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       // Begin test.
 
@@ -1011,7 +1011,7 @@ void main() {
 
       // End test.
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -1020,7 +1020,7 @@ void main() {
   test(
     'player-seek-after-completed',
     () async {
-      final completer = Completer();
+      final completer = Completer<void>();
 
       final player = Player();
 
@@ -1082,7 +1082,7 @@ void main() {
       });
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       // Begin test.
 
@@ -1090,7 +1090,7 @@ void main() {
 
       // End test.
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -1144,7 +1144,7 @@ void main() {
 
       await player.open(Media(sources.platform[0]));
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.open(Media(sources.platform[1]));
 
@@ -1235,7 +1235,7 @@ void main() {
 
           await player.setAudioDevice(devices[i]);
 
-          await Future.delayed(const Duration(seconds: 1));
+          await Future<void>.delayed(const Duration(seconds: 1));
         }
       }
 
@@ -1289,7 +1289,7 @@ void main() {
 
         await player.setVolume(i.toDouble());
 
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
       }
 
       addTearDown(player.dispose);
@@ -1323,7 +1323,7 @@ void main() {
 
         await player.setRate(test[i]);
 
-        await Future.delayed(const Duration(milliseconds: 20));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
       }
 
       addTearDown(player.dispose);
@@ -1368,7 +1368,7 @@ void main() {
 
         await player.setPitch(test[i]);
 
-        await Future.delayed(const Duration(milliseconds: 20));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
       }
 
       addTearDown(player.dispose);
@@ -1445,11 +1445,11 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.jump(2);
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -1482,11 +1482,11 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.move(1, 3);
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -1519,7 +1519,7 @@ void main() {
       await player.setPlaylistMode(PlaylistMode.none);
       await player.open(playable);
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -1551,7 +1551,7 @@ void main() {
       await player.setPlaylistMode(PlaylistMode.single);
       await player.open(playable);
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -1589,7 +1589,7 @@ void main() {
       await player.setPlaylistMode(PlaylistMode.loop);
       await player.open(playable);
 
-      await Future.delayed(const Duration(minutes: 2, seconds: 30));
+      await Future<void>.delayed(const Duration(minutes: 2, seconds: 30));
 
       await player.dispose();
     },
@@ -1628,7 +1628,7 @@ void main() {
         } catch (_) {}
       });
 
-      await Future.delayed(const Duration(seconds: 15));
+      await Future<void>.delayed(const Duration(seconds: 15));
 
       timer.cancel();
       await player.dispose();
@@ -1668,7 +1668,7 @@ void main() {
         } catch (_) {}
       });
 
-      await Future.delayed(const Duration(seconds: 15));
+      await Future<void>.delayed(const Duration(seconds: 15));
 
       timer.cancel();
       await player.dispose();
@@ -1713,7 +1713,7 @@ void main() {
         } catch (_) {}
       });
 
-      await Future.delayed(const Duration(seconds: 15));
+      await Future<void>.delayed(const Duration(seconds: 15));
 
       timer.cancel();
       await player.dispose();
@@ -1750,7 +1750,7 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.jump(sources.platform.length - 1);
 
@@ -1760,7 +1760,7 @@ void main() {
         } catch (_) {}
       });
 
-      await Future.delayed(const Duration(seconds: 45));
+      await Future<void>.delayed(const Duration(seconds: 45));
 
       timer.cancel();
       await player.dispose();
@@ -1797,7 +1797,7 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.jump(sources.platform.length - 1);
 
@@ -1807,7 +1807,7 @@ void main() {
         } catch (_) {}
       });
 
-      await Future.delayed(const Duration(seconds: 45));
+      await Future<void>.delayed(const Duration(seconds: 45));
 
       timer.cancel();
       await player.dispose();
@@ -1846,7 +1846,7 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.jump(sources.platform.length - 1);
 
@@ -1856,7 +1856,7 @@ void main() {
         } catch (_) {}
       });
 
-      await Future.delayed(const Duration(seconds: 45));
+      await Future<void>.delayed(const Duration(seconds: 45));
 
       timer.cancel();
       await player.dispose();
@@ -1903,11 +1903,11 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.add(Media(sources.platform[1]));
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -1956,16 +1956,16 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.jump(1);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.remove(0);
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -2012,11 +2012,11 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.remove(1);
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -2064,11 +2064,11 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.remove(0);
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -2117,16 +2117,16 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.jump(sources.platform.length - 1);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.remove(sources.platform.length - 1);
 
-      await Future.delayed(const Duration(seconds: 45));
+      await Future<void>.delayed(const Duration(seconds: 45));
 
       await player.dispose();
     },
@@ -2175,16 +2175,16 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.jump(sources.platform.length - 1);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.remove(sources.platform.length - 1);
 
-      await Future.delayed(const Duration(seconds: 45));
+      await Future<void>.delayed(const Duration(seconds: 45));
 
       await player.dispose();
     },
@@ -2234,16 +2234,16 @@ void main() {
       await player.open(playable);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.jump(sources.platform.length - 1);
 
       // NOTE: VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.remove(sources.platform.length - 1);
 
-      await Future.delayed(const Duration(seconds: 45));
+      await Future<void>.delayed(const Duration(seconds: 45));
 
       await player.dispose();
     },
@@ -2338,17 +2338,17 @@ void main() {
       await player.open(playable);
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       await player.setShuffle(true);
 
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       // VOLUNTARY DELAY.
       await player.setShuffle(false);
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       await player.dispose();
     },
@@ -2402,7 +2402,7 @@ void main() {
       await player.open(playable);
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       await player.setShuffle(true);
       await player.setShuffle(true);
@@ -2410,17 +2410,17 @@ void main() {
       await player.setShuffle(true);
       await player.setShuffle(true);
 
-      await Future.delayed(const Duration(seconds: 1));
-
-      // VOLUNTARY DELAY.
-      await player.setShuffle(false);
-      await player.setShuffle(false);
-      await player.setShuffle(false);
-      await player.setShuffle(false);
-      await player.setShuffle(false);
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 1));
+      await player.setShuffle(false);
+      await player.setShuffle(false);
+      await player.setShuffle(false);
+      await player.setShuffle(false);
+      await player.setShuffle(false);
+
+      // VOLUNTARY DELAY.
+      await Future<void>.delayed(const Duration(seconds: 1));
 
       await player.dispose();
     },
@@ -2454,7 +2454,7 @@ void main() {
 
       await player.open(Media(sources.file[0]));
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -2489,7 +2489,7 @@ void main() {
 
       await player.open(Media(sources.network[0]));
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -2523,7 +2523,7 @@ void main() {
         play: false,
       );
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -2558,7 +2558,7 @@ void main() {
         play: false,
       );
 
-      await Future.delayed(const Duration(seconds: 30));
+      await Future<void>.delayed(const Duration(seconds: 30));
 
       await player.dispose();
     },
@@ -2597,7 +2597,7 @@ void main() {
       player.stream.duration.listen((event) async {
         if (event > Duration.zero) {
           // VOLUNTARY DELAY.
-          await Future.delayed(const Duration(seconds: 5));
+          await Future<void>.delayed(const Duration(seconds: 5));
 
           print('Seek');
 
@@ -2611,7 +2611,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -2653,7 +2653,7 @@ void main() {
       player.stream.duration.listen((event) async {
         if (event > Duration.zero) {
           // VOLUNTARY DELAY.
-          await Future.delayed(const Duration(seconds: 5));
+          await Future<void>.delayed(const Duration(seconds: 5));
 
           print('Seek');
 
@@ -2670,7 +2670,7 @@ void main() {
           await player.pause();
 
           // VOLUNTARY DELAY.
-          await Future.delayed(const Duration(seconds: 5));
+          await Future<void>.delayed(const Duration(seconds: 5));
 
           print('Play');
 
@@ -2684,7 +2684,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -2769,7 +2769,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1, seconds: 30));
+      await Future<void>.delayed(const Duration(minutes: 1, seconds: 30));
 
       await player.dispose();
     },
@@ -2783,12 +2783,12 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.stop();
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       print(player.state);
 
@@ -2808,7 +2808,7 @@ void main() {
       expect(player.state.width, equals(null));
       expect(player.state.height, equals(null));
       expect(
-        ListEquality().equals(
+        ListEquality<Object?>().equals(
           player.state.subtitle,
           [
             '',
@@ -2819,7 +2819,7 @@ void main() {
       );
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -2834,12 +2834,12 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.stop();
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       final expectPosition = expectAsync1(
         (value) {
@@ -2860,7 +2860,7 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -2874,7 +2874,7 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       final screenshot = await player.screenshot();
 
@@ -2883,7 +2883,7 @@ void main() {
       expect(screenshot?.length ?? 0, greaterThan(0));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -2898,7 +2898,7 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       final jpeg = await player.screenshot(format: 'image/jpeg');
       expect(jpeg, isNotNull);
@@ -2914,7 +2914,7 @@ void main() {
       expect(pixels?.length ?? 0, greaterThan(0));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -2929,7 +2929,7 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       // CORS
       final screenshot = await player.screenshot();
@@ -2937,7 +2937,7 @@ void main() {
       expect(screenshot, isNull);
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -2952,7 +2952,7 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       // CORS
       final screenshot = await player.screenshot(format: 'image/png');
@@ -2960,7 +2960,7 @@ void main() {
       expect(screenshot, isNull);
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -2975,7 +2975,7 @@ void main() {
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       expect(
         () async => await player.screenshot(format: 'abc'),
@@ -2987,7 +2987,7 @@ void main() {
       );
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -3049,7 +3049,7 @@ void main() {
         emitsInOrder(
           [
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3058,7 +3058,7 @@ void main() {
             ),
             // SAME VALUE!
             // TypeMatcher<List<String>>().having(
-            //   (subtitle) => ListEquality().equals(
+            //   (subtitle) => ListEquality<Object?>().equals(
             //     subtitle,
             //     ['', ''],
             //   ),
@@ -3066,7 +3066,7 @@ void main() {
             //   isTrue,
             // ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['...the colossus of Rhodes!', ''],
               ),
@@ -3074,7 +3074,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3082,7 +3082,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['No!', ''],
               ),
@@ -3090,7 +3090,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3098,7 +3098,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'The colossus of Rhodes\nand it is here just for you Proog.',
@@ -3109,7 +3109,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3117,7 +3117,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['It is there...', ''],
               ),
@@ -3125,7 +3125,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3133,7 +3133,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['I\'m telling you,\nEmo...', ''],
               ),
@@ -3151,7 +3151,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(seconds: 90));
+      await Future<void>.delayed(const Duration(seconds: 90));
 
       await player.dispose();
     },
@@ -3244,7 +3244,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 2));
+      await Future<void>.delayed(const Duration(minutes: 2));
 
       await player.dispose();
     },
@@ -3313,7 +3313,7 @@ void main() {
         emitsInOrder(
           [
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3322,7 +3322,7 @@ void main() {
             ),
             // SAME VALUE!
             // TypeMatcher<List<String>>().having(
-            //   (subtitle) => ListEquality().equals(
+            //   (subtitle) => ListEquality<Object?>().equals(
             //     subtitle,
             //     ['', ''],
             //   ),
@@ -3330,7 +3330,7 @@ void main() {
             //   isTrue,
             // ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['Everyone wants the most from life', ''],
               ),
@@ -3338,7 +3338,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3346,7 +3346,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'Like internet experiences that are rich and entertaining',
@@ -3357,7 +3357,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3365,7 +3365,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['Phone conversations where people truly connect', ''],
               ),
@@ -3373,7 +3373,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3381,7 +3381,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'Your favourite TV programmes ready to watch at the touch of a button',
@@ -3392,7 +3392,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3400,7 +3400,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'Which is why we are bringing TV, internet and phone together in one super package',
@@ -3411,7 +3411,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3419,7 +3419,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['One simple way to get everything', ''],
               ),
@@ -3427,7 +3427,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3435,7 +3435,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['UPC', ''],
               ),
@@ -3443,7 +3443,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3451,7 +3451,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['Simply for everyone', ''],
               ),
@@ -3459,7 +3459,7 @@ void main() {
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3484,7 +3484,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -3581,7 +3581,7 @@ Simply for <u>everyone</u>
         emitsInOrder(
           [
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3590,7 +3590,7 @@ Simply for <u>everyone</u>
             ),
             // SAME VALUE!
             // TypeMatcher<List<String>>().having(
-            //   (subtitle) => ListEquality().equals(
+            //   (subtitle) => ListEquality<Object?>().equals(
             //     subtitle,
             //     ['', ''],
             //   ),
@@ -3598,7 +3598,7 @@ Simply for <u>everyone</u>
             //   isTrue,
             // ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['Everyone wants the most from life', ''],
               ),
@@ -3606,7 +3606,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3614,7 +3614,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'Like internet experiences that are rich and entertaining',
@@ -3625,7 +3625,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3633,7 +3633,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['Phone conversations where people truly connect', ''],
               ),
@@ -3641,7 +3641,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3649,7 +3649,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'Your favourite TV programmes ready to watch at the touch of a button',
@@ -3660,7 +3660,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3668,7 +3668,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'Which is why we are bringing TV, internet and phone together in one super package',
@@ -3679,7 +3679,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3687,7 +3687,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['One simple way to get everything', ''],
               ),
@@ -3695,7 +3695,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3703,7 +3703,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['UPC', ''],
               ),
@@ -3711,7 +3711,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3719,7 +3719,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['Simply for everyone', ''],
               ),
@@ -3727,7 +3727,7 @@ Simply for <u>everyone</u>
               isTrue,
             ),
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 ['', ''],
               ),
@@ -3752,7 +3752,7 @@ Simply for <u>everyone</u>
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -3791,7 +3791,7 @@ Simply for <u>everyone</u>
         ),
       );
 
-      await Future.delayed(const Duration(minutes: 1));
+      await Future<void>.delayed(const Duration(minutes: 1));
 
       await player.dispose();
     },
@@ -3818,7 +3818,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           [
             // Player.open
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   '',
@@ -3830,7 +3830,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             ),
             // Player.setSubtitleTrack
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
@@ -3843,7 +3843,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             // MUST BE RESET!
             // Player.open
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   '',
@@ -3860,12 +3860,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       await player.open(Media(sources.platform[0]));
       await player.setSubtitleTrack(SubtitleTrack.data(subtitle));
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       // Player.state.subtitle & Player.stream.subtitle must be reset.
       await player.open(Media(sources.platform[0]));
 
-      await Future.delayed(const Duration(seconds: 15));
+      await Future<void>.delayed(const Duration(seconds: 15));
 
       await player.dispose();
     },
@@ -3891,7 +3891,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           [
             // Player.open
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   '',
@@ -3903,7 +3903,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             ),
             // Player.setSubtitleTrack
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
@@ -3916,7 +3916,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             // MUST BE RESET!
             // Player.setSubtitleTrack
             TypeMatcher<List<String>>().having(
-              (subtitle) => ListEquality().equals(
+              (subtitle) => ListEquality<Object?>().equals(
                 subtitle,
                 [
                   '',
@@ -3933,12 +3933,12 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       await player.open(Media(sources.platform[0]));
       await player.setSubtitleTrack(SubtitleTrack.data(subtitle));
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       // Player.state.subtitle & Player.stream.subtitle must be reset.
       await player.setSubtitleTrack(SubtitleTrack.no());
 
-      await Future.delayed(const Duration(seconds: 15));
+      await Future<void>.delayed(const Duration(seconds: 15));
 
       await player.dispose();
     },
@@ -3960,7 +3960,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       await (player.platform as dynamic).setProperty(property, '69.0');
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },
@@ -3987,7 +3987,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 
       await (player.platform as dynamic).observeProperty(
         property,
-        (data) async {
+        (String data) async {
           // The listener must be invoked.
           expectListener(data);
         },
@@ -4000,7 +4000,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       await player.open(Media(sources.platform[0]));
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await (player.platform as dynamic).unobserveProperty(property);
       expect(
@@ -4009,7 +4009,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       );
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       // Subsequent calls must throw [ArgumentError].
       expect(
@@ -4036,7 +4036,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit.
       );
 
       // VOLUNTARY DELAY.
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       await player.dispose();
     },

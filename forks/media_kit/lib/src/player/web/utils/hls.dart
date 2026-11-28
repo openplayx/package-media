@@ -24,7 +24,7 @@ abstract class HLS {
       if (_initialized) {
         return;
       }
-      final completer = Completer();
+      final completer = Completer<void>();
       try {
         final script = web.HTMLScriptElement()
           ..async = true

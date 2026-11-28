@@ -64,6 +64,17 @@ public class SwappableObjectManager<T> {
     updateCurrent()
   }
 
+  /// Returns an object obtained from `nextAvailable()` unused, e.g. when
+  /// rendering into it failed.
+  public func pushAsAvailable(_ object: T) {
+    lock.lock()
+    defer {
+      lock.unlock()
+    }
+
+    available.append(object)
+  }
+
   public var current: T? {
     lock.lock()
     defer {
@@ -91,11 +102,11 @@ public class SwappableObjectManager<T> {
     let old: T? = _current
     _current = next
 
-    if old == nil {
+    guard let old = old else {
       return
     }
 
-    available.append(old!)
+    available.append(old)
   }
 
   static private func checkArgs(_ objects: [T]) {

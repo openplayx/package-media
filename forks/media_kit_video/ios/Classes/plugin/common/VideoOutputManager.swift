@@ -21,12 +21,15 @@ public class VideoOutputManager: NSObject {
     configuration: VideoOutputConfiguration,
     textureUpdateCallback: @escaping VideoOutput.TextureUpdateCallback
   ) {
-    let videoOutput = VideoOutput(
+    guard let videoOutput = VideoOutput(
       handle: handle,
       configuration: configuration,
       registry: self.registry,
       textureUpdateCallback: textureUpdateCallback
-    )
+    ) else {
+      NSLog("VideoOutputManager: invalid handle: \(handle)")
+      return
+    }
 
     self.videoOutputs[handle] = videoOutput
   }
@@ -36,12 +39,11 @@ public class VideoOutputManager: NSObject {
     width: Int64?,
     height: Int64?
   ) {
-    let videoOutput = self.videoOutputs[handle]
-    if videoOutput == nil {
+    guard let videoOutput = self.videoOutputs[handle] else {
       return
     }
 
-    videoOutput!.setSize(
+    videoOutput.setSize(
       width: width,
       height: height
     )

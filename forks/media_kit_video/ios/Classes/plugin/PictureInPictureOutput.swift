@@ -1,12 +1,19 @@
 import AVKit
-import Flutter
+// @preconcurrency: Flutter's globals (FlutterMethodNotImplemented) predate
+// Swift concurrency annotations.
+@preconcurrency import Flutter
 import UIKit
 
 /// Feeds the existing decoder to AVKit; never reopens the media or creates
 /// a second player. CPU rendering keeps frames available in the background.
+/// Main-actor isolated: it drives UIKit/AVKit UI and is only used from the
+/// platform thread. AVKit calls the delegates below on the main thread; their
+/// protocols are not annotated, hence the @preconcurrency conformances.
 @available(iOS 15.0, *)
-final class PictureInPictureOutput: NSObject, AVPictureInPictureControllerDelegate,
-    AVPictureInPictureSampleBufferPlaybackDelegate {
+@MainActor
+final class PictureInPictureOutput: NSObject,
+    @preconcurrency AVPictureInPictureControllerDelegate,
+    @preconcurrency AVPictureInPictureSampleBufferPlaybackDelegate {
   private let channel: FlutterMethodChannel
   private let manager: VideoOutputManager
   private var controller: AVPictureInPictureController?
@@ -15,9 +22,12 @@ final class PictureInPictureOutput: NSObject, AVPictureInPictureControllerDelega
   private var handle: Int64?
   private var pending: FlutterResult?
   private var possible: NSKeyValueObservation?
-  private var timeout: DispatchWorkItem?
-  private var timer: Timer?
-  private var foreground: NSObjectProtocol?
+  // nonisolated(unsafe) only so the nonisolated deinit can tear these down:
+  // every other access is on the main actor, and once deinit runs no other
+  // reference to the object exists.
+  nonisolated(unsafe) private var timeout: DispatchWorkItem?
+  nonisolated(unsafe) private var timer: Timer?
+  nonisolated(unsafe) private var foreground: NSObjectProtocol?
   private var starting = false
   private var restoreRequested = false
   private var timebase: CMTimebase?
@@ -50,9 +60,12 @@ final class PictureInPictureOutput: NSObject, AVPictureInPictureControllerDelega
     foreground = NotificationCenter.default.addObserver(
       forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
     ) { [weak self] _ in
-      guard let self = self, self.controller == nil else { return }
-      self.output?.setPictureInPictureFrames(nil)
-      self.output = nil
+      // Delivered on the main queue (queue: .main).
+      MainActor.assumeIsolated {
+        guard let self = self, self.controller == nil else { return }
+        self.output?.setPictureInPictureFrames(nil)
+        self.output = nil
+      }
     }
   }
 
@@ -100,11 +113,21 @@ final class PictureInPictureOutput: NSObject, AVPictureInPictureControllerDelega
     self.controller = controller
     output.setPictureInPictureFrames { [weak self] buffer in self?.display(buffer) }
     possible = controller.observe(\.isPictureInPicturePossible, options: [.initial, .new]) {
-      [weak self] controller, _ in
-      guard let self = self, controller.isPictureInPicturePossible,
-            self.pending != nil, !self.starting else { return }
-      self.starting = true
-      controller.startPictureInPicture()
+      [weak self] _, _ in
+      // AVKit reports this on the main thread (the initial value is reported
+      // synchronously from here); hop there should it ever not.
+      let start: @MainActor @Sendable () -> Void = { [weak self] in
+        guard let self = self, let controller = self.controller,
+              controller.isPictureInPicturePossible,
+              self.pending != nil, !self.starting else { return }
+        self.starting = true
+        controller.startPictureInPicture()
+      }
+      if Thread.isMainThread {
+        MainActor.assumeIsolated(start)
+      } else {
+        DispatchQueue.main.async(execute: start)
+      }
     }
     let timeout = DispatchWorkItem { [weak self] in
       guard let self = self, self.pending != nil else { return }
@@ -114,7 +137,11 @@ final class PictureInPictureOutput: NSObject, AVPictureInPictureControllerDelega
     }
     self.timeout = timeout
     DispatchQueue.main.asyncAfter(deadline: .now() + 6, execute: timeout)
-    timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.syncTime() }
+    timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+      guard let self = self else { return }
+      // Scheduled on the main run loop.
+      MainActor.assumeIsolated { self.syncTime() }
+    }
   }
 
   private func syncTime() {

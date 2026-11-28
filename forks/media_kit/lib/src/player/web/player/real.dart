@@ -50,7 +50,7 @@ class WebPlayer extends PlatformPlayer {
     }
     element = web.HTMLVideoElement();
 
-    lock.synchronized(() async {
+    unawaited(lock.synchronized(() async {
       element
         // Do not add autoplay=false attribute: https://stackoverflow.com/a/19664804/12825435
         /* ..autoplay = false */
@@ -73,25 +73,25 @@ class WebPlayer extends PlatformPlayer {
       // --------------------------------------------------
       // Event streams handling:
       element.onPlay.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.playing & PlayerState.stream.playing
           state = state.copyWith(playing: true);
           if (!playingController.isClosed) {
             playingController.add(true);
           }
-        });
+        }));
       });
       element.onPause.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.playing & PlayerState.stream.playing
           state = state.copyWith(playing: false);
           if (!playingController.isClosed) {
             playingController.add(false);
           }
-        });
+        }));
       });
       element.onPlaying.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.playing & PlayerState.stream.playing
           // PlayerState.state.buffering & PlayerState.stream.buffering
           state = state.copyWith(
@@ -104,16 +104,16 @@ class WebPlayer extends PlatformPlayer {
           if (!completedController.isClosed) {
             completedController.add(false);
           }
-        });
+        }));
       });
       element.onEnded.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // NOTE: Playlist index transition.
           await _transition();
-        });
+        }));
       });
       element.onTimeUpdate.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.position & PlayerState.stream.position
           Duration? position = convertNumVideoDurationToPluginDuration(
             element.currentTime,
@@ -168,10 +168,10 @@ class WebPlayer extends PlatformPlayer {
               }
             }
           }
-        });
+        }));
       });
       element.onDurationChange.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.duration & PlayerState.stream.duration
           final duration = convertNumVideoDurationToPluginDuration(
             element.duration,
@@ -182,10 +182,10 @@ class WebPlayer extends PlatformPlayer {
               durationController.add(duration);
             }
           }
-        });
+        }));
       });
       element.onWaiting.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.buffering & PlayerState.stream.buffering
           state = state.copyWith(buffering: true);
           if (!bufferingController.isClosed) {
@@ -200,48 +200,48 @@ class WebPlayer extends PlatformPlayer {
               bufferController.add(buffer);
             }
           }
-        });
+        }));
       });
       element.onCanPlay.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.buffering & PlayerState.stream.buffering
           state = state.copyWith(buffering: false);
           if (!bufferingController.isClosed) {
             bufferingController.add(false);
           }
-        });
+        }));
       });
       element.onCanPlayThrough.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.buffering & PlayerState.stream.buffering
           state = state.copyWith(buffering: false);
           if (!bufferingController.isClosed) {
             bufferingController.add(false);
           }
-        });
+        }));
       });
       element.onVolumeChange.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.volume & PlayerState.stream.volume
           final volume = element.volume * 100.0;
           state = state.copyWith(volume: volume);
           if (!volumeController.isClosed) {
             volumeController.add(volume);
           }
-        });
+        }));
       });
       element.onRateChange.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.speed & PlayerState.stream.speed
           final rate = element.playbackRate * 1.0;
           state = state.copyWith(rate: rate);
           if (!rateController.isClosed) {
             rateController.add(rate);
           }
-        });
+        }));
       });
       element.onError.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.buffering & PlayerState.stream.buffering
           state = state.copyWith(buffering: false);
           if (!bufferingController.isClosed) {
@@ -252,10 +252,10 @@ class WebPlayer extends PlatformPlayer {
           if (!errorController.isClosed) {
             errorController.add(error.message);
           }
-        });
+        }));
       });
       element.onResize.listen((_) {
-        lock.synchronized(() async {
+        unawaited(lock.synchronized(() async {
           // PlayerState.state.width & PlayerState.stream.width
           // PlayerState.state.height & PlayerState.stream.height
           final width = element.videoWidth;
@@ -270,7 +270,7 @@ class WebPlayer extends PlatformPlayer {
           if (!heightController.isClosed) {
             heightController.add(height);
           }
-        });
+        }));
       });
 
       if (configuration.muted) {
@@ -289,7 +289,7 @@ class WebPlayer extends PlatformPlayer {
         configuration.ready?.call();
       } catch (_) {}
       // --------------------------------------------------
-    });
+    }));
   }
 
   @override
@@ -410,13 +410,13 @@ class WebPlayer extends PlatformPlayer {
       _loadSource(state.playlist.medias[state.playlist.index]);
 
       if (play) {
-        element.play().toDart.catchError((error) {
+        unawaited(element.play().toDart.catchError((Object error) {
           final e = error as web.DOMException;
           if (!errorController.isClosed) {
             errorController.add(e.message);
           }
           return null;
-        });
+        }));
       } else {
         // A minimal quirk to match the native backend behavior.
         state = state.copyWith(
@@ -559,8 +559,8 @@ class WebPlayer extends PlatformPlayer {
       }
       await waitForPlayerInitialization;
       await waitForVideoControllerInitializationIfAttached;
-      element.play().toDart.catchError(
-        (error) {
+      unawaited(element.play().toDart.catchError(
+        (Object error) {
           // PlayerStream.error
           final e = error as web.DOMException;
           if (!errorController.isClosed) {
@@ -568,7 +568,7 @@ class WebPlayer extends PlatformPlayer {
           }
           return null;
         },
-      );
+      ));
     }
 
     if (synchronized) {
@@ -1337,13 +1337,8 @@ class WebPlayer extends PlatformPlayer {
         if (track.uri) {
           uri = track.id;
         } else if (track.data) {
-          var array = JSArray();
-          final blobParts = [track.id];
-          for (var i = 0; i < blobParts.length; i++) {
-            array.add(blobParts[i].toJS);
-          }
           // Create object URL from subtitle data using modern web API.
-          final blob = web.Blob(array as JSArray<web.BlobPart>);
+          final blob = web.Blob(<web.BlobPart>[track.id.toJS].toJS);
           final src = web.URL.createObjectURL(blob);
 
           // Revoke the object URL upon disposal.
@@ -1379,20 +1374,20 @@ class WebPlayer extends PlatformPlayer {
           firstTrack.mode = 'hidden';
 
           // Use modern event listener for cue changes.
-          firstTrack.oncuechange = (event) {
+          firstTrack.oncuechange = (web.Event event) {
             try {
               // UNTESTED! I have no idea if this works. ~Eric Apostal
               // it's pretty sketchy, so it has a very good chance of not working.
               final activeCues = firstTrack.activeCues;
               if (activeCues != null) {
                 final data = List<String>.from(
-                  (activeCues.dartify as dynamic).map((cue) {
+                  (activeCues.dartify as dynamic).map((Object? cue) {
                     final text = (cue as dynamic).text as String;
                     return text
                         .replaceAll(RegExp('<[^>]*>'), ' ')
                         .replaceAll(RegExp('\\s+'), ' ')
                         .trim();
-                  }),
+                  }) as Iterable<Object?>,
                 );
 
                 final subtitle = ['', ''];
@@ -1412,7 +1407,7 @@ class WebPlayer extends PlatformPlayer {
               print(exception);
               print(stacktrace);
             }
-          } as dynamic;
+          }.toJS;
         }
       } else {
         throw UnsupportedError(

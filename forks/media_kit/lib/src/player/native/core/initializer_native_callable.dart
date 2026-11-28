@@ -3,6 +3,7 @@
 /// Copyright © 2021 & onwards, Hitesh Kumar Saini <saini123hitesh@gmail.com>.
 /// All rights reserved.
 /// Use of this source code is governed by MIT license that can be found in the LICENSE file.
+import 'dart:async';
 import 'dart:collection';
 import 'dart:ffi';
 
@@ -69,14 +70,14 @@ class InitializerNativeCallable {
   }
 
   void _callback(Pointer<generated.mpv_handle> ctx) {
-    _locks[ctx.address]?.synchronized(() async {
+    unawaited(_locks[ctx.address]?.synchronized(() async {
       while (true) {
         final event = mpv.mpv_wait_event(ctx, 0);
         if (event == nullptr) return;
         if (event.ref.event_id == generated.mpv_event_id.MPV_EVENT_NONE) return;
         await _eventCallbacks[ctx.address]?.call(event);
       }
-    });
+    }));
   }
 
   final _locks = HashMap<int, Lock>();

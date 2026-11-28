@@ -563,7 +563,7 @@ class _MaterialVideoControlsState extends State<_MaterialVideoControls> {
   final ValueNotifier<Duration> _seekBarDeltaValueNotifier =
       ValueNotifier<Duration>(Duration.zero);
 
-  final List<StreamSubscription> subscriptions = [];
+  final List<StreamSubscription<Object?>> subscriptions = [];
 
   double get subtitleVerticalShiftOffset =>
       (_theme(context).padding?.bottom ?? 0.0) +
@@ -584,14 +584,14 @@ class _MaterialVideoControlsState extends State<_MaterialVideoControls> {
       _speedUpIndicator = true;
     });
     _currentRate = controller(context).player.state.rate;
-    controller(context).player.setRate(_theme(context).speedUpFactor);
+    unawaited(controller(context).player.setRate(_theme(context).speedUpFactor));
   }
 
   void _handleLongPressEnd(LongPressEndDetails details) {
     setState(() {
       _speedUpIndicator = false;
     });
-    controller(context).player.setRate(_currentRate);
+    unawaited(controller(context).player.setRate(_currentRate));
   }
 
   @override
@@ -649,7 +649,7 @@ class _MaterialVideoControlsState extends State<_MaterialVideoControls> {
   @override
   void dispose() {
     for (final subscription in subscriptions) {
-      subscription.cancel();
+      unawaited(subscription.cancel());
     }
     _onBrightnessReset?.call();
     _timerSeekBackwardButton?.cancel();
@@ -748,7 +748,7 @@ class _MaterialVideoControlsState extends State<_MaterialVideoControls> {
         Duration.zero,
         controller(context).player.state.duration,
       );
-      controller(context).player.seek(newPosition);
+      unawaited(controller(context).player.seek(newPosition));
     }
 
     setState(() {
@@ -1411,7 +1411,7 @@ class _MaterialVideoControlsState extends State<_MaterialVideoControls> {
                                               .state
                                               .duration,
                                         );
-                                        controller(context).player.seek(result);
+                                        unawaited(controller(context).player.seek(result));
                                       },
                                     ),
                                   )
@@ -1467,7 +1467,7 @@ class _MaterialVideoControlsState extends State<_MaterialVideoControls> {
                                               .state
                                               .duration,
                                         );
-                                        controller(context).player.seek(result);
+                                        unawaited(controller(context).player.seek(result));
                                       },
                                     ),
                                   )
@@ -1516,7 +1516,7 @@ class MaterialSeekBarState extends State<MaterialSeekBar> {
   late Duration duration = controller(context).player.state.duration;
   late Duration buffer = controller(context).player.state.buffer;
 
-  final List<StreamSubscription> subscriptions = [];
+  final List<StreamSubscription<Object?>> subscriptions = [];
 
   @override
   void setState(VoidCallback fn) {
@@ -1580,7 +1580,7 @@ class MaterialSeekBarState extends State<MaterialSeekBar> {
   void dispose() {
     widget.delta?.removeListener(listener);
     for (final subscription in subscriptions) {
-      subscription.cancel();
+      unawaited(subscription.cancel());
     }
     super.dispose();
   }
@@ -1591,7 +1591,7 @@ class MaterialSeekBarState extends State<MaterialSeekBar> {
       tapped = true;
       slider = percent.clamp(0.0, 1.0);
     });
-    controller(context).player.seek(duration * slider);
+    unawaited(controller(context).player.seek(duration * slider));
   }
 
   void onPointerDown() {
@@ -1608,7 +1608,7 @@ class MaterialSeekBarState extends State<MaterialSeekBar> {
       tapped = false;
       position = duration * slider;
     });
-    controller(context).player.seek(duration * slider);
+    unawaited(controller(context).player.seek(duration * slider));
   }
 
   void onPanStart(DragStartDetails e, BoxConstraints constraints) {
@@ -1788,7 +1788,7 @@ class MaterialPlayOrPauseButtonState extends State<MaterialPlayOrPauseButton>
   @override
   void dispose() {
     animation.dispose();
-    subscription?.cancel();
+    unawaited(subscription?.cancel());
     super.dispose();
   }
 
@@ -1969,7 +1969,7 @@ class MaterialPositionIndicatorState extends State<MaterialPositionIndicator> {
   late Duration position = controller(context).player.state.position;
   late Duration duration = controller(context).player.state.duration;
 
-  final List<StreamSubscription> subscriptions = [];
+  final List<StreamSubscription<Object?>> subscriptions = [];
 
   @override
   void setState(VoidCallback fn) {
@@ -2002,7 +2002,7 @@ class MaterialPositionIndicatorState extends State<MaterialPositionIndicator> {
   @override
   void dispose() {
     for (final subscription in subscriptions) {
-      subscription.cancel();
+      unawaited(subscription.cancel());
     }
     super.dispose();
   }
