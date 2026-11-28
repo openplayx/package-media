@@ -273,6 +273,11 @@ run_all() {
 }
 run_all "$report/samples-[0-9]*.json"
 
+# A Windows application build failure affects every sample. Retrying each one
+# repeats the same CMake/MSBuild failure without exercising playback.
+if [[ "$device" = windows* ]] && grep -Eq 'Unable to generate build files|Build process failed' "$report"/samples-[0-9]*.log; then
+  echo "Windows application build failed; skipping isolated playback retries"
+else
 python3 -I - "$report" <<'PY'
 import json, pathlib, sys
 report = pathlib.Path(sys.argv[1])
@@ -285,6 +290,7 @@ for n, i in enumerate(dict.fromkeys(failed), 1):
     (report / f"samples-retry-{n:02d}.json").write_text(json.dumps({"samples": [samples[i]]}))
 PY
 run_all "$report/samples-retry-*.json"
+fi
 
 status=0
 

@@ -1,7 +1,7 @@
 # `package-media` 全平台素材播放测试与修复交接文档
 
 > **生成时间**：2026-11-28 15:43（AEDT）  
-> **跟进时间**：2026-11-28 21:40（AEDT）
+> **跟进时间**：2026-11-28 22:21（AEDT）
 > **工作区**：`/Users/zyl/codes/mygithub/openplayx/package-media`（联动 `package-libvlc`、`build`）  
 > **统一去重基线**：[material-tests.json](file:///Users/zyl/codes/mygithub/openplayx/package-media/formats/material-tests.json)（**405 项**唯一 `auto` 用例；当前各平台预期数量见第 0 节）
 
@@ -61,9 +61,12 @@
   - **libVLC 编译 / 安装已完成，严格检查继续暴露问题**：全量扫描 **326 个 DLL 文件**，仅 `libgme_plugin.dll` 引用外部 `libgcc_s_seh-1.dll`。`21db00e` 已推 main，移除 contrib `.pc` / `.la` 的显式 `-lgcc_s`，避免覆盖 `-static-libgcc`；正式配置下 MIDI 与 GME 独立编译 / 链接均通过。
   - **正式配置头变化**：初次独立链接使用诊断覆盖参数，随后用正式 MIDI / FFmpeg 配置重新生成 Makefile，并复用 **316 个**编译器 / 平台探测结果。配置头发生变化，Make 需要重编受影响对象；不能把先前的分项链接通过视为正式组合通过。
   - **配置记录转义修复 `ea874b1`**：VLC 的 `CONFIGURE_LINE` 没有转义环境库路径中的双引号，导致 `src/misc/messages.c` 编译失败。新增 `fix_vlc_config.py`，保留其他配置、正确编码为 C 字符串；幂等 / CRLF 单测 **2/2**，实际 Windows GCC 最小 C 消费者语法验证退出 **0**。原生 `git grep` 确认仅 `messages.c` 使用该宏，因此本次修复保留配置头时间戳并只使该对象失效，避免再次全局重编。
-  - **当前最终组合验证运行中**：以 **4 线程**恢复剩余对象（无 configure 或 43 项依赖重启），日志 `C:/ci/cache/native/vlc-preflight-97b1245/production-profile.log`。完整安装 / 全 DLL ABI 检查 / 搬迁后加载与插件发现全部成功后才发布运行库缓存；之前失败日志已分别保留。
+  - **最终组合验证已通过**：以 4 线程增量完成全部对象与安装，**326 个 DLL 的 owner ABI / 闭包检查通过**；搬迁后显式预加载 owner 的 FFmpeg，libVLC 核心 / 播放器生命周期、**32 个音频过滤器与 94 个视频过滤器**发现均通过。`production-profile-exit=0`、`promote-runtime-exit=0`，缓存发布到 `C:/ci/cache/native/libvlc/8169cc73ec863b4e`；日志位于 `C:/ci/cache/native/vlc-preflight-97b1245/`。这仍不是播放冒烟结果。
   - **缓存完善 `build/main=b1f1d24`**：增加 `OPX_VLC_BUILD_DIR` 保存主库对象、仅首次升级旧依赖状态时接管缓存，并缓存完成的 libmpv。原生 PowerShell 语法检查通过。Windows 检出是 CRLF，最终运行库指纹从真实 Windows 最新 main 检出计算，避免本地 LF 字节差异导致缓存失配。
-  - **尚未跑 #35**：等待上述最终组合检查通过，然后只跑两引擎各 7 项现有播放冒烟。不把分项、原生构建或 DLL 扫描通过冒充播放通过。
+  - **MSVC 接口单项通过 `696db3d`**：libvlcpp 的 `ssize_t=long` 在 Windows x64 只有 32 位，改为 SDK 的 `SSIZE_T`。实际 MSVC C++17 消费者的指针宽度 / 回调类型静态断言与 MinGW 导入库链接通过；只修改前端包装，不改变 VLC 核心配方或缓存。
+  - **正式 #35（FAILURE）**：`SOURCE_SHA=bfb791c36aa48ff9d744bb7494c16089e1600006`、`BUILD_REF=b1f1d243aa68ab2899f615a377468d3e671c4d90`、`package-libvlc=696db3d38bdc4bf10c2175b0301f097a83758a05`，FFmpeg 仍固定 `ba56ef1fd6de387892d38f550d45fe9170fe9e55`。FFmpeg、43 项 contrib、libVLC 运行库、libmpv **全部缓存命中**，VLC 326 DLL 复验通过；失败发生在应用 CMake 配置，**7 项播放均未起跑**。
+  - **Windows Flutter junction 根路径修复**：CMake 的 `REALPATH` / `file(REAL_PATH)` 均保留 `.plugin_symlinks/vlc_player` 别名，向上两层错误落在 `ephemeral`；原生 Python `Path.resolve()` 能找到真实 `package-libvlc/forks/vlc_player`。Windows CMake 改用该方法，并检查构建入口存在。真实插件 junction 小测试及**整个应用 CMake 配置 / 生成均退出 0**，没有库重编。日志 `C:/ci/cache/native/windows-app-preflight/cmake.log`（PowerShell UTF-16LE）。
+  - **重试策略收紧**：Windows 应用构建失败时跳过逐素材重试，保留未跑项与失败报告，避免对同一 CMake / MSBuild 问题重复启动 7 次。待以新 main 固定提交启动 #36；范围仍为双引擎各 7 项现有冒烟，不跑 405 素材全量。
 - Windows 本轮范围：用户明确选择“仅完成 Windows 构建与现有冒烟测试”。不创建素材镜像，不同步约 19GB 素材，不运行 Windows 405 项全量；继续本机原生构建与现有 7 项双引擎冒烟。
 - Pixel 9：旧 PID 75641 已退出，但新的字幕全量任务仍占用该真机，不能清理 `example-wandroid/build` 或同时安装格式测试。
 - Android 模拟器：使用独立 `example-wandroid-materials/` 与空闲 `emulator-5554` 补测光盘及功能回归，首轮报告 `android-20261128-155154-945747` 因 guest shell 无响应主动中止，记录为基础设施错误。冷启动同一 AVD（不清数据、不重启共享 ADB）后，第二轮 `android-20261128-155650-778161` 共 17 项，15 通过、BIN/DVD 掉帧失败、ASX 路由覆盖失败；修复后第三轮 `android-20261128-160156-848263` **5/5 通过**，包含同批 ASX/STRM、生成 ASX、MMF 和单独 BIN/DVD（保留前次掉帧记录）。本轮 Android 17 个唯一用例均已有通过记录，但不拼接成一次全量通过声明；不替代 Pixel 9 的 4K 硬解复验。
