@@ -647,7 +647,7 @@ class MpvBackend extends PlayerBackend {
   @override
   Widget buildVideo() => Video(
     controller: _video,
-    controls: NoVideoControls,
+    controls: null,
     fill: const Color(0xFF000000),
   );
 
