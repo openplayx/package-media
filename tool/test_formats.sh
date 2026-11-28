@@ -168,10 +168,32 @@ for s in data["samples"]:
 part.write_text(json.dumps(data))
 PY
 }
+# Flutter can leave its macOS integration-test host orphaned after exiting.
+# Launch Services may then activate that stale instance instead of the next
+# test host, starving the new test of frame callbacks. Only reap orphaned
+# hosts from this worker's own build directory; live test processes are kept.
+cleanup_macos_host() {
+  [ "$1" = macos ] || return 0
+  python3 -I - "$2/build/macos/Build/Products/Debug/" <<'PY_CLEANUP'
+import os, signal, subprocess, sys
+prefix = sys.argv[1]
+for row in subprocess.check_output(['ps', '-axo', 'pid=,ppid=,comm='], text=True).splitlines():
+    fields = row.strip().split(None, 2)
+    if len(fields) != 3:
+        continue
+    pid, parent, command = fields
+    if parent == '1' and command.startswith(prefix) and '.app/Contents/MacOS/' in command:
+        try:
+            os.kill(int(pid), signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+PY_CLEANUP
+}
 run_part() {  # samples.json worker
   local device dir
   device="$(worker_device "$2")"
   dir="$(worker_dir "$2")"
+  cleanup_macos_host "$device" "$dir"
   [ -z "$remote" ] || to_remote "$1"
   echo "== playback tests ($device, worker $2): $(basename "$1")"
   local log="$report/$(basename "$1" .json).log"
@@ -195,6 +217,7 @@ run_part() {  # samples.json worker
     fi
   done
   wait "$pid" 2>/dev/null || true
+  cleanup_macos_host "$device" "$dir"
   grep -E '^[0-9]+:[0-9]+ \+[0-9]+.*: [^ ]+$|Some tests failed|All tests passed' "$log" | tail -3 || true
   cat "$log" >> "$report/flutter-w$2.log"
   if [ -n "$tvos" ]; then
