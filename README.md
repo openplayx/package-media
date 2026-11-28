@@ -30,40 +30,47 @@ replaced by `libs/media_kit_libs_<platform>_video`.
 
 media_kit and media_kit_video are forked in `forks/` (MIT, see
 `forks/*/OPENPLAYX.md`): Apple TV support (Dart checks and a `tvos/` video
-plugin ported from iOS); media_kit_video drops wakelock_plus, which has no
-Apple TV implementation, so the app keeps the screen on during playback.
+plugin ported from iOS), iOS 15+ AVKit Picture-in-Picture output, macOS
+`MPV_RENDER_PARAM_ADVANCED_CONTROL` texture updates, and dropping
+`wakelock_plus` (no Apple TV implementation; the app keeps the screen on
+during playback).
 
 ## Engine routing
 
 ```dart
 final player = RoutedPlayerBackend();      // EngineRouter defaults
 await player.open(Uri.file('/media/a.mkv')); // libmpv
-await player.open(Uri.file('/media/b.mod')); // libVLC
+await player.open(Uri.file('/media/b.mpc')); // libVLC (Musepack SV7 seek)
 player.engine;                              // MediaEngine.vlc
 ```
 
-`EngineRouter` sends media to libmpv by default, tracker modules (`.mod`,
-`.xm`, `.it`, `.s3m`, ...: package-ffmpeg's libopenmpt) and game console music
-(`.nsf`, `.gym`, `.spc`, `.vgm`, ...: package-ffmpeg's libgme, which
-`MpvBackend` names as the demuxer for these extensions) included. libVLC takes
-disc navigation and platforms without a libmpv build (on Windows: when no
-`libmpv-2.dll` was bundled). When the chosen engine fails before
-playback starts, `RoutedPlayerBackend` opens the media once with the other
-engine (`fellBack`). The defaults, the extension table and the available
-engines are constructor parameters. Unit tests: `flutter test`.
+`EngineRouter` sends media to libmpv by default, including tracker modules
+(`.mod`, `.xm`, `.it`, `.s3m`, ...: package-ffmpeg's libopenmpt), game console
+music (`.nsf`, `.gym`, `.spc`, `.vgm`, ...: package-ffmpeg's libgme, which
+`MpvBackend` names as the demuxer for these extensions), and desktop optical
+disc playback (`libbluray`, `libdvdread`, `libdvdnav`). libVLC takes explicit
+`byExtension` overrides (currently Musepack `.mpc`/`.mpp`/`.mp+`) and platforms
+without a libmpv build (on Windows: when no `libmpv-2.dll` was bundled). When
+the chosen engine fails before playback starts, `RoutedPlayerBackend` opens the
+media once with the other engine (`fellBack`). The defaults, the extension
+table and the available engines are constructor parameters. Unit tests:
+`flutter test`.
 
 ## Layout
 
 | Path | What |
 |---|---|
 | `lib/` | `RoutedPlayerBackend` and `EngineRouter`; `MpvBackend` (media_kit) implementing `PlayerBackend`; re-exports the contract and `LibVlcBackend` |
-| `tool/mpv-deps.tsv` | Pinned sources: mpv 0.42.0, libplacebo 7.387.0, libass 0.17.5, freetype, harfbuzz, fribidi, glad, jinja2, markupsafe, fast_float, Vulkan-Headers |
+| `tool/mpv-deps.tsv` | Pinned sources: mpv (`09cf7a11`), libplacebo 7.387.0, libass 0.17.5, freetype, harfbuzz, fribidi, glad, jinja2, markupsafe, fast_float, Vulkan-Headers, libdvdread 7.1.1, libdvdnav 7.0.0, libbluray 1.5.0 |
 | `tool/build_mpv.sh <target>` | Builds the dependencies statically and libmpv as a shared library against package-ffmpeg |
 | `tool/make_mpv_frameworks.sh`, `tool/ensure_mpv_apple.sh` | Universal `Mpv.xcframework` whose FFmpeg references point at package-ffmpeg's frameworks |
 | `tool/patches/` | Source patches applied to mpv |
-| `libs/media_kit_libs_macos_video` | Replacement for media_kit's macOS native library package; builds libmpv at `pod install` |
+| `libs/media_kit_libs_*` | Replacement native library packages for macOS, iOS, tvOS, Android, Linux, and Windows |
+| `forks/` | Local forks of `media_kit` and `media_kit_video` (see `forks/*/OPENPLAYX.md`) |
+| `formats/` | Sample manifest, unified cross-platform regression baseline (`material-tests.json`, `MATERIAL_TESTS*.md`), and test documentation |
 | `example/` | Host app for the playback tests |
-| `tool/test_formats.sh` | File format playback tests for one engine |
+| `tool/test_materials.sh` | Unified cross-platform material regression gate (405 unique cases via `auto` router) |
+| `tool/test_formats.sh` | File format playback tests for one engine (`auto`, `mpv`, or `vlc`) |
 
 ## Requirements
 
@@ -79,8 +86,31 @@ fingerprint.
 ## File format playback tests
 
 Not run by default. This repository owns the [sample manifest](formats/manifest.json),
-`tool/prepare_samples.py`, shared integration runner and report generator for both
-engines. See [sample preparation and checks](formats/README.md). Select the engine:
+the unified cross-platform regression gate (`tool/test_materials.sh`),
+`tool/prepare_samples.py`, shared integration runner and report generator for
+both engines. See [formats/README.md](formats/README.md) for full details and
+baselines.
+
+### Unified material regression gate
+
+```sh
+tool/test_materials.sh                                      # full macOS baseline (438 cases via auto router)
+tool/test_materials.sh --list                               # list all cases without launching a player
+tool/test_materials.sh --prepare-only                       # validate sample preparation only
+tool/test_materials.sh --platform android --device emulator-5554
+tool/test_materials.sh --platform ios --device <iPhone simulator ID>
+tool/test_materials.sh --check build/material-tests/<dir>   # re-verify raw results against baseline
+```
+
+The gate runs all seven material suites (core formats/pack/external, public
+corpus, HDR/Dolby Vision/disc, subtitles & playlists, historical fixes,
+split/HD audio, ISO) through the `auto` router and compares against per-platform
+versioned baselines:
+- macOS: [438 cases](formats/MATERIAL_TESTS.md) (409 required pass, 29 allowed failure)
+- Android arm64 emulator: [438 cases](formats/MATERIAL_TESTS.android.md) (152 required pass, 6 allowed failure, 280 unverified)
+- iOS arm64 simulator: [438 cases](formats/MATERIAL_TESTS.ios.md) (150 required pass, 8 allowed failure, 280 unverified)
+
+### Targeted format & suite runs
 
 ```sh
 tool/test_formats.sh --engine auto --pack      # through the router, as the app plays
@@ -90,6 +120,7 @@ tool/test_formats.sh --engine mpv --pack --only 'pack-*'   # material pack sampl
 tool/test_formats.sh --engine mpv --device <iOS simulator | emulator-5554 | Apple TV simulator>
 tool/test_formats.sh --engine auto --device emulator-5554,emulator-5556   # two processes
 tool/linux/run.sh -- xvfb-run -a bash package-media/tool/test_formats.sh --engine mpv --device linux
+tool/test_public_corpus.sh --engine auto --source ffmpeg-fate,matroska-test-files
 ```
 
 `--pack` adds the local files of the format material pack in
@@ -104,43 +135,16 @@ macOS shares the host, simulators and emulators need one `--device` each
 (e.g. two Android emulators: `emulator -avd <avd> -read-only -port 5556`).
 The native libraries are built once before the processes start.
 
-Android devices get the samples over HTTP from the host (`tool/serve_samples.py`,
-with Range support) and print their results; Apple TV runs a smoke test
-(start, size, seek to the end, audio level and frequency; no snapshot
-comparison).
+Android devices get the samples over HTTP from the host (`tool/serve_samples.py`
+or `tool/material_transport.py`, with Range support) and print their results;
+Apple TV runs a smoke test (start, size, seek to the end, audio level and
+frequency; no snapshot comparison).
 
 mpv plays to a null audio output; the decoded audio is measured with FFmpeg's
 `astats` filter (low-pass, statistics over 50 codec frames): level and
-frequency against the 1 kHz tone. Report: `build/formats/<engine>-<time>/report.md`.
-
-Latest results with mpv (74 generated samples): macOS 73, iOS simulator 73,
-Apple TV simulator 73, Android emulator 72, Linux arm64 72 (Linux amd64: the
-key samples pass). Failures: ASX (not supported by mpv) and the `.mmf` level
-issue (ALL-373). libVLC on macOS: 66.
-Windows CI (mpv, key samples): 7 of 7.
-Through the router (`--engine auto`, 141 samples with the pack): macOS 135,
-iOS simulator 133, Android emulator 135; failures: ASX (both engines), the side-by-side 3D size, DSF seeking,
-the broken RA fixture and the pack's `.mmf`.
-Material pack per engine (67 samples, macOS): mpv 61, libVLC 48. mpv fails ASX, DSF and
-WavPack seeking, MOD (no libopenmpt in package-ffmpeg), and reports the
-side-by-side 3D file at a corrected size; the RA fixture itself is broken.
-Many libVLC failures are 3-second audio files ending right after the seek,
-which pass at 6 seconds (under investigation).
-mpv plays what libVLC cannot: TrueHD, AST, FLAC in Ogg, pls/m3u/cue
-playlists, raw MPEG-2 video with timing. Neither plays ASX playlists.
-
-### Known issues
-
-- In one process, after an AC3 file, Yamaha ADPCM (`.mmf`) decodes about
-  23 dB quieter. Under investigation.
-- A few videos drop some pictures after many players in one process (much
-  less than libVLC's ALL-371).
-
-## License
-
-This repository's code is MIT ([LICENSE](LICENSE)). Built and distributed
-with FFmpeg (x264/x265), the combination is GPL-2.0-or-later. mpv, libplacebo,
-libass and the other dependencies keep their own licenses.
+frequency against the reference tone. Reports are written to
+`build/material-tests/<platform>-<time>/report.md` (gate) or
+`build/formats/<engine>-<time>/report.md` (single suite).
 
 ### Advanced playback regression
 
@@ -151,11 +155,20 @@ selects disc tests. Reports and snapshots go to `build/formats/advanced-*`.
 Dolby Vision colour checks use the matching official Jellyfin SDR pattern,
 so successful decoding alone does not pass a visibly colour-shifted profile.
 
-macOS/Linux builds statically include pinned libbluray (with libudfread),
-libdvdread and libdvdnav for unencrypted local main-title playback. BD-J menus
-and decryption libraries are not bundled. Linux runtime and other platforms
-need their own verification. Sources/checksums are in `tool/mpv-deps.tsv`;
-license texts are in `LICENSES/`.
+macOS/Linux builds statically include pinned libbluray 1.5.0 (with libudfread),
+libdvdread 7.1.1 and libdvdnav 7.0.0 for unencrypted local main-title playback.
+BD-J menus and decryption libraries are not bundled. Linux runtime and other
+platforms need their own verification. Sources/checksums are in
+`tool/mpv-deps.tsv`; license texts are in `LICENSES/`.
+
+### Known issues
+
+- In one process, after an AC3 file, Yamaha ADPCM (`.mmf`) decodes about
+  23 dB quieter. Under investigation.
+- A few videos drop some pictures after many players in one process (much
+  less than libVLC's ALL-371).
+- Public AC-4, MPEG-H 3D Audio, and IAMF samples require decoders/renderers not
+  currently bundled; `ffmpeg-fate/Today.nuv` is a damaged fixture.
 
 ## Browser playback probe
 
@@ -172,3 +185,9 @@ PLAYWRIGHT_MODULE=/path/to/playwright-core/index.mjs \
 Set `CHROME_PATH` when Chrome is not at the default macOS installation path.
 The output argument is optional; it defaults to `/tmp/opx-web-playback.json`.
 Browser probe results are written to the requested output file.
+
+## License
+
+This repository's code is MIT ([LICENSE](LICENSE)). Built and distributed
+with FFmpeg (x264/x265), the combination is GPL-2.0-or-later. mpv, libplacebo,
+libass and the other dependencies keep their own licenses.

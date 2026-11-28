@@ -141,7 +141,15 @@ class RoutedPlayerBackend extends PlayerBackend {
     if (failedToStart && fallback && !_fellBack) {
       final other = router.fallbackFor(_engine!);
       final uri = _uri;
-      if (other != null && uri != null) {
+      // VLCKit on iOS intermittently hangs when probing raw optical disc
+      // images (.iso/.img/.nrg/.bin); fail fast instead of stalling.
+      final skipVlcDiscFallback =
+          other == MediaEngine.vlc &&
+          !kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.iOS &&
+          uri != null &&
+          MpvBackend.discImageExtensions.contains(EngineRouter.extensionOf(uri));
+      if (other != null && uri != null && !skipVlcDiscFallback) {
         _fellBack = true;
         // Not while the failed engine is notifying: switching disposes it.
         scheduleMicrotask(() async {

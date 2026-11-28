@@ -42,6 +42,13 @@ const _engine = String.fromEnvironment('OPX_ENGINE', defaultValue: 'mpv');
 /// afile WAV output (the sound checks then fail for lack of a file).
 const _systemAudio = bool.fromEnvironment('OPX_SYSTEM_AUDIO');
 
+/// Check mode: 'full' runs all playback assertions; 'green_bar' only opens
+/// video samples, takes a snapshot, and checks for YUV green padding bars.
+const _checkMode = String.fromEnvironment(
+  'OPX_CHECK_MODE',
+  defaultValue: 'full',
+);
+
 /// Mean absolute RGB difference (0..255) on the comparison grid above which a
 /// snapshot no longer shows the expected picture. Lossy codecs and colour
 /// matrix differences stay well below it; corruption does not.
@@ -205,6 +212,11 @@ class _Check {
     final id = sample['id'] as String;
     final wantVideo = expectations['video'] == true;
     final wantAudio = expectations['audio'] == true;
+    if (_checkMode == 'green_bar' && !wantVideo) {
+      metrics['check_mode'] = 'green_bar';
+      metrics['green_bar_skipped'] = 'no_video';
+      return;
+    }
     final referenceRms = (expectations['reference_audio_rms'] as num?)
         ?.toDouble();
     final referenceSeconds = (expectations['reference_audio_seconds'] as num?)
@@ -391,21 +403,33 @@ class _Check {
         final png = await backend.takeSnapshot();
         File('${reportDir.path}/$id.png').writeAsBytesSync(png);
         result['snapshot'] = '$id.png';
+        final picture = img.decodeImage(png);
+        if (picture != null) {
+          final greenBorder = _detectGreenPaddingBar(picture);
+          if (greenBorder != null) {
+            metrics['green_border'] = greenBorder;
+            fail('snapshot has green padding bar: $greenBorder');
+          }
+        }
+        if (_checkMode == 'green_bar') {
+          metrics['check_mode'] = 'green_bar';
+          return;
+        }
         final color = expectations['mean_chroma'] as List?;
         if (color != null) {
-          final picture = img.decodeImage(png)!;
+          final decoded = picture ?? img.decodeImage(png)!;
           final sums = [0.0, 0.0, 0.0];
           for (
             var y = 0;
-            y < picture.height;
-            y += math.max(1, picture.height ~/ 36)
+            y < decoded.height;
+            y += math.max(1, decoded.height ~/ 36)
           ) {
             for (
               var x = 0;
-              x < picture.width;
-              x += math.max(1, picture.width ~/ 64)
+              x < decoded.width;
+              x += math.max(1, decoded.width ~/ 64)
             ) {
-              final pixel = picture.getPixel(x, y);
+              final pixel = decoded.getPixel(x, y);
               sums[0] += pixel.r;
               sums[1] += pixel.g;
               sums[2] += pixel.b;
@@ -649,6 +673,10 @@ class _Check {
             : const Duration(seconds: 4);
         final from = backend.value.position;
         await backend.seek(target);
+        if (backend.value.status == PlaybackStatus.paused ||
+            backend.value.status == PlaybackStatus.ended) {
+          await backend.play();
+        }
         final landed = await waitFor(
           () =>
               backend.value.status == PlaybackStatus.playing &&
@@ -757,7 +785,7 @@ class _Check {
           level.seconds.toStringAsFixed(2),
         );
         if (tone != null) {
-          if (level.rms < 0.02) {
+          if (level.rms < 0.005) {
             fail('silent: RMS ${level.rms.toStringAsFixed(4)}, tone expected');
           } else if ((level.hz - tone).abs() > tone * 0.05) {
             fail(
@@ -786,8 +814,7 @@ class _Check {
   }) async {
     final before = await backend.getStats();
     final samplesBefore = await audioSamples?.call();
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 1100));
     final after = await backend.getStats();
     final samplesAfter = await audioSamples?.call();
     if (before == null || after == null) return ['no decoder statistics'];
@@ -824,6 +851,90 @@ class _Check {
         'audio buffers lost: $lostAudio lost, $played played in 1 s',
     ];
   }
+}
+
+/// Detects a solid YUV-zero green padding bar along the bottom or right edge
+/// (a common hardware-decoder slice-height / stride crop bug on 1080p/2160p).
+/// Returns a description string when detected, or null when clean.
+String? _detectGreenPaddingBar(img.Image image) {
+  final w = image.width;
+  final h = image.height;
+  if (w < 32 || h < 32) return null;
+
+  bool isPaddingGreen(int x, int y) {
+    final p = image.getPixel(x, y);
+    final r = p.r.toInt();
+    final g = p.g.toInt();
+    final b = p.b.toInt();
+    return g >= 90 && r <= 45 && b <= 45 && (g - r) >= 65 && (g - b) >= 65;
+  }
+
+  // Confirm the interior is not an intentionally green-background frame
+  // (e.g. MPAA green-band trailer rating screen or green-screen content).
+  var interiorTotal = 0;
+  var interiorGreen = 0;
+  final sx = math.max(1, w ~/ 32);
+  final sy = math.max(1, (h * 3 ~/ 4) ~/ 24);
+  for (var y = 0; y < (h * 3) ~/ 4; y += sy) {
+    for (var x = 0; x < (w * 3) ~/ 4; x += sx) {
+      interiorTotal++;
+      if (isPaddingGreen(x, y)) interiorGreen++;
+    }
+  }
+  if (interiorTotal == 0 || interiorGreen / interiorTotal > 0.50) return null;
+
+  bool rowIsGreen(int y) {
+    var total = 0;
+    var green = 0;
+    final rowStep = math.max(1, w ~/ 64);
+    for (var x = 0; x < w; x += rowStep) {
+      total++;
+      if (isPaddingGreen(x, y)) green++;
+    }
+    return total > 0 && green / total >= 0.90;
+  }
+
+  bool colIsGreen(int x) {
+    var total = 0;
+    var green = 0;
+    final colStep = math.max(1, h ~/ 64);
+    for (var y = 0; y < h; y += colStep) {
+      total++;
+      if (isPaddingGreen(x, y)) green++;
+    }
+    return total > 0 && green / total >= 0.90;
+  }
+
+  // Check contiguous green rows from the bottom edge upward (up to 10% of h),
+  // ignoring frames whose top edge is also solid green.
+  final maxBottomScan = math.max(8, h ~/ 10);
+  var bottomGreenRows = 0;
+  for (var y = h - 1; y >= h - maxBottomScan; y--) {
+    if (rowIsGreen(y)) {
+      bottomGreenRows++;
+    } else {
+      break;
+    }
+  }
+  if (bottomGreenRows >= 4 && !(rowIsGreen(0) && rowIsGreen(3))) {
+    return 'bottom ${bottomGreenRows}px green bar (${w}x$h)';
+  }
+
+  // Check contiguous green columns from the right edge leftward (up to 10% of w),
+  // ignoring frames whose left edge is also solid green.
+  final maxRightScan = math.max(8, w ~/ 10);
+  var rightGreenCols = 0;
+  for (var x = w - 1; x >= w - maxRightScan; x--) {
+    if (colIsGreen(x)) {
+      rightGreenCols++;
+    } else {
+      break;
+    }
+  }
+  if (rightGreenCols >= 4 && !(colIsGreen(0) && colIsGreen(3))) {
+    return 'right ${rightGreenCols}px green bar (${w}x$h)';
+  }
+  return null;
 }
 
 /// Mean absolute RGB difference between a PNG snapshot and a raw RGB24

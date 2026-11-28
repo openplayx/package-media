@@ -17,13 +17,14 @@
 #                          its samples are "pack-<issue>-<ext>", e.g. --only 'pack-*')
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
-only="" pack="" device="macos" engine="mpv"
+only="" pack="" device="macos" engine="mpv" check_mode="${OPX_CHECK_MODE:-full}"
 while [ $# -gt 0 ]; do
   case "$1" in
     --only) only="$2"; shift 2 ;;
     --pack) pack="${OPX_FORMAT_PACK:-$root/../materials/playback}"; shift ;;
     --device) device="$2"; shift 2 ;;
     --engine) engine="$2"; shift 2 ;;
+    --check-mode) check_mode="$2"; shift 2 ;;
     *) echo "unknown argument $1" >&2; exit 2 ;;
   esac
 done
@@ -207,7 +208,8 @@ run_part() {  # samples.json worker
       --dart-define=OPX_SAMPLES_B64="$(base64 < "$1" | tr -d '\n')" > "$log" 2>&1 &
   else
     flutter test integration_test/formats_test.dart -d "$device" "${samples_define[@]}" \
-      --dart-define=OPX_REPORT="$(native "$report")" --dart-define=OPX_ENGINE="$engine" > "$log" 2>&1 &
+      --dart-define=OPX_REPORT="$(native "$report")" --dart-define=OPX_ENGINE="$engine" \
+      --dart-define=OPX_CHECK_MODE="$check_mode" > "$log" 2>&1 &
   fi
   local pid=$! waited=0
   while kill -0 "$pid" 2>/dev/null; do

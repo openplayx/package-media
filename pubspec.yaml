@@ -6,6 +6,7 @@ environment:
   sdk: ^3.13.7
   flutter: ">=3.0.0"
 dependencies:
+  charset: ^2.0.1
   flutter:
     sdk: flutter
   # libVLC engine (sibling checkout of openplayx/package-libvlc).

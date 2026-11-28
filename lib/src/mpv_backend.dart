@@ -10,7 +10,9 @@ import 'dart:io'
         HttpStatus,
         InternetAddress,
         Platform;
+import 'dart:typed_data';
 
+import 'package:charset/charset.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart';
@@ -27,6 +29,7 @@ class MpvBackend extends PlayerBackend {
   /// [mpvOptions] are mpv properties applied before the first media, e.g.
   /// `{'ao': 'null'}` in tests.
   MpvBackend({Map<String, String> mpvOptions = const {}}) {
+    _hrSeekDemuxerOffset = mpvOptions['hr-seek-demuxer-offset'] ?? '0';
     _ensureInitialized();
     _player = Player(
       configuration: const PlayerConfiguration(
@@ -96,6 +99,8 @@ class MpvBackend extends PlayerBackend {
   final _subscriptions = <StreamSubscription<Object?>>[];
   NativePlayer get _native => _player.platform as NativePlayer;
   bool _opened = false;
+  bool _seekFromStart = false;
+  late final String _hrSeekDemuxerOffset;
   bool _ended = false;
   bool _error = false;
   bool _seekable = false;
@@ -166,7 +171,17 @@ class MpvBackend extends PlayerBackend {
 
   /// Formats whose FFmpeg demuxer lacks a seek table and overshoots to EOF on
   /// fast/inaccurate seeks; exact (`hr-seek=yes`) seeking decodes to the target.
-  static const hrSeekExtensions = {'mpc', 'mpp', 'mp+'};
+  static const hrSeekExtensions = {
+    'mpc',
+    'mpp',
+    'mp+',
+    'mac',
+    'ape',
+    'shn',
+    'wv',
+    'mmf',
+    'aa',
+  };
 
   /// Optical disc image extensions that may wrap a DVD-Video (`VIDEO_TS`) or
   /// Blu-ray (`BDMV`) filesystem and should be probed for `dvd://`/`bluray://`.
@@ -439,6 +454,11 @@ class MpvBackend extends PlayerBackend {
       'hr-seek',
       hrSeekExtensions.contains(ext) ? 'yes' : 'default',
     );
+    _seekFromStart = ext == 'mmf';
+    await _native.setProperty('hr-seek-demuxer-offset', _hrSeekDemuxerOffset);
+    if (ext == 'm3u' || ext == 'pls') {
+      await _native.setProperty('load-unsafe-playlists', 'yes');
+    }
     // Disc stream readers expect a local device/image path, not URL-escaped text.
     String location;
     if ({'bluray', 'dvd'}.contains(target.scheme)) {
@@ -513,6 +533,15 @@ class MpvBackend extends PlayerBackend {
   @override
   Future<void> seek(Duration position) async {
     _ended = false;
+    if (_seekFromStart) {
+      // Yamaha ADPCM in MMF has no independent packet predictor state.
+      // Decode from the beginning so seeking cannot change the waveform.
+      await _native.setProperty(
+        'hr-seek-demuxer-offset',
+        (position.inMicroseconds / Duration.microsecondsPerSecond + 1)
+            .toString(),
+      );
+    }
     await _player.seek(position);
   }
 
@@ -558,9 +587,120 @@ class MpvBackend extends PlayerBackend {
 
   @override
   bool get supportsExternalSubtitles => true;
+  final List<File> _tempSubtitles = <File>[];
+
   @override
-  Future<void> addExternalSubtitle(Uri file) =>
-      _player.setSubtitleTrack(SubtitleTrack.uri(file.toString()));
+  Future<void> addExternalSubtitle(Uri file) async {
+    final normalized = await _normalizeExternalSubtitle(file);
+    await _player.setSubtitleTrack(SubtitleTrack.uri(normalized.toString()));
+  }
+
+  static const _textSubtitleExts = {
+    'srt',
+    'ass',
+    'ssa',
+    'vtt',
+    'sami',
+    'smi',
+    'sub',
+    'sbv',
+    'lrc',
+    'txt',
+    'scc',
+    'ttml',
+  };
+
+  /// libmpv on Android/Windows is built without iconv/uchardet, so non-UTF-8
+  /// external text subtitles (GB18030/GBK, UTF-16LE/BE) either render as
+  /// mojibake or fail to load. Detect & transcode them to a temp UTF-8 file.
+  Future<Uri> _normalizeExternalSubtitle(Uri uri) async {
+    if (!uri.isScheme('file')) return uri;
+    final path = uri.toFilePath();
+    final dot = path.lastIndexOf('.');
+    if (dot < 0) return uri;
+    final ext = path.substring(dot + 1).toLowerCase();
+    if (!_textSubtitleExts.contains(ext)) return uri;
+    try {
+      final src = File(path);
+      if (!await src.exists()) return uri;
+      final length = await src.length();
+      if (length == 0 || length > 20 * 1024 * 1024) return uri;
+      final bytes = await src.readAsBytes();
+      // Skip binary VobSub .sub (MPEG-PS pack header 00 00 01 BA).
+      if (ext == 'sub' &&
+          bytes.length >= 4 &&
+          bytes[0] == 0x00 &&
+          bytes[1] == 0x00 &&
+          bytes[2] == 0x01 &&
+          bytes[3] == 0xBA) {
+        return uri;
+      }
+
+      String? decoded;
+      // 1. UTF-16 BOM
+      if (bytes.length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE) {
+        decoded = _decodeUtf16(bytes.sublist(2), Endian.little);
+      } else if (bytes.length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF) {
+        decoded = _decodeUtf16(bytes.sublist(2), Endian.big);
+      } else if (bytes.length >= 3 &&
+          bytes[0] == 0xEF &&
+          bytes[1] == 0xBB &&
+          bytes[2] == 0xBF) {
+        return uri; // Already UTF-8 with BOM
+      } else {
+        // 2. BOM-less UTF-16LE / UTF-16BE heuristic (ASCII timestamps have 0x00 high bytes)
+        final sampleLen = bytes.length < 512 ? bytes.length : 512;
+        if (bytes.length.isEven && sampleLen >= 8) {
+          var zeroEven = 0, zeroOdd = 0;
+          final pairs = sampleLen ~/ 2;
+          for (var i = 0; i < pairs; i++) {
+            if (bytes[i * 2] == 0) zeroEven++;
+            if (bytes[i * 2 + 1] == 0) zeroOdd++;
+          }
+          if (zeroOdd >= pairs * 0.25 && zeroEven < pairs * 0.05) {
+            decoded = _decodeUtf16(bytes, Endian.little);
+          } else if (zeroEven >= pairs * 0.25 && zeroOdd < pairs * 0.05) {
+            decoded = _decodeUtf16(bytes, Endian.big);
+          }
+        }
+        // 3. Valid UTF-8 needs no transcoding
+        if (decoded == null) {
+          try {
+            utf8.decode(bytes, allowMalformed: false);
+            return uri;
+          } on FormatException {
+            // 4. Non-UTF-8 8-bit encoding: try GBK/GB18030 first, then charset detector
+            try {
+              decoded = gbk.decode(bytes, allowMalformed: false);
+            } catch (_) {
+              final enc = Charset.detect(bytes);
+              decoded = enc != null
+                  ? enc.decode(bytes)
+                  : gbk.decode(bytes, allowMalformed: true);
+            }
+          }
+        }
+      }
+
+      final tmpDir = await Directory.systemTemp.createTemp('opx-sub-utf8-');
+      final out = File('${tmpDir.path}/normalized.$ext');
+      await out.writeAsBytes(utf8.encode(decoded), flush: true);
+      _tempSubtitles.add(out);
+      return out.uri;
+    } catch (_) {
+      return uri;
+    }
+  }
+
+  static String _decodeUtf16(Uint8List bytes, Endian endian) {
+    final len = bytes.length ~/ 2;
+    final data = ByteData.sublistView(bytes);
+    final units = Uint16List(len);
+    for (var i = 0; i < len; i++) {
+      units[i] = data.getUint16(i * 2, endian);
+    }
+    return String.fromCharCodes(units);
+  }
 
   @override
   bool get supportsDelays => true;
@@ -645,11 +785,8 @@ class MpvBackend extends PlayerBackend {
   Future<int?> pictureInPictureHandle() => _player.handle;
 
   @override
-  Widget buildVideo() => Video(
-    controller: _video,
-    controls: null,
-    fill: const Color(0xFF000000),
-  );
+  Widget buildVideo() =>
+      Video(controller: _video, controls: null, fill: const Color(0xFF000000));
 
   @override
   void dispose() {
@@ -660,6 +797,10 @@ class MpvBackend extends PlayerBackend {
     for (final s in _subscriptions) {
       unawaited(s.cancel());
     }
+    for (final f in _tempSubtitles) {
+      unawaited(f.parent.delete(recursive: true).catchError((_) => f.parent));
+    }
+    _tempSubtitles.clear();
     unawaited(_player.dispose());
     super.dispose();
   }

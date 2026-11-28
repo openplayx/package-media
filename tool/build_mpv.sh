@@ -263,14 +263,26 @@ meson_build harfbuzz "$(fetch harfbuzz)" -Dfreetype=enabled -Dglib=disabled -Dgo
 meson_build libass "$(fetch libass)" "${libass_options[@]}" \
   -Dlibunibreak=disabled -Dasm="$asm" -Dtest=disabled -Dprofile=disabled
 
-# Desktop disc directories: pinned static readers, no host/Homebrew runtime
+# Optical disc directories/images: pinned static readers, no host/Homebrew runtime
 # dependency. BD-J menus and decryption libraries are not bundled.
 disc_options=(-Ddvda=disabled)
-case "$target" in macos-*|linux-*)
+case "$target" in macos-*|linux-*|android-*|ios-*|tvos-*)
   meson_build libdvdread "$(fetch libdvdread)" -Dlibdvdcss=disabled -Denable_docs=false
   meson_build libdvdnav "$(fetch libdvdnav)" -Denable_docs=false -Denable_examples=false
   # The release tarball includes its pinned libudfread subproject.
-  meson_build libbluray "$(fetch libbluray)" -Denable_tools=false -Dbdj_jar=disabled \
+  bluray_src="$(fetch libbluray)"
+  case "$target" in ios-*|tvos-*)
+    # DiskArbitration and macOS java_home (vfork/execl) are macOS-only;
+    # iOS/tvOS use CoreFoundation + generic mount.c and no BD-J JVM.
+    python3 -I - "$bluray_src/meson.build" "$bluray_src/src/meson.build" "$bluray_src/src/libbluray/bdj/bdj.c" <<'PY'
+import pathlib, sys
+p1, p2, p3 = (pathlib.Path(a) for a in sys.argv[1:4])
+p1.write_text(p1.read_text().replace("['CoreFoundation', 'DiskArbitration']", "['CoreFoundation']"))
+p2.write_text(p2.read_text().replace("'file/mount_darwin.c'", "'file/mount.c'"))
+p3.write_text(p3.read_text().replace("defined(__APPLE__) && !defined(HAVE_BDJ_J2ME)", "0"))
+PY
+  ;; esac
+  meson_build libbluray "$bluray_src" -Denable_tools=false -Dbdj_jar=disabled \
     -Dfreetype=disabled -Dfontconfig=disabled -Dlibxml2=disabled
   disc_options=(-Dlibbluray=enabled -Ddvdnav=enabled -Ddvda=disabled)
 ;; esac

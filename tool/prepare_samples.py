@@ -190,6 +190,12 @@ def external_samples(pack: pathlib.Path) -> list[dict]:
             src = files[0]
             samples.append({"id": f"ext-{t['issue'].lower()}-{ext}", "ext": ext, "linear": [t["issue"]],
                             "external": str(src), "note": f"{t['format']}: {urls.get(src.name, src.name)}"})
+            # This FATE APE has only 3.34 s of data but declares 60.48 s.
+            # Match its bytes so a replacement MAC sample still tests seeking.
+            if (src.name == "luckynight-mac394b1-c2000.ape"
+                    and sha256(src) == "c17918e48df298a648bc3efa23e948bcd055af8cc2a631af183b10e6a198c1bc"):
+                samples[-1]["expect"] = {"seek": False, "duration_ms": None,
+                                          "play_to_end": False}
     return samples
 
 

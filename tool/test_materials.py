@@ -18,17 +18,18 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 BASELINE = ROOT / "formats/material-tests.json"
-PLATFORMS = {"macos", "android", "ios"}
+PLATFORMS = {"macos", "android", "ios", "tvos", "linux", "windows"}
+DESKTOP_PLATFORMS = {"macos", "linux", "windows"}
 # The launcher uses isolated Python; load only this trusted tool directory.
 sys.path.insert(0, str(ROOT / "tool"))
-from material_transport import AndroidMaterials
+from material_transport import AndroidMaterials, LanMaterials
 PREPARERS = {
     "formats": "prepare_samples.py",
     "public": "prepare_public_corpus.py",
     "advanced": "prepare_advanced.py",
-    "backlog": "prepare_backlog_coverage.py",
-    "fixes": "prepare_failed_fixes.py",
-    "batch12": "prepare_batch12_tests.py",
+    "subtitles_playlists": "prepare_backlog_coverage.py",
+    "playlists_asx": "prepare_failed_fixes.py",
+    "disc_hd_audio": "prepare_batch12_tests.py",
     "iso": "prepare_iso_tests.py",
 }
 
@@ -37,25 +38,84 @@ def key(case: dict) -> tuple[str, str, str]:
     return case["suite"], case["engine"], case["id"]
 
 
-def read_baseline(path: pathlib.Path) -> dict:
-    baseline = json.loads(path.read_text(encoding="utf-8"))
-    if baseline.get("schema") != 1 or baseline.get("platform") not in PLATFORMS:
-        raise ValueError("unsupported baseline schema/platform")
-    seen = set()
-    if not baseline.get("cases"):
-        raise ValueError("empty baseline")
-    for case in baseline["cases"]:
-        identity = key(case)
-        if identity in seen:
-            raise ValueError(f"duplicate baseline case: {identity}")
-        seen.add(identity)
-        if (case["suite"] not in PREPARERS or
-                case["engine"] not in {"auto", "mpv", "vlc"} or
-                case["expected"] not in {"pass", "allow_failure", "unverified"}):
-            raise ValueError(f"invalid baseline case: {identity}")
-        if case["expected"] == "allow_failure" and not case.get("reason"):
-            raise ValueError(f"allowed failure needs a reason: {identity}")
-    return baseline
+def _validate_expectation(entry: dict, identity: tuple[str, str, str]) -> None:
+    if entry.get("expected") not in {"pass", "allow_failure", "unverified"}:
+        raise ValueError(f"invalid baseline case: {identity}")
+    if entry["expected"] == "allow_failure" and not str(entry.get("reason", "")).strip():
+        raise ValueError(f"allowed failure needs a reason: {identity}")
+
+
+def read_baseline(path: pathlib.Path, platform: str | None = None) -> dict:
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(raw, list):
+        target = platform or "macos"
+        if target not in PLATFORMS:
+            raise ValueError("unsupported baseline schema/platform")
+        if not raw or not all(isinstance(row, dict) for row in raw):
+            raise ValueError("empty baseline")
+        expected_keys = set(raw[0].keys())
+        if not {"suite", "engine", "id"}.issubset(expected_keys):
+            raise ValueError("baseline rows must include suite, engine, and id")
+        table_platforms = sorted(p for p in PLATFORMS if p in expected_keys)
+        for p in table_platforms:
+            if f"{p}_reason" not in expected_keys:
+                raise ValueError(f"missing {p}_reason column in baseline")
+        has_properties = "properties" in expected_keys
+        has_path = "path" in expected_keys
+        expected_prop_keys = None
+        if has_properties:
+            if not isinstance(raw[0]["properties"], dict):
+                raise ValueError("properties must be an object")
+            expected_prop_keys = set(raw[0]["properties"].keys())
+        seen = set()
+        cases = []
+        for row in raw:
+            if set(row.keys()) != expected_keys:
+                raise ValueError(f"inconsistent keys in baseline row: {row.get('id')}")
+            if has_path and (not isinstance(row["path"], str) or not row["path"].strip()):
+                raise ValueError(f"invalid path in baseline row: {row.get('id')}")
+            if has_properties:
+                if not isinstance(row["properties"], dict) or set(row["properties"].keys()) != expected_prop_keys:
+                    raise ValueError(f"inconsistent properties keys in baseline row: {row.get('id')}")
+            identity = key(row)
+            if identity in seen:
+                raise ValueError(f"duplicate baseline case: {identity}")
+            seen.add(identity)
+            if row["suite"] not in PREPARERS or row["engine"] not in {"auto", "mpv", "vlc"}:
+                raise ValueError(f"invalid baseline case: {identity}")
+            for p in table_platforms:
+                if not isinstance(row[f"{p}_reason"], str):
+                    raise ValueError(f"invalid {p}_reason in baseline row: {identity}")
+                _validate_expectation({"expected": row[p], "reason": row[f"{p}_reason"]}, identity)
+            if target in table_platforms:
+                expected = row[target]
+                reason = row[f"{target}_reason"]
+            else:
+                expected = "pass"
+                reason = ""
+            resolved = {"suite": row["suite"], "engine": row["engine"], "id": row["id"], "expected": expected}
+            if reason:
+                resolved["reason"] = reason
+            cases.append(resolved)
+        return {"platform": target, "cases": cases}
+    if isinstance(raw, dict) and raw.get("schema") == 1:
+        if raw.get("platform") not in PLATFORMS:
+            raise ValueError("unsupported baseline schema/platform")
+        if platform and platform != raw["platform"]:
+            raise ValueError("--platform does not match the selected baseline")
+        seen = set()
+        if not raw.get("cases"):
+            raise ValueError("empty baseline")
+        for case in raw["cases"]:
+            identity = key(case)
+            if identity in seen:
+                raise ValueError(f"duplicate baseline case: {identity}")
+            seen.add(identity)
+            if case["suite"] not in PREPARERS or case["engine"] not in {"auto", "mpv", "vlc"}:
+                raise ValueError(f"invalid baseline case: {identity}")
+            _validate_expectation(case, identity)
+        return raw
+    raise ValueError("unsupported baseline schema/platform")
 
 
 def fingerprint(baseline: dict) -> str:
@@ -253,21 +313,44 @@ def execute(baseline: dict, cases: list[dict], args: argparse.Namespace, report:
                 if args.prepare_only:
                     continue
                 print(f"Running {suite}/{engine}/{name} ({len(batch)} cases)...", flush=True)
-                if baseline["platform"] == "macos":
+                if baseline["platform"] in DESKTOP_PLATFORMS:
                     sample_define = f"--dart-define=OPX_SAMPLES={manifest}"
                 else:
                     encoded = base64.b64encode(manifest.read_bytes()).decode("ascii")
                     sample_define = f"--dart-define=OPX_SAMPLES_B64={encoded}"
-                command = ["flutter", "test", "integration_test/formats_test.dart", "-d", args.device,
-                           sample_define,
-                           f"--dart-define=OPX_REPORT={folder}", f"--dart-define=OPX_ENGINE={engine}"]
+                if baseline["platform"] == "tvos":
+                    tvos_bin = shutil.which("flutter-tvos") or str(
+                        ROOT.parent / ".toolchains/flutter-tvos/bin/flutter-tvos")
+                    command = [tvos_bin, "run", "-d", args.device, "-t", "lib/tvos_smoke.dart",
+                               sample_define]
+                else:
+                    command = ["flutter", "test", "integration_test/formats_test.dart", "-d", args.device,
+                               sample_define,
+                               f"--dart-define=OPX_REPORT={folder}", f"--dart-define=OPX_ENGINE={engine}"]
+                    if getattr(args, "check_mode", "full") != "full":
+                        command.append(f"--dart-define=OPX_CHECK_MODE={args.check_mode}")
+                    if getattr(args, "allow_physical_device", False):
+                        command.append("--no-uninstall")
                 try:
                     with (folder / f"{name}.log").open("w") as log:
                         run = subprocess.run(command, cwd=args.project_dir, stdout=log,
                                              stderr=subprocess.STDOUT, timeout=args.timeout)
                     result_file = folder / f"results-{start // args.batch_size + 1:04d}.json"
                     log_text = (folder / f"{name}.log").read_text(errors="replace")
-                    if baseline["platform"] != "macos":
+                    if baseline["platform"] == "tvos":
+                        chunks: dict[str, dict[int, tuple[int, str]]] = collections.defaultdict(dict)
+                        for line in log_text.splitlines():
+                            m = re.search(r"OPX_CHUNK (\S+) (\d+)/(\d+) ([A-Za-z0-9+/=]+)", line)
+                            if m:
+                                chunks[m.group(1)][int(m.group(2))] = (int(m.group(3)), m.group(4))
+                        tvos_results = []
+                        for parts in chunks.values():
+                            n = next(iter(parts.values()))[0]
+                            if len(parts) == n:
+                                tvos_results.append(json.loads(
+                                    base64.b64decode("".join(parts[i][1] for i in range(n)))))
+                        result_file.write_text(json.dumps({"results": tvos_results}, indent=2))
+                    elif baseline["platform"] not in DESKTOP_PLATFORMS:
                         mobile_results = [json.loads(line.split("OPX_RESULT ", 1)[1])
                                           for line in log_text.splitlines() if "OPX_RESULT " in line]
                         result_file.write_text(json.dumps({"results": mobile_results}, indent=2))
@@ -291,11 +374,34 @@ def execute(baseline: dict, cases: list[dict], args: argparse.Namespace, report:
     (report / "execution.json").write_text(json.dumps({"errors": errors}, indent=2))
 
 
-def resolve_device(platform: str, selected: str | None) -> dict:
+def resolve_device(platform: str, selected: str | None, allow_physical: bool = False) -> dict:
     if platform == "macos":
         if selected not in {None, "macos"}:
             raise ValueError("macOS baseline requires --device macos")
         return {"id": "macos", "targetPlatform": "darwin"}
+    if platform == "linux":
+        if selected not in {None, "linux"}:
+            raise ValueError("Linux baseline requires --device linux")
+        return {"id": "linux", "targetPlatform": "linux"}
+    if platform == "windows":
+        if selected not in {None, "windows"}:
+            raise ValueError("Windows baseline requires --device windows")
+        return {"id": "windows", "targetPlatform": "windows"}
+    if platform == "tvos":
+        sim = subprocess.run(["xcrun", "simctl", "list", "devices", "available", "-j"],
+                             check=True, capture_output=True, text=True, timeout=60)
+        sim_data = json.loads(sim.stdout)
+        tv_devices = [
+            d for runtime, devs in sim_data.get("devices", {}).items()
+            if "tvOS" in runtime
+            for d in devs
+            if (d["udid"] == selected if selected else d.get("state") == "Booted")
+        ]
+        if not tv_devices:
+            raise ValueError("no matching booted tvOS simulator; boot one or pass --device <UDID>")
+        tv = tv_devices[0]
+        return {"id": tv["udid"], "name": tv.get("name", "Apple TV"),
+                "targetPlatform": "tvos", "emulator": True}
     run = subprocess.run(["flutter", "devices", "--machine"], check=True, capture_output=True,
                          text=True, timeout=120)
     devices = json.loads(run.stdout[run.stdout.index("["):])
@@ -304,7 +410,7 @@ def resolve_device(platform: str, selected: str | None) -> dict:
     if not matches:
         raise ValueError(f"no matching {platform} device; use --device with an available device id")
     device = matches[0]
-    if platform == "ios" and not device.get("emulator"):
+    if platform == "ios" and not device.get("emulator") and not allow_physical:
         raise ValueError("iOS material transport currently supports simulators; select an iPhone simulator")
     return device
 
@@ -356,11 +462,14 @@ def main() -> int:
     parser.add_argument("--only", default="", help="diagnostic id globs; omitted cases still fail the full gate")
     parser.add_argument("--batch-size", type=int, default=6)
     parser.add_argument("--timeout", type=int, default=900, help="seconds per Flutter batch")
+    parser.add_argument("--allow-physical-device", action="store_true",
+                        help="allow running against a physical Android/iOS device (uses LAN HTTP transport on iOS)")
+    parser.add_argument("--check-mode", choices=["full", "green_bar"], default="full",
+                        help="check mode: 'full' (default) or 'green_bar' (fast snapshot green-bar scan only)")
     args = parser.parse_args()
     try:
-        baseline_path = args.baseline or (BASELINE if args.platform in {None, "macos"}
-                                         else ROOT / f"formats/material-tests.{args.platform}.json")
-        baseline = read_baseline(baseline_path)
+        baseline_path = args.baseline or BASELINE
+        baseline = read_baseline(baseline_path, platform=args.platform)
         if args.platform and args.platform != baseline["platform"]:
             raise ValueError("--platform does not match the selected baseline")
         if args.batch_size < 1 or args.timeout < 1:
@@ -378,10 +487,13 @@ def main() -> int:
                     run.get("platform", "macos") != baseline["platform"]):
                 raise ValueError("baseline changed or this was not a playback test run")
             return 0 if write_report(baseline, report) else 1
-        if baseline["platform"] in {"macos", "ios"} and sys.platform != "darwin" and not args.prepare_only:
-            raise ValueError("macOS/iOS playback tests require a macOS host")
-        device = {"id": args.device} if args.prepare_only else resolve_device(baseline["platform"], args.device)
-        if (not args.prepare_only and baseline.get("environment_kind") in {"emulator", "simulator"}
+        if baseline["platform"] in {"macos", "ios", "tvos"} and sys.platform != "darwin" and not args.prepare_only:
+            raise ValueError("macOS/iOS/tvOS playback tests require a macOS host")
+        device = ({"id": args.device} if args.prepare_only
+                  else resolve_device(baseline["platform"], args.device,
+                                      allow_physical=args.allow_physical_device))
+        if (not args.prepare_only and not args.allow_physical_device
+                and baseline.get("environment_kind") in {"emulator", "simulator"}
                 and not device.get("emulator")):
             raise ValueError("this baseline requires a simulator/emulator, not a physical device")
         args.device = device["id"]
@@ -395,7 +507,14 @@ def main() -> int:
             "selected": len(cases), "total": len(baseline["cases"]),
         }, indent=2))
         (report / "baseline.json").write_text(json.dumps(baseline, ensure_ascii=False, indent=2) + "\n")
-        context = AndroidMaterials(args.device) if baseline["platform"] == "android" and not args.prepare_only else contextlib.nullcontext()
+        if args.prepare_only:
+            context = contextlib.nullcontext()
+        elif baseline["platform"] == "android":
+            context = AndroidMaterials(args.device)
+        elif baseline["platform"] == "ios" and not device.get("emulator"):
+            context = LanMaterials(args.device)
+        else:
+            context = contextlib.nullcontext()
         with context as transport:
             execute(baseline, cases, args, report, transport)
         if args.prepare_only:

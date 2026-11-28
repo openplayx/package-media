@@ -7,6 +7,7 @@ import http.server
 import pathlib
 import re
 import shutil
+import socket
 import subprocess
 import threading
 import urllib.parse
@@ -14,11 +15,25 @@ import urllib.parse
 from serve_samples import RangeHandler
 
 
+def _detect_lan_ip() -> str:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        sock.connect(("8.8.8.8", 80))
+        return sock.getsockname()[0]
+    finally:
+        sock.close()
+
+
 class AndroidMaterials:
-    def __init__(self, device: str, adb: str | None = None):
+    def __init__(self, device: str, adb: str | None = None,
+                 bind_host: str = "127.0.0.1", public_host: str = "127.0.0.1",
+                 use_adb_reverse: bool = True):
         self.device = device
         self.adb = adb or shutil.which("adb") or str(
             pathlib.Path.home() / "Library/Android/sdk/platform-tools/adb")
+        self.bind_host = bind_host
+        self.public_host = public_host
+        self.use_adb_reverse = use_adb_reverse
         self.files = {}
         owner = self
 
@@ -31,17 +46,18 @@ class AndroidMaterials:
                 self.send_error(404)
                 return None
 
-        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        self.server = http.server.ThreadingHTTPServer((self.bind_host, 0), Handler)
         self.port = self.server.server_port
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
 
     def __enter__(self):
-        try:
-            subprocess.run([self.adb, "-s", self.device, "reverse",
-                            f"tcp:{self.port}", f"tcp:{self.port}"], check=True, capture_output=True)
-        except BaseException:
-            self.server.server_close()
-            raise
+        if self.use_adb_reverse:
+            try:
+                subprocess.run([self.adb, "-s", self.device, "reverse",
+                                f"tcp:{self.port}", f"tcp:{self.port}"], check=True, capture_output=True)
+            except BaseException:
+                self.server.server_close()
+                raise
         self.thread.start()
         return self
 
@@ -49,15 +65,18 @@ class AndroidMaterials:
         self.server.shutdown()
         self.server.server_close()
         self.thread.join(timeout=5)
-        subprocess.run([self.adb, "-s", self.device, "reverse", "--remove", f"tcp:{self.port}"],
-                       capture_output=True)
+        if self.use_adb_reverse:
+            subprocess.run([self.adb, "-s", self.device, "reverse", "--remove", f"tcp:{self.port}"],
+                           capture_output=True)
 
     def url(self, path: pathlib.Path) -> str:
         path = path.resolve()
         parent = hashlib.sha256(str(path.parent).encode()).hexdigest()[:24]
         route = f"/asset/{parent}/{path.name}"
-        self.files[route] = path
-        return f"http://127.0.0.1:{self.port}{urllib.parse.quote(route)}"
+        # Another pointer in this directory may already have replaced this
+        # route with device-safe text. Registering a sibling must preserve it.
+        self.files.setdefault(route, path)
+        return f"http://{self.public_host}:{self.port}{urllib.parse.quote(route)}"
 
     @staticmethod
     def local_path(value: str) -> tuple[pathlib.Path, str]:
@@ -150,3 +169,14 @@ class AndroidMaterials:
         if device_files:
             sample["device_files"] = device_files
         return sample
+
+
+class LanMaterials(AndroidMaterials):
+    """Serve registered materials over the host's LAN IP for physical iOS devices."""
+    def __init__(self, device: str, public_host: str | None = None):
+        super().__init__(
+            device=device,
+            bind_host="0.0.0.0",
+            public_host=public_host or _detect_lan_ip(),
+            use_adb_reverse=False,
+        )

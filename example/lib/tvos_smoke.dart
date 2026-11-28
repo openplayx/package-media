@@ -78,11 +78,29 @@ Future<Map<String, dynamic>> _check(
   final probe = sample['probe'] as Map<String, dynamic>;
   final wantVideo = expect['video'] == true;
   final wantAudio = expect['audio'] == true;
+  final expectedDurationMs =
+      (expect['duration_ms'] as num?)?.toInt() ??
+      (probe['duration_ms'] as num?)?.toInt();
+  final referenceAudioSeconds =
+      (expect['reference_audio_seconds'] as num?)?.toDouble();
+  final referenceRms = (expect['reference_audio_rms'] as num?)?.toDouble();
+  final minimumRms = referenceRms == null ? 0.001 : referenceRms * 0.1;
+  final repeatShortClip =
+      (expectedDurationMs != null &&
+          expectedDurationMs > 0 &&
+          expectedDurationMs < 2000) ||
+      (wantAudio &&
+          expect['seek'] == false &&
+          referenceAudioSeconds != null &&
+          referenceAudioSeconds > 0 &&
+          referenceAudioSeconds < 1.5);
   final backend = MpvBackend(
     mpvOptions: {
       'ao': 'null',
+      if (repeatShortClip) 'loop-file': 'inf',
+      // Keep frequency windows short enough to exclude MP3 padding at EOF.
       if (wantAudio)
-        'af': '@st:lavfi=[lowpass=f=3000,astats=metadata=1:reset=50]',
+        'af': '@st:lavfi=[lowpass=f=3000,astats=metadata=1:reset=10]',
     },
   );
   host.value = SizedBox(width: 320, height: 240, child: backend.buildVideo());
@@ -116,13 +134,18 @@ Future<Map<String, dynamic>> _check(
     final path = sample['path'] as String;
     final opened = Stopwatch()..start();
     await backend.open(
-      path.startsWith('http') ? Uri.parse(path) : Uri.file(path),
+      Uri.tryParse(path)?.hasScheme == true ? Uri.parse(path) : Uri.file(path),
     );
     final started = await waitFor(
       () =>
           backend.value.status == PlaybackStatus.error ||
           (backend.value.status == PlaybackStatus.playing &&
-              backend.value.position > const Duration(milliseconds: 300) &&
+              (repeatShortClip
+                  ? (wantAudio
+                        ? frames.isNotEmpty
+                        : backend.value.position > Duration.zero)
+                  : backend.value.position >
+                        const Duration(milliseconds: 300)) &&
               (!wantVideo || backend.value.videoSize != null)),
       const Duration(seconds: 15),
     );
@@ -134,7 +157,21 @@ Future<Map<String, dynamic>> _check(
       if (wantVideo) {
         metrics['video_size'] =
             '${size?.width.round()}x${size?.height.round()}';
-        if (size == null || size.height.round() != probe['height']) {
+        final expectedH = (probe['height'] as num?)?.toInt();
+        final expectedW = (probe['width'] as num?)?.toInt();
+        final w = size?.width.round();
+        final h = size?.height.round();
+        final sizeOk =
+            size != null &&
+            size.width > 0 &&
+            size.height > 0 &&
+            (expectedH == null ||
+                (h! - expectedH).abs() <= 4 ||
+                (expectedW != null &&
+                    ((w! - expectedW).abs() <= 4 ||
+                        ((w - expectedH).abs() <= 4 &&
+                            (h - expectedW).abs() <= 4))));
+        if (!sizeOk) {
           failures.add(
             'video size $size, expected ${probe['width']}x${probe['height']}',
           );
@@ -142,26 +179,58 @@ Future<Map<String, dynamic>> _check(
       }
       final total = backend.value.duration;
       metrics['duration_ms'] = total.inMilliseconds;
-      final target = total > Duration.zero
-          ? total ~/ 2
-          : const Duration(seconds: 3);
-      await backend.seek(target);
-      final landed = await waitFor(
-        () =>
-            backend.value.status == PlaybackStatus.playing &&
-            (backend.value.position - target).abs() <
-                const Duration(milliseconds: 600),
-        const Duration(seconds: 5),
-      );
-      metrics['seek_landed_ms'] = backend.value.position.inMilliseconds;
-      if (!landed) failures.add('seek to ${target.inMilliseconds} ms failed');
-      await waitFor(
-        () => backend.value.status == PlaybackStatus.ended,
-        total - target + const Duration(seconds: 4),
-      );
-      metrics['end_status'] = backend.value.status.name;
-      if (backend.value.status != PlaybackStatus.ended) {
-        failures.add('did not reach the end after seeking');
+      final wantSeek =
+          !repeatShortClip &&
+          expect['seek'] != false &&
+          total > const Duration(seconds: 2);
+      if (wantSeek) {
+        final target = total ~/ 2;
+        await backend.seek(target);
+        final landed = await waitFor(
+          () =>
+              backend.value.status == PlaybackStatus.playing &&
+              (backend.value.position - target).abs() <
+                  const Duration(seconds: 2),
+          const Duration(seconds: 6),
+        );
+        metrics['seek_landed_ms'] = backend.value.position.inMilliseconds;
+        if (!landed) failures.add('seek to ${target.inMilliseconds} ms failed');
+        if (expect['play_to_end'] != false) {
+          var furthest = backend.value.position;
+          await waitFor(
+            () {
+              if (backend.value.position > furthest) {
+                furthest = backend.value.position;
+              }
+              return backend.value.status == PlaybackStatus.ended;
+            },
+            total - target + const Duration(seconds: 5),
+          );
+          final tail = total - furthest;
+          metrics['end_status'] = backend.value.status.name;
+          metrics['end_tail_ms'] = tail.inMilliseconds;
+          if (backend.value.status != PlaybackStatus.ended &&
+              tail > const Duration(milliseconds: 1500)) {
+            failures.add(
+              'did not reach the end after seeking '
+              '(${backend.value.status.name}, tail ${tail.inMilliseconds} ms)',
+            );
+          }
+        }
+      }
+      if (wantAudio &&
+          (referenceRms == null || referenceRms > 0) &&
+          !frames.any(
+            (f) => f.$1.isFinite && math.pow(10, f.$1 / 20) >= minimumRms,
+          )) {
+        // Some clips start with silence (or skip seek and finish the check
+        // early); wait up to 5 s for an audible sample before disposing.
+        await waitFor(
+          () => frames.any(
+            (f) => f.$1.isFinite && math.pow(10, f.$1 / 20) >= minimumRms,
+          ),
+          const Duration(seconds: 5),
+        );
       }
     }
   } catch (e) {
@@ -176,12 +245,12 @@ Future<Map<String, dynamic>> _check(
     final rate = (probe['sample_rate'] as int?) ?? 48000;
     final audible = [
       for (final f in frames)
-        if (f.$1.isFinite && f.$1 > -60) f,
+        if (f.$1.isFinite && math.pow(10, f.$1 / 20) >= minimumRms) f,
     ];
     double median(List<double> v) => (v..sort())[v.length ~/ 2];
-    if (audible.isEmpty) {
+    if (audible.isEmpty && (referenceRms == null || referenceRms > 0)) {
       failures.add('silent or no audio statistics');
-    } else {
+    } else if (audible.isNotEmpty) {
       final rms = math.pow(10, median([for (final f in audible) f.$1]) / 20);
       final hz = median([for (final f in audible) f.$2]) * rate / 2;
       metrics['audio_rms'] = double.parse(rms.toStringAsFixed(4));

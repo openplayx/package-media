@@ -59,6 +59,19 @@ class TransportTest(unittest.TestCase):
         with urllib.request.urlopen(urllib.parse.urljoin(sample['path'], 'song.wav')) as response:
             self.assertEqual(response.read(), media.read_bytes())
 
+    def test_later_pointer_preserves_rewritten_sibling_routes(self):
+        media = self.file('targets/movie.mp4')
+        asx = self.file('test.asx', f'<ASX><REF HREF="{media.as_uri()}"/></ASX>'.encode())
+        strm = self.file('test.strm', media.as_uri().encode())
+        for first, second in [(asx, strm), (strm, asx)]:
+            with self.subTest(first=first.suffix):
+                sample = self.sample(first, first.suffix[1:])
+                self.sample(second, second.suffix[1:])
+                with urllib.request.urlopen(sample['device_files'][0]['url']) as response:
+                    text = response.read()
+                self.assertIn(self.transport.url(media).encode(), text)
+                self.assertNotIn(b'file://', text)
+
     def test_discs_and_split_volumes_keep_local_filesystem_semantics(self):
         first = self.file('movie.mkv.001')
         self.file('movie.mkv.002')

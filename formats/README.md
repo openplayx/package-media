@@ -13,34 +13,37 @@ tool/test_materials.sh --platform android --device emulator-5554
 tool/test_materials.sh --platform ios --device <iPhone模拟器ID>
 ```
 
-完整列表见 [MATERIAL_TESTS.md](MATERIAL_TESTS.md)，机器可读、受版本控制的
-基线见 [material-tests.json](material-tests.json)。当前快照包含 **599 项** macOS
-素材测试（auto 438、mpv 86、vlc 75）：**545 项必须通过，54 项允许失败**。
-同一素材在不同引擎下分别计数。545 项中有两项新发现、尚无实测结果的用例，
-默认要求通过，不能自动豁免。
+完整列表见 [MATERIAL_TESTS.md](MATERIAL_TESTS.md)，跨平台公共的、机器可读且受版本控制的
+唯一数据源见 [material-tests.json](material-tests.json)。该文件是一个扁平 JSON 数组，
+每条记录代表一个素材用例，所有对象字段完全一致：前 4 列为素材信息（`suite`、`engine`、`id`、`path`），
+后续列为各平台当前的预期状态（`pass` 或 `allow_failure`）及不通过原因备注
+（`<platform>`、`<platform>_reason`），最后为 `properties` 二级对象（统一记录容器、
+大小、时长、码率、视频/音频/字幕编码、分辨率、帧率、像素格式、色域与 HDR、声道、采样率等 26 项媒体属性）。
+默认所有素材都要在所有平台上运行并预期通过，仅在有已知问题时标记为 `allow_failure` 并填写原因。
 
-平台独立基线：
+各平台当前状态汇总（均存储在 [material-tests.json](material-tests.json)）：
 
-| 平台 | 清单 | 必须通过 | 允许失败 | 待验证 |
-|---|---|---:|---:|---:|
-| macOS | [599 项](MATERIAL_TESTS.md) | 545 | 54 | 0 |
-| Android arm64 模拟器 | [438 项](MATERIAL_TESTS.android.md) | 152 | 6 | 280 |
-| iOS arm64 模拟器 | [438 项](MATERIAL_TESTS.ios.md) | 150 | 8 | 280 |
+| 平台 | 清单 | 预计通过 (`pass`) | 已知允许失败 (`allow_failure`) |
+|---|---|---:|---:|
+| macOS | [405 项](MATERIAL_TESTS.md) | 394 | 11 |
+| Android | [405 项](MATERIAL_TESTS.android.md) | 395 | 10 |
+| iOS | [405 项](MATERIAL_TESTS.ios.md) | 394 | 11 |
+| tvOS | 405 项 | 394 | 11 |
+| Linux | 405 项 | 394 | 11 |
+| Windows | 405 项 | 394 | 11 |
 
-移动端共用 438 个素材用例，通过应用实际使用的 `auto` 路由验证。Android/iOS
-各自的 JSON 基线为 `material-tests.android.json`、`material-tests.ios.json`，只从
-本平台旧报告提取通过和已知失败，不继承 macOS 的豁免。未实测项标记为
-`unverified`：通过记作 `new_pass`；失败记作 `unverified_failure`，整体仍失败，
-需要分析原因，不会自动加入允许失败名单。
+全平台共用同一份 `material-tests.json` 中的 405 个唯一素材用例，通过应用实际使用的 `auto` 路由验证。
+各平台独立记录已知豁免，不跨平台继承；未标记为 `allow_failure` 的项默认全部要求通过。
 
-省略移动端 `--device` 时选择可用模拟器。iOS 当前使用模拟器；物理设备不能
-直接使用这份模拟器基线。`run.json` 和总报告记录实际设备及系统版本。
+省略移动端 `--device` 时选择可用模拟器。真机需显式添加 `--allow-physical-device`，并自动保留已安装应用；
+所有设备共用平台基线。`run.json` 和总报告记录实际设备及系统版本。
 移动端测试使用独立的 `example-wandroid/`、`example-wios/` 构建目录。
 
 Android 通过 `adb reverse` 和只发布已登记素材的 HTTP Range 服务读取主机素材。
 光盘/分卷/本地指针文件/外置字幕会下载到应用临时目录，保留文件路径、相邻分卷
 和字幕配对语义；截图参考通过 HTTP 读取。测试结束后关闭转发和服务，并清理
-设备暂存。iOS 模拟器读取主机素材。两端通过日志回收 `OPX_RESULT` 原始结果，
+设备暂存。iOS 模拟器读取主机素材，真机通过 LAN HTTP Range 服务读取，
+光盘素材保留本地文件语义。两端通过日志回收 `OPX_RESULT` 原始结果，
 不依赖设备能写入主机报告目录。
 
 入口统一调用七组素材准备逻辑：基础格式/素材包/外部素材、公开语料、
@@ -77,14 +80,14 @@ python3 -m unittest discover -s tool -p 'test_material*.py'
 ## File format playback tests
 
 The tests do **not** run by default (they are not under `test/`, and the app's
-CI does not run them). Run them when either playback package changes: the adapter, the
-`vlc_player` version, the libVLC/VLCKit build or `formats/`.
+CI does not run them). Run them when either playback package changes: the
+adapter, `libmpv` / `package-ffmpeg`, `package-libvlc` / VLCKit, or `formats/`.
 
 ```sh
-brew install ffmpeg                       # sample generation and ffprobe
-tool/test_formats.sh --engine vlc         # all samples, macOS
-tool/test_formats.sh --engine vlc --only 'mp4-*,mp3'   # ids or globs
-tool/test_formats.sh --engine vlc --pack --only 'pack-*'  # material pack samples (../materials/playback)
+brew install ffmpeg                            # sample generation and ffprobe
+tool/test_formats.sh --engine auto             # all samples through the router, macOS
+tool/test_formats.sh --engine mpv --only 'mp4-*,mp3'   # ids or globs (mpv / vlc / auto)
+tool/test_formats.sh --engine auto --pack --only 'pack-*'  # material pack samples (../materials/playback)
 ```
 
 `--pack` adds the local files of the format material pack in
@@ -135,24 +138,27 @@ are recorded instead of trusting the extension.
 
 ### What is checked
 
-With `--engine vlc`, each sample plays through `LibVlcBackend` in package-media’s `example/` host app, so the
-result covers the same libVLC build and options as OpenPlayX:
+Each sample plays in package-media's `example/` host app through
+`RoutedPlayerBackend` (`--engine auto`), `MpvBackend` (`--engine mpv`), or
+`LibVlcBackend` (`--engine vlc`), so the result covers the same native engine
+builds and options as OpenPlayX:
 
 | Check | Catches |
 |---|---|
 | playing state and advancing time | does not open, does not start |
 | decoder statistics over 1 s (re-measured once) | black screen, stalled or dropping video, stalled or lost audio |
-| tracks found by libVLC | missing video or audio track |
+| tracks reported by the active engine | missing video or audio track |
 | snapshot vs. the SMPTE bars (mean RGB difference on a 32×24 grid, limit 24) | corrupt pictures, green/grey frames, wrong colours |
-| decoded audio written with libVLC's `afile` output: RMS and frequency vs. the 1 kHz tone | silence, noise, wrong decoding |
+| decoded audio (mpv `astats` filter / libVLC `afile` output): RMS and frequency vs. the reference tone | silence, noise, wrong decoding |
 | duration and video size | wrong timing or dimensions |
 | seek to the middle, then play on to the end | seek failures, playback stopping early after a seek |
 
 Limits: the bars are a still picture, so damage only shows when it hits a
 keyframe (a corrupted keyframe scores ~87, clean samples ~9); the snapshot is
 the decoded picture, not what Flutter renders (HDR
-tone mapping and on-screen colour need their own tests); `afile` measures the
-decoded audio, not the device output (passthrough needs a receiver).
+tone mapping and on-screen colour need their own tests); decoded audio checks
+measure the engine's decoded output, not device passthrough (which needs a
+receiver).
 
 ### Known issues
 

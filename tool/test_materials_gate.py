@@ -133,16 +133,73 @@ class GateTest(unittest.TestCase):
             self.assertEqual(subprocess.run(command, capture_output=True).returncode, 2)
 
     def test_platform_lists_cover_the_same_auto_material_cases(self):
-        formats = SCRIPT.parents[1] / 'formats'
-        mac = read_baseline(formats / 'material-tests.json')
+        baseline_path = SCRIPT.parents[1] / 'formats' / 'material-tests.json'
+        raw = json.loads(baseline_path.read_text(encoding='utf-8'))
+        self.assertIsInstance(raw, list)
+        self.assertEqual(len(raw), 405)
+        expected_keys = list(raw[0].keys())
+        self.assertIn('path', expected_keys)
+        self.assertIn('properties', expected_keys)
+        expected_prop_keys = list(raw[0]['properties'].keys())
+        seen_props = set()
+        for row in raw:
+            self.assertEqual(list(row.keys()), expected_keys)
+            self.assertIsInstance(row['path'], str)
+            self.assertTrue(row['path'].strip())
+            self.assertNotIn('/Users/', row['path'])
+            self.assertEqual(list(row['properties'].keys()), expected_prop_keys)
+            prop_sig = json.dumps(row['properties'], sort_keys=True)
+            self.assertNotIn(prop_sig, seen_props, f"duplicate properties: {row['id']}")
+            seen_props.add(prop_sig)
+        mac = read_baseline(baseline_path, platform='macos')
+        self.assertEqual(mac['platform'], 'macos')
         identities = {(c['suite'], c['engine'], c['id']) for c in mac['cases'] if c['engine'] == 'auto'}
-        for platform in ['android', 'ios']:
-            mobile = read_baseline(formats / f'material-tests.{platform}.json')
-            self.assertEqual(mobile['platform'], platform)
-            self.assertEqual({(c['suite'], c['engine'], c['id']) for c in mobile['cases']}, identities)
-            for case in mobile['cases']:
-                if 'evidence' in case:
-                    self.assertIn(platform, case['evidence'])
+        self.assertEqual(len(identities), 405)
+        for platform in ['android', 'ios', 'tvos', 'linux', 'windows']:
+            other = read_baseline(baseline_path, platform=platform)
+            self.assertEqual(other['platform'], platform)
+            self.assertEqual({(c['suite'], c['engine'], c['id']) for c in other['cases']}, identities)
+
+    def test_flat_table_validation_defaults_and_per_platform_fingerprint(self):
+        table = [
+            {
+                "suite": "formats",
+                "engine": "auto",
+                "id": "good",
+                "macos": "pass",
+                "macos_reason": "",
+                "android": "allow_failure",
+                "android_reason": "Known decoder limitation",
+            },
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = pathlib.Path(directory) / "material-tests.json"
+            path.write_text(json.dumps(table))
+            mac_before = read_baseline(path, platform="macos")
+            and_before = read_baseline(path, platform="android")
+            # A platform without explicit columns defaults to pass for all materials.
+            linux_default = read_baseline(path, platform="linux")
+            self.assertEqual(mac_before["cases"][0]["expected"], "pass")
+            self.assertEqual(and_before["cases"][0]["expected"], "allow_failure")
+            self.assertEqual(and_before["cases"][0]["reason"], "Known decoder limitation")
+            self.assertEqual(linux_default["cases"][0]["expected"], "pass")
+            # Changing android's expectation must not invalidate macOS's fingerprint.
+            modified = copy.deepcopy(table)
+            modified[0]["android"] = "pass"
+            modified[0]["android_reason"] = ""
+            path.write_text(json.dumps(modified))
+            self.assertEqual(fingerprint(mac_before), fingerprint(read_baseline(path, platform="macos")))
+            self.assertNotEqual(fingerprint(and_before), fingerprint(read_baseline(path, platform="android")))
+            # Inconsistent keys across objects or allow_failure without reason must fail.
+            broken_keys = copy.deepcopy(table) + [{**table[0], "id": "other", "extra": 1}]
+            path.write_text(json.dumps(broken_keys))
+            with self.assertRaises(ValueError):
+                read_baseline(path, platform="macos")
+            missing_reason = copy.deepcopy(table)
+            missing_reason[0]["android_reason"] = ""
+            path.write_text(json.dumps(missing_reason))
+            with self.assertRaises(ValueError):
+                read_baseline(path, platform="macos")
 
     def test_default_device_selection_uses_a_simulator_of_the_requested_platform(self):
         devices = [

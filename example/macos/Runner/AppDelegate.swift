@@ -14,6 +14,8 @@ class AppDelegate: FlutterAppDelegate {
       reason: "Disable App Nap and timer coalescing during video playback tests"
     )
     super.applicationDidFinishLaunching(notification)
+    NSApp.activate(ignoringOtherApps: true)
+    mainFlutterWindow?.makeKeyAndOrderFront(nil)
   }
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

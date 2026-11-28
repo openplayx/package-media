@@ -11,5 +11,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgtk-3-dev libxcb-composite0-dev libxcb-xv0-dev libxcb-randr0-dev libxcb-keysyms1-dev \
     libsecret-1-dev xvfb xauth dbus-x11 mesa-utils libgl1-mesa-dri fonts-dejavu-core \
     libfontconfig-dev libegl-dev libgles-dev libepoxy-dev libpulse-dev libasound2-dev \
-    libcurl4-openssl-dev ffmpeg \
+    libcurl4-openssl-dev libc++-dev libc++abi-dev ffmpeg \
     && rm -rf /var/lib/apt/lists/*
