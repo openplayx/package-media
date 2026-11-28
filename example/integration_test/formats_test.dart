@@ -223,12 +223,12 @@ class _Check {
         ?.toDouble();
     // FATE includes individual 20 ms audio packets. Repeat those original
     // bytes during inspection so progress/statistics can actually be sampled.
-    final repeatShortAudio =
-        !wantVideo &&
+    final repeatShortClip =
         referenceSeconds != null &&
         referenceSeconds > 0 &&
-        referenceSeconds < 1;
-    if (repeatShortAudio) metrics['repeated_short_audio'] = true;
+        referenceSeconds < 1 &&
+        (!wantVideo || expectations['seek'] == false);
+    if (repeatShortClip) metrics['repeated_short_clip'] = true;
     // Real corpus clips include very quiet codec test signals. Compare with
     // their decoded source instead of treating everything below -60 dB as mute.
     final minimumRms = referenceRms == null ? 0.001 : referenceRms * 0.1;
@@ -247,7 +247,7 @@ class _Check {
           'ao': 'null',
         'log-file': '${reportDir.path}/$id-mpv.log',
         'msg-level': 'all=warn',
-        if (repeatShortAudio) 'loop-file': 'inf',
+        if (repeatShortClip) 'loop-file': 'inf',
         // Statistics over 50 codec frames (TrueHD frames are only 40
         // samples) behind a low-pass: lossy codecs add noise around
         // zero that would count as crossings.
@@ -374,7 +374,7 @@ class _Check {
       () =>
           backend.value.status == PlaybackStatus.error ||
           (backend.value.status == PlaybackStatus.playing &&
-              (repeatShortAudio
+              (repeatShortClip
                   ? sampledFrames > 0
                   : backend.value.position >
                         const Duration(milliseconds: 300)) &&
@@ -480,6 +480,7 @@ class _Check {
         wantVideo: wantVideo,
         wantAudio: wantAudio,
         audioSamples: isMpv() ? audioSamples : null,
+        looping: repeatShortClip && wantVideo,
       );
       if (problems.isEmpty) break;
       if (window == 2) problems.forEach(fail);
@@ -811,16 +812,27 @@ class _Check {
     required bool wantVideo,
     required bool wantAudio,
     Future<int?> Function()? audioSamples,
+    bool looping = false,
   }) async {
     final before = await backend.getStats();
     final samplesBefore = await audioSamples?.call();
-    await tester.pump(const Duration(milliseconds: 1100));
-    final after = await backend.getStats();
+    var after = before;
+    var decodedVideo = 0, displayed = 0, lostPictures = 0;
+    // Very short looping clips reset their frame position at each replay.
+    // Sample within each loop and accumulate forward progress across resets.
+    final ticks = looping ? 22 : 1;
+    for (var tick = 0; tick < ticks; tick++) {
+      final previous = after;
+      await tester.pump(Duration(milliseconds: looping ? 50 : 1100));
+      after = await backend.getStats();
+      if (previous == null || after == null) return ['no decoder statistics'];
+      int advance(int from, int to) => looping && to < from ? to : to - from;
+      decodedVideo += advance(previous.decodedVideo, after.decodedVideo);
+      displayed += advance(previous.displayedPictures, after.displayedPictures);
+      lostPictures += advance(previous.lostPictures, after.lostPictures);
+    }
     final samplesAfter = await audioSamples?.call();
     if (before == null || after == null) return ['no decoder statistics'];
-    final decodedVideo = after.decodedVideo - before.decodedVideo;
-    final displayed = after.displayedPictures - before.displayedPictures;
-    final lostPictures = after.lostPictures - before.lostPictures;
     // mpv has no audio buffer counters: decoded samples (astats) instead.
     final mpvAudio = audioSamples == null
         ? null
