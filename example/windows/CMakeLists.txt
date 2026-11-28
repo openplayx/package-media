@@ -5,6 +5,7 @@ project(openplayx_media_example LANGUAGES CXX)
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "openplayx_media_example")
+include("${CMAKE_CURRENT_SOURCE_DIR}/../../tool/native_sanitizer.cmake")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
