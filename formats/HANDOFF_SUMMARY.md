@@ -1,7 +1,7 @@
 # `package-media` 全平台素材播放测试与修复交接文档
 
 > **生成时间**：2026-11-28 15:43（AEDT）  
-> **跟进时间**：2026-11-28 17:53（AEDT）
+> **跟进时间**：2026-11-28 18:45（AEDT）
 > **工作区**：`/Users/zyl/codes/mygithub/openplayx/package-media`（联动 `package-libvlc`、`build`）  
 > **统一去重基线**：[material-tests.json](file:///Users/zyl/codes/mygithub/openplayx/package-media/formats/material-tests.json)（**405 项**唯一 `auto` 用例；当前各平台预期数量见第 0 节）
 
@@ -46,8 +46,10 @@
   - Windows 文件 / 光盘 URI 修复 `fe4dbeb` 已推 `package-media/main`：盘符路径使用 `Uri.file`；光盘目录从 `Path.as_uri()` 保留 `/C:/`。Windows 独立原生素材准备及 Dart 文件系统还原检查通过。
   - **#32 固定提交**：`SOURCE_SHA=fe4dbeb06415287614f07211d95f446f4a7dc9bd`、`package-libvlc=44559ce33bff1f565e78d8b1ca70a2d94e4e6a29`，build / FFmpeg 提交同前。该轮已通过 regex，随后 FluidSynth 的 gentables 嵌套 CMake 编译器探测路径达到 263 字符，归档工具因 Windows MAX_PATH 失败。
   - 短物理源码路径修复已推 main：`package-libvlc=c7ca4da2e690bb336d4a95ec6cc4cdc5e4cc422d`、`build=9e2337bb94a4deaeb6500a6de4d98ad30054ccfd`。源码放在按 recipe / 编译器 / 包版本 / 工作区 / 编译选项隔离的 `C:/ci/cache/native/vlc-src/<16位哈希>`；未关闭 FluidSynth 或编译器检查。Windows 独立 gentables 配置 / 编译 / 两份表头生成通过，PowerShell 语法检查通过。
-  - **当前 #33 正在运行**：SOURCE_SHA / FFmpeg 同 #32，BUILD_REF / package-libvlc 使用上述短路径修复提交。实际源码目录 `C:/ci/cache/native/vlc-src/8bc964eb9f39d1de`。尚未进入 Windows 播放测试。
-- Windows 全量素材同步：节点剩余约 111GB；约 19GB 本地素材尚未同步。临时 LAN HTTP 镜像被自动审批拦截（未获具体 external 内容网络共享授权），已询问用户是否批准限制为仅 Windows 节点可访问的同步；构建与现有 7 项冒烟不受影响。
+  - **#33 固定提交**：SOURCE_SHA / FFmpeg 同 #32，BUILD_REF / package-libvlc 使用上述短路径修复提交。实际源码目录 `C:/ci/cache/native/vlc-src/8bc964eb9f39d1de`。该轮确认 FluidSynth 完整编译 / 安装成功，后续 SID 的 `all-local` 与 `libresidc.la` 并行竞态导致 MSYS2 `ln -sf` 复制未生成的文件，最终 FAILURE；其余依赖收尾完成，未进入播放测试。
+  - SID 构建顺序修复 `97b1245e1f3156eee436fa2e4228853da9fa1086` 已推 `package-libvlc/main`：`all-local` 明确依赖 `libresidc.la`，保留 SID 功能。补丁干净应用 / 幂等检查通过；隔离原生验证在自动生成配置阶段主动停止，避免诊断日志占用下一轮清理的旧工作区，未计为原生验证通过。
+  - **当前 #34 正在运行**：`SOURCE_SHA=71ab0742c163e1b71cf61bd066ed6a0052ad1ac8`、`package-libvlc=97b1245e1f3156eee436fa2e4228853da9fa1086`；BUILD_REF / FFmpeg 同 #33。本轮范围保持现有 7 项双引擎冒烟。
+- Windows 本轮范围：用户明确选择“仅完成 Windows 构建与现有冒烟测试”。不创建素材镜像，不同步约 19GB 素材，不运行 Windows 405 项全量；继续本机原生构建与现有 7 项双引擎冒烟。
 - Pixel 9：旧 PID 75641 已退出，但新的字幕全量任务仍占用该真机，不能清理 `example-wandroid/build` 或同时安装格式测试。
 - Android 模拟器：使用独立 `example-wandroid-materials/` 与空闲 `emulator-5554` 补测光盘及功能回归，首轮报告 `android-20261128-155154-945747` 因 guest shell 无响应主动中止，记录为基础设施错误。冷启动同一 AVD（不清数据、不重启共享 ADB）后，第二轮 `android-20261128-155650-778161` 共 17 项，15 通过、BIN/DVD 掉帧失败、ASX 路由覆盖失败；修复后第三轮 `android-20261128-160156-848263` **5/5 通过**，包含同批 ASX/STRM、生成 ASX、MMF 和单独 BIN/DVD（保留前次掉帧记录）。本轮 Android 17 个唯一用例均已有通过记录，但不拼接成一次全量通过声明；不替代 Pixel 9 的 4K 硬解复验。
 - Linux：首轮 `linux-20261128-050813-612397` 的 TrueHD、截断 APE 通过，MMF / NUV / Potter 失败。
