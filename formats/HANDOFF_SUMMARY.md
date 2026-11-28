@@ -1,7 +1,7 @@
 # `package-media` 全平台素材播放测试与修复交接文档
 
 > **生成时间**：2026-11-28 15:43（AEDT）  
-> **跟进时间**：2026-11-28 18:45（AEDT）
+> **跟进时间**：2026-11-28 21:40（AEDT）
 > **工作区**：`/Users/zyl/codes/mygithub/openplayx/package-media`（联动 `package-libvlc`、`build`）  
 > **统一去重基线**：[material-tests.json](file:///Users/zyl/codes/mygithub/openplayx/package-media/formats/material-tests.json)（**405 项**唯一 `auto` 用例；当前各平台预期数量见第 0 节）
 
@@ -47,8 +47,23 @@
   - **#32 固定提交**：`SOURCE_SHA=fe4dbeb06415287614f07211d95f446f4a7dc9bd`、`package-libvlc=44559ce33bff1f565e78d8b1ca70a2d94e4e6a29`，build / FFmpeg 提交同前。该轮已通过 regex，随后 FluidSynth 的 gentables 嵌套 CMake 编译器探测路径达到 263 字符，归档工具因 Windows MAX_PATH 失败。
   - 短物理源码路径修复已推 main：`package-libvlc=c7ca4da2e690bb336d4a95ec6cc4cdc5e4cc422d`、`build=9e2337bb94a4deaeb6500a6de4d98ad30054ccfd`。源码放在按 recipe / 编译器 / 包版本 / 工作区 / 编译选项隔离的 `C:/ci/cache/native/vlc-src/<16位哈希>`；未关闭 FluidSynth 或编译器检查。Windows 独立 gentables 配置 / 编译 / 两份表头生成通过，PowerShell 语法检查通过。
   - **#33 固定提交**：SOURCE_SHA / FFmpeg 同 #32，BUILD_REF / package-libvlc 使用上述短路径修复提交。实际源码目录 `C:/ci/cache/native/vlc-src/8bc964eb9f39d1de`。该轮确认 FluidSynth 完整编译 / 安装成功，后续 SID 的 `all-local` 与 `libresidc.la` 并行竞态导致 MSYS2 `ln -sf` 复制未生成的文件，最终 FAILURE；其余依赖收尾完成，未进入播放测试。
-  - SID 构建顺序修复 `97b1245e1f3156eee436fa2e4228853da9fa1086` 已推 `package-libvlc/main`：`all-local` 明确依赖 `libresidc.la`，保留 SID 功能。补丁干净应用 / 幂等检查通过；隔离原生验证在自动生成配置阶段主动停止，避免诊断日志占用下一轮清理的旧工作区，未计为原生验证通过。
-  - **当前 #34 正在运行**：`SOURCE_SHA=71ab0742c163e1b71cf61bd066ed6a0052ad1ac8`、`package-libvlc=97b1245e1f3156eee436fa2e4228853da9fa1086`；BUILD_REF / FFmpeg 同 #33。本轮范围保持现有 7 项双引擎冒烟。
+  - SID 构建顺序修复 `97b1245e1f3156eee436fa2e4228853da9fa1086` 已推 `package-libvlc/main`：`all-local` 明确依赖 `libresidc.la`，保留 SID 功能。补丁干净应用 / 幂等检查通过；首次隔离原生验证在自动生成配置阶段主动停止，避免诊断日志占用下一轮清理的旧工作区，未计为原生验证通过。随后确认 #33 已结束、#34 使用不同目录 `19abb7fed9b7b4c6`，在闲置旧缓存独立恢复 SID 并行构建 / 安装，退出码 **0**，日志 `C:/ci/cache/native/vlc-src/probe-sid-order/sid-resume.log`，包含 `PASS_SID_resume_parallel_build_install`。不将独立结果算作 #33 通过。
+  - **#34 已失败**：`SOURCE_SHA=71ab0742c163e1b71cf61bd066ed6a0052ad1ac8`、`package-libvlc=97b1245e1f3156eee436fa2e4228853da9fa1086`；BUILD_REF / FFmpeg 同 #33。失败点为 VLC 主库 configure 缺 BUILDCC；43 个 contrib 依赖已构建完成。本轮范围保持现有 7 项双引擎冒烟。
+  - **独立 VLC 主库预检**：在 `C:/ci/cache/native/vlc-preflight-97b1245` 使用独立输出 / 锁和闲置旧源码缓存，以 2 线程预检。首次 configure 因 MSYS2 无 `c11` / `c99` 包装器而找不到 `BUILDCC`；并非交叉编译失败。`build/main` 修复 `b221cd8` 显式选择 `gcc -std=gnu17`，保留外部 BUILDCC 覆盖。原生 PowerShell 语法检查与真实 FourCC 生成器编译 / 运行均通过（视频 871 / 音频 265 / 字幕 50 项）。恢复后的 configure 已通过，主库及 FFmpeg / DirectX 接口已编译，继续插件构建中；完整安装 / 依赖校验与冒烟仍未完成。
+  - **按用户要求改成分块验证，停止盲目整条 CI 重跑**：`package-libvlc/main` 已推 `96adb2a`、`36fc416`、`e88d3f3`、`14ead3f`。`tool/check_vlc_contrib.py` 解析 GNU make 依赖图，逐包运行、独立日志、失败即停；已验证包保留，配方变更仅使该包和下游失效。编译器 / 全局参数变更拒绝混用缓存；恢复状态、未选包失效传播、路径清理与缓存标记测试 **4/4** 通过。
+  - **真实 Windows 分项结果**：旧闲置源码 `C:/ci/cache/native/vlc-src/8bc964eb9f39d1de` 首轮检查 **43/43 passed，43 项缓存复用**，报告 `C:/ci/cache/native/vlc-package-checks/report/summary.json`。这表示既有 contrib 安装检查通过，不代表所有插件或播放通过。
+  - **FFmpeg 插件独立验证**：VLC 的 `-Wc,-static` 使裸 `-lavformat` 选择 MSYS2 静态库；改用 package-ffmpeg 的明确 `.dll.a` 路径。AVIO、avcodec、avformat、packetizer_avparser、swscale 单独链接通过；核心加 4 个插件的 ABI / DLL 闭包检查通过（5 个二进制）。
+  - **MIDI 独立验证**：明确选择 FluidLite，并添加 `FLUIDLITE_STATIC` 与静态 Vorbis 依赖；最小消费者编译 / 链接 / 运行退出 **0**，VLC fluidsynth 插件单独链接通过，保留 MIDI 功能。
+  - **空间音频独立验证**：`libspatialaudio.a` 错用 mysofa DLL 导入声明；Windows 配方增加 `MYSOFA_STATIC`。隔离目录 `C:/ci/cache/native/spatialaudio-consumer-check` 的实际库编译 / 安装 / C++ 消费者链接 / 运行退出 **0**。正式单包重建与插件链接现已通过；随后 43 项全通过并全部缓存命中，其他依赖未重编。日志 `C:/ci/cache/native/vlc-package-checks/current/spatial-rebuild.log`。
+  - **Windows 增量缓存修复 `build/main=01bc293`**：源码缓存键与完整打包配方解耦；逐包配方与工具链元数据另行验证。运行库缓存包含依赖状态、FFmpeg 导入库和 MIDI 参数，经过 ABI 检查后原子发布；缓存恢复仍复验。原生 PowerShell 语法、冷热状态、暖缓存稳定性、依赖 / 原生配方变更失效检查均通过。`BUILDCC` 修复 `b221cd8` 包含其中。
+  - **插件矩阵已结束**：最终两个失败目标为 `libspatialaudio_plugin.la`（已修复并单独链接通过）和 `libarchive_plugin.la`。后者的 CMake 选择了 `C:/msys64/mingw64/lib/libz.dll.a`，造成静态插件未解析的 `__imp_inflate*` / `__imp_crc32`；配方指定 `ZLIB_USE_STATIC_LIBS=ON` 后，libarchive 单包编译 / 安装、覆盖所有格式与过滤器的 C 消费者链接 / 运行、归档插件链接均通过。再次全查 **43/43 passed，43 项缓存复用**。
+  - **libmpv 已完成原生构建**：FreeType、FriBidi、HarfBuzz、libass、libplacebo、mpv 顺序构建全部通过；最终 DLL 只导入系统库与 owner 的 FFmpeg，原配方指纹与 CI 计算方式匹配。日志 `C:/ci/cache/native/mpv-preflight/build.log`，退出 **0**，已发布外部缓存供下一轮 CI 复用。
+  - **libVLC 编译 / 安装已完成，严格检查继续暴露问题**：全量扫描 **326 个 DLL 文件**，仅 `libgme_plugin.dll` 引用外部 `libgcc_s_seh-1.dll`。`21db00e` 已推 main，移除 contrib `.pc` / `.la` 的显式 `-lgcc_s`，避免覆盖 `-static-libgcc`；正式配置下 MIDI 与 GME 独立编译 / 链接均通过。
+  - **正式配置头变化**：初次独立链接使用诊断覆盖参数，随后用正式 MIDI / FFmpeg 配置重新生成 Makefile，并复用 **316 个**编译器 / 平台探测结果。配置头发生变化，Make 需要重编受影响对象；不能把先前的分项链接通过视为正式组合通过。
+  - **配置记录转义修复 `ea874b1`**：VLC 的 `CONFIGURE_LINE` 没有转义环境库路径中的双引号，导致 `src/misc/messages.c` 编译失败。新增 `fix_vlc_config.py`，保留其他配置、正确编码为 C 字符串；幂等 / CRLF 单测 **2/2**，实际 Windows GCC 最小 C 消费者语法验证退出 **0**。原生 `git grep` 确认仅 `messages.c` 使用该宏，因此本次修复保留配置头时间戳并只使该对象失效，避免再次全局重编。
+  - **当前最终组合验证运行中**：以 **4 线程**恢复剩余对象（无 configure 或 43 项依赖重启），日志 `C:/ci/cache/native/vlc-preflight-97b1245/production-profile.log`。完整安装 / 全 DLL ABI 检查 / 搬迁后加载与插件发现全部成功后才发布运行库缓存；之前失败日志已分别保留。
+  - **缓存完善 `build/main=b1f1d24`**：增加 `OPX_VLC_BUILD_DIR` 保存主库对象、仅首次升级旧依赖状态时接管缓存，并缓存完成的 libmpv。原生 PowerShell 语法检查通过。Windows 检出是 CRLF，最终运行库指纹从真实 Windows 最新 main 检出计算，避免本地 LF 字节差异导致缓存失配。
+  - **尚未跑 #35**：等待上述最终组合检查通过，然后只跑两引擎各 7 项现有播放冒烟。不把分项、原生构建或 DLL 扫描通过冒充播放通过。
 - Windows 本轮范围：用户明确选择“仅完成 Windows 构建与现有冒烟测试”。不创建素材镜像，不同步约 19GB 素材，不运行 Windows 405 项全量；继续本机原生构建与现有 7 项双引擎冒烟。
 - Pixel 9：旧 PID 75641 已退出，但新的字幕全量任务仍占用该真机，不能清理 `example-wandroid/build` 或同时安装格式测试。
 - Android 模拟器：使用独立 `example-wandroid-materials/` 与空闲 `emulator-5554` 补测光盘及功能回归，首轮报告 `android-20261128-155154-945747` 因 guest shell 无响应主动中止，记录为基础设施错误。冷启动同一 AVD（不清数据、不重启共享 ADB）后，第二轮 `android-20261128-155650-778161` 共 17 项，15 通过、BIN/DVD 掉帧失败、ASX 路由覆盖失败；修复后第三轮 `android-20261128-160156-848263` **5/5 通过**，包含同批 ASX/STRM、生成 ASX、MMF 和单独 BIN/DVD（保留前次掉帧记录）。本轮 Android 17 个唯一用例均已有通过记录，但不拼接成一次全量通过声明；不替代 Pixel 9 的 4K 硬解复验。
