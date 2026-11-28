@@ -358,13 +358,15 @@ class _Check {
     // 1. Start.
     final opened = Stopwatch()..start();
     final path = sample['path'] as String;
+    final parsed = Uri.tryParse(path);
     // Frames keep coming while opening: in auto mode the engine is created
     // inside open(), and its setup needs the frame loop running.
     var openDone = false;
     final opening = backend
         .open(
-          Uri.tryParse(path)?.hasScheme == true
-              ? Uri.parse(path)
+          // Preserve the file scheme for native Windows drive paths.
+          parsed != null && parsed.hasScheme && parsed.scheme.length > 1
+              ? parsed
               : Uri.file(path),
         )
         .whenComplete(() => openDone = true);

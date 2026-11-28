@@ -32,7 +32,7 @@ for name, issue, path, disc in items:
         if f.get('sha256') and (disc or f.get('path') == str(path.relative_to(pack))):
             assert prepare.sha256(pack/f['path']) == f['sha256'], f"checksum mismatch: {f['path']}"
     info = prepare.probe(path)
-    uri = f'{disc}://{advanced}/{name}' if disc else str(path)
+    uri = (advanced/name).as_uri().replace('file:', f'{disc}:', 1) if disc else str(path)
     entry = dict(id=f'advanced-{name}', linear=[issue], ext=disc or 'mp4',
                  path=uri, status='ok', probe=info, note=name,
                  sha256=prepare.sha256(path), bytes=path.stat().st_size,
